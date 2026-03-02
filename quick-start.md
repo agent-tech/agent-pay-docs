@@ -51,7 +51,7 @@ const intent = await client.createIntent({
   amount: "100.50",
   payerChain: "base"
 });
-
+```
 ---
 
 ### 5. Finalize Payment
