@@ -11,7 +11,7 @@ Choose your preferred environment:
 
 Before initializing the client, you need to obtain your API key and secret key:
 
-1. Visit [https://alpha.agent.tech/dashboard](https://alpha.agent.tech/dashboard)
+1. Visit [https://agent.tech/dashboard](https://agent.tech/dashboard)
 2. Sign in with your email
 3. Click "Create Agent" to create a new agent
 4. Generate your API key and secret key from the agent dashboard

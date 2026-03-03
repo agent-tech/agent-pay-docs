@@ -1,17 +1,15 @@
 ---
-name: agent-authenticated-payment
+name: agent-automated-setup-payment
 version: 1.0.0
-description: Full automation for AI agents (e.g., OpenClaw) to authenticate with email, create API keys programmatically, and execute automated payments using AgentPay SDK with authenticated mode. Backend automatically signs payments - no private key management required.
-metadata: {"category":"payment","blockchains":["solana","base"],"protocol":"x402","sdk":"agentpay","mode":"authenticated","automation":"full"}
+description: Full automation for AI agents (e.g., OpenClaw) to authenticate with email, create API keys programmatically, and execute automated payments using AgentPay SDK. Complete end-to-end workflow from account setup to payment execution.
+metadata: {"category":"payment","blockchains":["solana","base"],"protocol":"x402","sdk":"agentpay","automation":"full"}
 ---
 
-# Agent Authenticated Payment — Backend-Signed Payment Workflow
+# Agent Automated Setup & Payment — Full AI Agent Workflow
 
 This skill enables AI agents (like OpenClaw) to complete the **entire AgentPay setup and payment workflow automatically**: authenticate with email, create API keys programmatically, initialize authenticated SDK client, create payment intents, and execute payments. No manual dashboard interaction required.
 
-**Use Case:** Choose this mode when you want **backend-automated signing** - the backend handles all transaction signing automatically. You don't need to manage private keys or sign transactions locally. Perfect for agents that want simplicity and don't need direct control over signing.
-
-**SDK Support:** This skill uses the AgentPay SDK (JavaScript/TypeScript and Go) with **authenticated mode** (`PayClient`) for automated backend-signed payments. Requires API key and secret key.
+**SDK Support:** This skill uses the AgentPay SDK (JavaScript/TypeScript and Go) with authenticated mode for automated backend-signed payments.
 
 ---
 
@@ -19,8 +17,8 @@ This skill enables AI agents (like OpenClaw) to complete the **entire AgentPay s
 
 ```json
 {
-  "name": "agent_authenticated_payment",
-  "description": "Complete end-to-end automation for AI agents: authenticate with email, create API key programmatically, and execute automated payments using AgentPay SDK with authenticated mode. Backend automatically signs payments - no private key management required.",
+  "name": "agent_automated_setup_payment",
+  "description": "Complete end-to-end automation for AI agents: authenticate with email, create API key programmatically, and execute automated payments using AgentPay SDK with authenticated mode.",
   "input_schema": {
     "type": "object",
     "properties": {
@@ -1125,6 +1123,6 @@ async function handlePaymentWithRetry(
 - [Query Intent Status](query-intent-status.md)
 - [Payment Polling](payment-polling.md)
 - [Error Handling](error-handling.md)
-- [Agent Public Payment](agent-public-payment.md) (Public mode workflow)
+- [Agent Payment Automation](agent-payment-automation.md) (Public mode workflow)
 - [API Documentation: Authentication](../api/auth.md)
 - [API Documentation: Intents](../api/intents.md)

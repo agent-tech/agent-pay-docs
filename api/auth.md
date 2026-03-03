@@ -6,7 +6,7 @@ AgentPay uses API keys and Bearer tokens to secure requests.
 
 To obtain your API key and secret key, follow these steps:
 
-1. **Visit the Dashboard**: Go to [https://alpha.agent.tech/dashboard](https://alpha.agent.tech/dashboard)
+1. **Visit the Dashboard**: Go to [https://agent.tech/dashboard](https://agent.tech/dashboard)
 2. **Sign In**: Log in with your email address
 3. **Create an Agent**: Click on "Create Agent" below the login area
 4. **Generate API Key**: After creating an agent, you can generate your API key and secret key
