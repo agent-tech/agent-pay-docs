@@ -1,6 +1,7 @@
 # 👋 Welcome to AgentPay
 
-AgentPay is a developer-first payment gateway designed to enable seamless **USDC** settlements on the **Base** chain. 
+AgentPay is a developer-first payment gateway designed to enable seamless **USDC** settlements on the **Base** chain.
+The first release focuses on **USDC** payments on **Base**, with future plans to support **multi-chain** and **multi-token** settlements.
 
 ### Why AgentPay?
 * **Base Native**: Leverage Layer 2 technology for near-zero fees and sub-second finality.
