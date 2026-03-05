@@ -4,7 +4,9 @@ AgentPay is a developer-first programmable payment layer designed to enable seam
 
 ### Why AgentPay?
 **Multi-Chain Native**: Support for **Base**, **Solana**, and growing with near-zero fees and sub-second finality across chains.
+
 **Agent-Led Automation**: Utilize managed Agent wallets for fully automated, server-side payouts.
+
 **Developer First**: Native SDKs for JS/TS and Go, covering everything from web frontends to backend microservices.
 
 [Get Started with the Quick Start Guide →](quick-start.md)# agent-pay-docs
