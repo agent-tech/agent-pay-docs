@@ -1,0 +1,138 @@
+{
+  "version": "4.3.0",
+  "created": "2026-03-19T08:41:54Z",
+  "files": [
+    {
+      "path": ".nojekyll"
+    },
+    {
+      "path": "404.html"
+    },
+    {
+      "path": "api/auth/index.html"
+    },
+    {
+      "path": "api/chains/index.html"
+    },
+    {
+      "path": "api/fees/index.html"
+    },
+    {
+      "path": "api/intents/index.html"
+    },
+    {
+      "path": "api/statuses/index.html"
+    },
+    {
+      "path": "architecture/index.html"
+    },
+    {
+      "path": "auth/index.html"
+    },
+    {
+      "path": "book.json"
+    },
+    {
+      "path": "CNAME"
+    },
+    {
+      "path": "index.html"
+    },
+    {
+      "path": "package-lock.json"
+    },
+    {
+      "path": "package.json"
+    },
+    {
+      "path": "quick-start/index.html"
+    },
+    {
+      "path": "resources/css/retype.css"
+    },
+    {
+      "path": "resources/fonts/Inter-italic-latin-var.woff2"
+    },
+    {
+      "path": "resources/fonts/Inter-roman-latin-var.woff2"
+    },
+    {
+      "path": "resources/js/config.js"
+    },
+    {
+      "path": "resources/js/lunr.js"
+    },
+    {
+      "path": "resources/js/mermaid.js"
+    },
+    {
+      "path": "resources/js/prism.js"
+    },
+    {
+      "path": "resources/js/retype.js"
+    },
+    {
+      "path": "resources/js/search.json"
+    },
+    {
+      "path": "resources/lunr.js.LICENSE.txt"
+    },
+    {
+      "path": "resources/mermaid.js.LICENSE.txt"
+    },
+    {
+      "path": "resources/prism.js.LICENSE.txt"
+    },
+    {
+      "path": "resources/retype.js.LICENSE.txt"
+    },
+    {
+      "path": "resources/retype.LICENSE.txt"
+    },
+    {
+      "path": "robots.txt"
+    },
+    {
+      "path": "sdks/advanced/index.html"
+    },
+    {
+      "path": "sdks/go/index.html"
+    },
+    {
+      "path": "sdks/js-ts/index.html"
+    },
+    {
+      "path": "sitemap.xml.gz"
+    },
+    {
+      "path": "skills/agent-authenticated-payment/index.html"
+    },
+    {
+      "path": "skills/agent-automated-setup-payment/index.html"
+    },
+    {
+      "path": "skills/agent-public-payment/index.html"
+    },
+    {
+      "path": "skills/create-intent/index.html"
+    },
+    {
+      "path": "skills/error-handling/index.html"
+    },
+    {
+      "path": "skills/execute-intent/index.html"
+    },
+    {
+      "path": "skills/payment-polling/index.html"
+    },
+    {
+      "path": "skills/query-intent-status/index.html"
+    },
+    {
+      "path": "skills/submit-proof/index.html"
+    },
+    {
+      "path": "support/error-codes/index.html"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+input: .
+output: .retype
+
+url: https://docs.agent.tech # Use your website address here
+
+start:
+  # Uncomment the next line to try Retype Pro features
+  # pro: true
+
+branding:
+  title: AgentPay
+  label: Docs
+
+
+
+
+footer:
+  copyright: "&copy; Copyright {{ year }}. All rights reserved."

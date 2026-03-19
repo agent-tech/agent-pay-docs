@@ -1,0 +1,31 @@
+{
+  "name": "agentpaydoc",
+  "version": "1.0.0",
+  "description": "AgentPay is a developer-first programmable payment layer designed to enable seamless stablecoin payment across multiple chains. The first release supports **USDC** payments on **Base** and **Solana** via **x402**, with active expansion to **BNB Chain**, **Ethereum**, and more.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/agent-tech/agent-pay-docs.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/agent-tech/agent-pay-docs/issues"
+  },
+  "homepage": "https://github.com/agent-tech/agent-pay-docs#readme",
+  "devDependencies": {
+    "gitbook-plugin-theme-fexa": "^1.0.6",
+    "honkit": "^6.1.7"
+  },
+  "dependencies": {
+    "gitbook-plugin-theme-official": "^2.1.1"
+  }
+}

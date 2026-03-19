@@ -1123,6 +1123,6 @@ async function handlePaymentWithRetry(
 - [Query Intent Status](query-intent-status.md)
 - [Payment Polling](payment-polling.md)
 - [Error Handling](error-handling.md)
-- [Agent Payment Automation](agent-payment-automation.md) (Public mode workflow)
+- [Agent Payment Automation](agent-public-payment.md) (Public mode workflow)
 - [API Documentation: Authentication](../api/auth.md)
 - [API Documentation: Intents](../api/intents.md)
