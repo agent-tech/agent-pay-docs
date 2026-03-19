@@ -7,6 +7,8 @@
     "doc": "docs"
   },
   "scripts": {
+    "build": "retype build",
+    "dev": "retype watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -23,7 +25,8 @@
   "homepage": "https://github.com/agent-tech/agent-pay-docs#readme",
   "devDependencies": {
     "gitbook-plugin-theme-fexa": "^1.0.6",
-    "honkit": "^6.1.7"
+    "honkit": "^6.1.7",
+    "retypeapp": "^4.3.0"
   },
   "dependencies": {
     "gitbook-plugin-theme-official": "^2.1.1"

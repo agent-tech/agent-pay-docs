@@ -1,6 +1,6 @@
 {
   "version": "4.3.0",
-  "created": "2026-03-19T08:41:54Z",
+  "created": "2026-03-19T09:16:12Z",
   "files": [
     {
       "path": ".nojekyll"
@@ -30,7 +30,8 @@
       "path": "auth/index.html"
     },
     {
-      "path": "book.json"
+      "path": "book.json",
+      "old": true
     },
     {
       "path": "CNAME"
@@ -130,6 +131,9 @@
     },
     {
       "path": "skills/submit-proof/index.html"
+    },
+    {
+      "path": "static/image_logo.png"
     },
     {
       "path": "support/error-codes/index.html"
