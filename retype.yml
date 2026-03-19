@@ -10,6 +10,8 @@ start:
 branding:
   title: AgentPay
   label: Docs
+  logo: /static/image_logo.png
+  logoDark: /static/image_logo.png
 
 
 
