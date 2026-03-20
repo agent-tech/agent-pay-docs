@@ -31,20 +31,28 @@
       },
       "status": {
         "type": "string",
-        "enum": ["AWAITING_PAYMENT", "PENDING", "SOURCE_SETTLED", "BASE_SETTLING", "BASE_SETTLED", "VERIFICATION_FAILED", "EXPIRED"],
+        "enum": ["AWAITING_PAYMENT", "PENDING", "SOURCE_SETTLED", "BASE_SETTLING", "BASE_SETTLED", "VERIFICATION_FAILED", "EXPIRED", "PARTIAL_SETTLEMENT"],
         "description": "Current status of the intent"
       },
       "base_payment": {
         "type": "object",
         "description": "Payment receipt information (available when status is BASE_SETTLED)",
         "properties": {
-          "transaction_hash": {
+          "tx_hash": {
             "type": "string",
             "description": "Transaction hash on Base chain"
           },
-          "block_number": {
-            "type": "integer",
-            "description": "Block number on Base chain"
+          "settle_proof": {
+            "type": "string",
+            "description": "Settlement proof"
+          },
+          "settled_at": {
+            "type": "string",
+            "description": "Settlement timestamp"
+          },
+          "explorer_url": {
+            "type": "string",
+            "description": "Block explorer URL"
           }
         }
       },
@@ -83,8 +91,10 @@
   "intent_id": "int_abc123xyz",
   "status": "BASE_SETTLED",
   "base_payment": {
-    "transaction_hash": "0x1234...abcd",
-    "block_number": 12345678
+    "tx_hash": "0x1234...abcd",
+    "settle_proof": "...",
+    "settled_at": "2024-01-01T12:05:00Z",
+    "explorer_url": "https://basescan.org/tx/0x1234...abcd"
   },
   "fee_breakdown": {
     "source_chain": "base",
@@ -111,31 +121,31 @@
 | `BASE_SETTLED` | Success. Funds have arrived at the destination | Yes |
 | `VERIFICATION_FAILED` | Source payment verification failed | Yes |
 | `EXPIRED` | Intent was not executed within 10 minutes | Yes |
+| `PARTIAL_SETTLEMENT` | Partial amount settled on Base | Yes |
 
 ## Code Examples
 
 ### TypeScript/JavaScript
 
 ```typescript
-import { PayClient } from '@agent-tech/pay';
+import { PayClient } from '@agenttech/pay';
 
 const client = new PayClient({
-  baseURL: 'https://api-pay.agent.tech',
-  apiKey: 'your-api-key',
-  secretKey: 'your-secret-key',
+  baseUrl: 'https://api-pay.agent.tech',
+  auth: { apiKey: 'your-api-key', secretKey: 'your-secret-key' },
 });
 
 // Query intent status
 const intent = await client.getIntent(intentId);
 
-console.log(`Intent ID: ${intent.intent_id}`);
+console.log(`Intent ID: ${intent.intentId}`);
 console.log(`Status: ${intent.status}`);
 
 // Handle different statuses
 switch (intent.status) {
   case 'BASE_SETTLED':
     console.log('Payment complete!');
-    console.log(`Transaction hash: ${intent.base_payment.transaction_hash}`);
+    console.log(`Transaction hash: ${intent.basePayment.txHash}`);
     break;
   case 'EXPIRED':
   case 'VERIFICATION_FAILED':
@@ -182,7 +192,7 @@ func main() {
     switch intent.Status {
     case pay.StatusBaseSettled:
         log.Println("Payment complete!")
-        log.Printf("Transaction hash: %s", intent.BasePayment.TransactionHash)
+        log.Printf("Transaction hash: %s", intent.BasePayment.TxHash)
     case pay.StatusExpired, pay.StatusVerificationFailed:
         log.Printf("Payment failed: %s", intent.Status)
     default:
@@ -202,6 +212,8 @@ AWAITING_PAYMENT
     └──> PENDING (after execution)
             │
             ├──> VERIFICATION_FAILED (if verification fails)
+            │
+            ├──> PARTIAL_SETTLEMENT (if partial amount settled)
             │
             └──> SOURCE_SETTLED
                     │
@@ -227,7 +239,7 @@ AWAITING_PAYMENT
 try {
   const intent = await client.getIntent(intentId);
 } catch (error) {
-  if (error instanceof RequestError) {
+  if (error instanceof PayApiError) {
     switch (error.statusCode) {
       case 404:
         console.error("Intent not found. Verify the intent ID.");
@@ -256,10 +268,10 @@ async function pollIntentStatus(intentId: string, maxAttempts: number = 30) {
       return { success: true, intent };
     }
     
-    if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED') {
+    if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED' || intent.status === 'PARTIAL_SETTLEMENT') {
       return { success: false, intent };
     }
-    
+
     // Wait before next poll (2-5 seconds recommended)
     await new Promise(resolve => setTimeout(resolve, 3000));
   }
@@ -282,7 +294,7 @@ async function pollWithBackoff(intentId: string) {
       return intent;
     }
     
-    if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED') {
+    if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED' || intent.status === 'PARTIAL_SETTLEMENT') {
       throw new Error(`Payment failed: ${intent.status}`);
     }
     
@@ -295,13 +307,13 @@ async function pollWithBackoff(intentId: string) {
 
 ## Important Notes
 
-1. **Terminal States**: Once status reaches `BASE_SETTLED`, `EXPIRED`, or `VERIFICATION_FAILED`, it will not change. Stop polling.
+1. **Terminal States**: Once status reaches `BASE_SETTLED`, `EXPIRED`, `VERIFICATION_FAILED`, or `PARTIAL_SETTLEMENT`, it will not change. Stop polling.
 
 2. **Polling Interval**: Recommended polling interval is 2-5 seconds. Avoid polling too frequently to respect rate limits (60 req/min/IP).
 
 3. **Timeout**: Intents expire 10 minutes after creation. If status is still `AWAITING_PAYMENT` after expiration, it will become `EXPIRED`.
 
-4. **Transaction Receipt**: When status is `BASE_SETTLED`, save the `base_payment.transaction_hash` for record-keeping.
+4. **Transaction Receipt**: When status is `BASE_SETTLED`, save the `basePayment.txHash` for record-keeping.
 
 5. **Rate Limiting**: Be mindful of rate limits. Use exponential backoff for retries.
 

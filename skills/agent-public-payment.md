@@ -38,8 +38,7 @@ This skill enables AI agents to complete cross-chain USDC payments **end-to-end 
       },
       "payer_chain": {
         "type": "string",
-        "enum": ["base", "solana"],
-        "description": "Source chain: 'base' for Base chain, 'solana' for Solana chain"
+        "description": "Source chain identifier. See Supported Chains documentation for the full list of supported chains."
       },
       "wallet_type": {
         "type": "string",
@@ -91,7 +90,7 @@ This skill enables AI agents to complete cross-chain USDC payments **end-to-end 
 ### Complete Example (TypeScript)
 
 ```typescript
-import { PublicPayClient } from '@agent-tech/pay';
+import { PublicPayClient } from '@agenttech/pay';
 import { Wallet } from 'ethers';
 import { buildEVMsettleProof } from './x402-signing';
 
@@ -103,7 +102,7 @@ async function completeX402Payment(recipient: string, amount: string) {
 
   // Step 2: Initialize SDK client
   const client = new PublicPayClient({
-    baseURL: 'https://api-pay.agent.tech',
+    baseUrl: 'https://api-pay.agent.tech',
   });
 
   // Step 3: Create intent
@@ -113,38 +112,39 @@ async function completeX402Payment(recipient: string, amount: string) {
     payerChain: 'base',
   });
 
-  console.log(`Intent created: ${intent.intent_id}`);
-  console.log(`Payment requirements:`, intent.payment_requirements);
+  console.log(`Intent created: ${intent.intentId}`);
+  console.log(`Payment requirements:`, intent.paymentRequirements);
 
   // Step 4: Sign X402 proof locally
   const settleProof = buildEVMsettleProof(
-    intent.payment_requirements,
+    intent.paymentRequirements,
     payerAddress,
     privateKey
   );
 
   // Step 5: Submit proof
-  const result = await client.submitProof(intent.intent_id, settleProof);
+  const result = await client.submitProof(intent.intentId, settleProof);
   console.log(`Proof submitted. Status: ${result.status}`);
 
   // Step 6: Poll until completion
   let finalIntent = result;
   while (
     finalIntent.status !== 'BASE_SETTLED' &&
+    finalIntent.status !== 'PARTIAL_SETTLEMENT' &&
     finalIntent.status !== 'EXPIRED' &&
     finalIntent.status !== 'VERIFICATION_FAILED'
   ) {
     await new Promise(resolve => setTimeout(resolve, 3000));
-    finalIntent = await client.getIntent(intent.intent_id);
+    finalIntent = await client.getIntent(intent.intentId);
     console.log(`Status: ${finalIntent.status}`);
   }
 
   if (finalIntent.status === 'BASE_SETTLED') {
-    console.log(`Payment complete! Transaction: ${finalIntent.base_payment.transaction_hash}`);
+    console.log(`Payment complete! Transaction: ${finalIntent.basePayment.txHash}`);
     return {
       success: true,
-      intent_id: finalIntent.intent_id,
-      transaction_hash: finalIntent.base_payment.transaction_hash,
+      intentId: finalIntent.intentId,
+      txHash: finalIntent.basePayment.txHash,
     };
   } else {
     throw new Error(`Payment failed: ${finalIntent.status}`);
@@ -561,7 +561,7 @@ async function buildSolanasettleProof(
 ### TypeScript/JavaScript Complete Example
 
 ```typescript
-import { PublicPayClient } from '@agent-tech/pay';
+import { PublicPayClient } from '@agenttech/pay';
 import { Wallet } from 'ethers';
 import { buildEVMsettleProof } from './x402-signing';
 
@@ -572,7 +572,7 @@ async function completeX402PaymentFlow(
 ) {
   // Initialize SDK client (public mode, no auth required)
   const client = new PublicPayClient({
-    baseURL: 'https://api-pay.agent.tech',
+    baseUrl: 'https://api-pay.agent.tech',
   });
 
   // Step 1: Generate or load wallet
@@ -589,13 +589,13 @@ async function completeX402PaymentFlow(
     payerChain,
   });
 
-  console.log(`Intent created: ${intent.intent_id}`);
+  console.log(`Intent created: ${intent.intentId}`);
   console.log(`Status: ${intent.status}`);
-  console.log(`Expires at: ${intent.expires_at}`);
+  console.log(`Expires at: ${intent.expiresAt}`);
 
   // Step 3: Sign X402 proof locally
   const settleProof = buildEVMsettleProof(
-    intent.payment_requirements,
+    intent.paymentRequirements,
     payerAddress,
     privateKey
   );
@@ -603,7 +603,7 @@ async function completeX402PaymentFlow(
   console.log('X402 proof signed locally');
 
   // Step 4: Submit proof
-  const submitResult = await client.submitProof(intent.intent_id, settleProof);
+  const submitResult = await client.submitProof(intent.intentId, settleProof);
   console.log(`Proof submitted. Status: ${submitResult.status}`);
 
   // Step 5: Poll until completion
@@ -613,6 +613,7 @@ async function completeX402PaymentFlow(
 
   while (
     currentIntent.status !== 'BASE_SETTLED' &&
+    currentIntent.status !== 'PARTIAL_SETTLEMENT' &&
     currentIntent.status !== 'EXPIRED' &&
     currentIntent.status !== 'VERIFICATION_FAILED' &&
     attempts < maxAttempts
@@ -621,7 +622,7 @@ async function completeX402PaymentFlow(
     attempts++;
 
     try {
-      currentIntent = await client.getIntent(intent.intent_id);
+      currentIntent = await client.getIntent(intent.intentId);
       console.log(`[${attempts}] Status: ${currentIntent.status}`);
     } catch (error) {
       console.error(`Error polling status: ${error}`);
@@ -632,18 +633,18 @@ async function completeX402PaymentFlow(
   // Final status check
   if (currentIntent.status === 'BASE_SETTLED') {
     console.log('✅ Payment complete!');
-    console.log(`Transaction hash: ${currentIntent.base_payment?.transaction_hash}`);
+    console.log(`Transaction hash: ${currentIntent.basePayment?.txHash}`);
     return {
       success: true,
-      intent_id: currentIntent.intent_id,
+      intentId: currentIntent.intentId,
       status: currentIntent.status,
-      transaction_hash: currentIntent.base_payment?.transaction_hash,
+      txHash: currentIntent.basePayment?.txHash,
     };
   } else {
     console.error(`❌ Payment failed: ${currentIntent.status}`);
     return {
       success: false,
-      intent_id: currentIntent.intent_id,
+      intentId: currentIntent.intentId,
       status: currentIntent.status,
     };
   }
@@ -735,6 +736,7 @@ func completeX402PaymentFlow(
 
     for attempts < maxAttempts {
         if currentIntent.Status == pay.StatusBaseSettled ||
+           currentIntent.Status == pay.StatusPartialSettlement ||
            currentIntent.Status == pay.StatusExpired ||
            currentIntent.Status == pay.StatusVerificationFailed {
             break
@@ -756,7 +758,7 @@ func completeX402PaymentFlow(
     // Final status check
     if currentIntent.Status == pay.StatusBaseSettled {
         log.Println("✅ Payment complete!")
-        log.Printf("Transaction hash: %s", currentIntent.BasePayment.TransactionHash)
+        log.Printf("Transaction hash: %s", currentIntent.BasePayment.TxHash)
         return nil
     } else {
         return fmt.Errorf("payment failed: %s", currentIntent.Status)
@@ -779,10 +781,11 @@ After you submit `settle_proof`, the backend verifies it and settles on the sour
 | `SOURCE_SETTLED` | Source chain settled |
 | `BASE_SETTLING` | Base payment in progress |
 | `BASE_SETTLED` | Done; merchant received USDC on Base |
+| `PARTIAL_SETTLEMENT` | Partial amount settled; remainder not fulfilled |
 | `VERIFICATION_FAILED` | Proof invalid or settlement failed |
 | `EXPIRED` | Intent timed out (e.g. 10 min) |
 
-**Valid payer_chain:** `solana`, `base`.
+**Valid payer_chain:** See [Supported Chains](../api/chains.md) for the full list.
 
 ```mermaid
 stateDiagram-v2
@@ -793,6 +796,7 @@ stateDiagram-v2
     PENDING --> VERIFICATION_FAILED: invalid
     SOURCE_SETTLED --> BASE_SETTLING: Base transfer
     BASE_SETTLING --> BASE_SETTLED: done
+    BASE_SETTLING --> PARTIAL_SETTLEMENT: partial
 ```
 
 ---
@@ -811,7 +815,7 @@ stateDiagram-v2
 ### Error Handling Example
 
 ```typescript
-import { PublicPayClient, RequestError } from '@agent-tech/pay';
+import { PublicPayClient, PayApiError } from '@agenttech/pay';
 
 async function handlePaymentWithRetry(
   client: PublicPayClient,
@@ -825,7 +829,7 @@ async function handlePaymentWithRetry(
     try {
       return await client.submitProof(intentId, settleProof);
     } catch (error) {
-      if (error instanceof RequestError) {
+      if (error instanceof PayApiError) {
         // Don't retry on client errors
         if (error.statusCode === 400 || error.statusCode === 404) {
           throw error;

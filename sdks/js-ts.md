@@ -5,7 +5,7 @@ A universal SDK for Node.js (v18+) and modern browsers. Two clients: **PayClient
 ## Install
 
 ```bash
-npm install @agent-tech/pay
+npm install @agenttech/pay
 ```
 
 ## PayClient (Server-Side)
@@ -13,7 +13,7 @@ npm install @agent-tech/pay
 Use on the backend when the Agent wallet should sign and execute the transfer.
 
 ```ts
-import { PayClient } from "@agent-tech/pay/server";
+import { PayClient } from "@agenttech/pay/server";
 
 const client = new PayClient({
   baseUrl: "https://api-pay.agent.tech",
@@ -36,7 +36,7 @@ console.log(intent.status);
 Use in the browser or payer-side when the user holds their own wallet and will sign an X402 payment and submit the settle proof.
 
 ```ts
-import { PublicPayClient } from "@agent-tech/pay/client";
+import { PublicPayClient } from "@agenttech/pay/client";
 
 const client = new PublicPayClient({
   baseUrl: "https://api-pay.agent.tech",
@@ -55,7 +55,7 @@ const intent = await client.getIntent(intentId);
 ## CLI
 
 ```bash
-npm install -g @agent-tech/pay
+npm install -g @agenttech/pay
 agent-pay auth set --api-key <key> --secret-key <key> --base-url https://api-pay.agent.tech
 
 # Server flow: create → execute → get

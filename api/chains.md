@@ -2,21 +2,35 @@
 
 AgentPay supports multiple source chains, with all payments ultimately settling on **Base**.
 
-## Chain Roles
+## Supported Chains
 
-| Chain | Role | Notes |
-| :--- | :--- | :--- |
-| Base | Payer chain (source) | Supported in authenticated and public modes |
-| Solana | Payer chain (source) | Supported as source chain |
-| BSC | Payer chain (source) | Supported as source chain |
-| Polygon | Payer chain (source) | Supported as source chain |
-| Arbitrum | Payer chain (source) | Supported as source chain |
-| Ethereum | Payer chain (source) | Supported as source chain |
-| Monad | Payer chain (source) | Supported as source chain |
+### Testnet
+
+| Chain | Identifier | Go Constant | TS Constant |
+| :--- | :--- | :--- | :--- |
+| Solana Devnet | `"solana-devnet"` | `pay.ChainSolanaDevnet` | `Chain.SolanaDevnet` |
+| Base Sepolia | `"base-sepolia"` | `pay.ChainBaseSepolia` | `Chain.BaseSepolia` |
+| BSC Testnet | `"bsc-testnet"` | `pay.ChainBSCTestnet` | `Chain.BscTestnet` |
+| Polygon Amoy | `"polygon-amoy"` | `pay.ChainPolygonAmoy` | `Chain.PolygonAmoy` |
+| Arbitrum Sepolia | `"arbitrum-sepolia"` | `pay.ChainArbitrumSepolia` | `Chain.ArbitrumSepolia` |
+| Ethereum Sepolia | `"ethereum-sepolia"` | `pay.ChainEthereumSepolia` | `Chain.EthereumSepolia` |
+| Monad Testnet | `"monad-testnet"` | `pay.ChainMonadTestnet` | `Chain.MonadTestnet` |
+
+### Mainnet
+
+| Chain | Identifier | Go Constant | TS Constant |
+| :--- | :--- | :--- | :--- |
+| Solana | `"solana-mainnet-beta"` | `pay.ChainSolanaMainnet` | `Chain.SolanaMainnet` |
+| Base | `"base"` | `pay.ChainBase` | `Chain.Base` |
+| BSC | `"bsc"` | `pay.ChainBSC` | `Chain.Bsc` |
+| Polygon | `"polygon"` | `pay.ChainPolygon` | `Chain.Polygon` |
+| Arbitrum | `"arbitrum"` | `pay.ChainArbitrum` | `Chain.Arbitrum` |
+| Ethereum | `"ethereum"` | `pay.ChainEthereum` | `Chain.Ethereum` |
+| Monad | `"monad"` | `pay.ChainMonad` | `Chain.Monad` |
 
 ## Settlement Chain
 
-**All payments settle on Base** regardless of the source chain. The `payer_chain` field in `CreateIntentRequest` specifies where the payer initiates the payment, but the final USDC transfer always occurs on Base.
+**All payments settle on Base** regardless of the source chain. The `payerChain` field in `CreateIntentRequest` specifies where the payer initiates the payment, but the final USDC transfer always occurs on Base.
 
 ## Chain Identifiers
 
@@ -34,13 +48,15 @@ Use the chain constants from each SDK instead of hardcoded strings.
 
 ## Usage
 
-When creating an intent, specify the source chain:
+When creating an intent, specify the source chain using SDK constants:
 
 ```typescript
+import { Chain } from '@agenttech/pay';
+
 const intent = await client.createIntent({
   email: "merchant@example.com",
   amount: "100.50",
-  payerChain: "base"  // e.g. "base", "polygon", "solana-mainnet-beta"
+  payerChain: Chain.Base,
 });
 ```
 
@@ -48,6 +64,6 @@ const intent = await client.createIntent({
 resp, err := client.CreateIntent(ctx, &pay.CreateIntentRequest{
     Email:      "merchant@example.com",
     Amount:     "100.50",
-    PayerChain: pay.ChainBase, // or pay.ChainPolygon / pay.ChainSolanaMainnet
+    PayerChain: pay.ChainBase,
 })
 ```

@@ -31,20 +31,28 @@
       },
       "status": {
         "type": "string",
-        "enum": ["PENDING", "SOURCE_SETTLED", "BASE_SETTLING", "BASE_SETTLED", "VERIFICATION_FAILED", "EXPIRED"],
+        "enum": ["PENDING", "SOURCE_SETTLED", "BASE_SETTLING", "BASE_SETTLED", "VERIFICATION_FAILED", "EXPIRED", "PARTIAL_SETTLEMENT"],
         "description": "Current status of the intent"
       },
       "base_payment": {
         "type": "object",
         "description": "Payment receipt information (available when status is BASE_SETTLED)",
         "properties": {
-          "transaction_hash": {
+          "tx_hash": {
             "type": "string",
             "description": "Transaction hash on Base chain"
           },
-          "block_number": {
-            "type": "integer",
-            "description": "Block number on Base chain"
+          "settle_proof": {
+            "type": "string",
+            "description": "Settlement proof"
+          },
+          "settled_at": {
+            "type": "string",
+            "description": "Settlement timestamp"
+          },
+          "explorer_url": {
+            "type": "string",
+            "description": "Block explorer URL"
           }
         }
       }
@@ -69,8 +77,10 @@
   "intent_id": "int_abc123xyz",
   "status": "BASE_SETTLED",
   "base_payment": {
-    "transaction_hash": "0x1234...abcd",
-    "block_number": 12345678
+    "tx_hash": "0x1234...abcd",
+    "settle_proof": "...",
+    "settled_at": "2024-01-01T12:05:00Z",
+    "explorer_url": "https://basescan.org/tx/0x1234...abcd"
   }
 }
 ```
@@ -83,28 +93,28 @@
 - `BASE_SETTLED`: Transfer complete (terminal state)
 - `VERIFICATION_FAILED`: Source payment verification failed (terminal state)
 - `EXPIRED`: Intent was not executed within 10 minutes (terminal state)
+- `PARTIAL_SETTLEMENT`: Partial amount settled on Base (terminal state)
 
 ## Code Examples
 
 ### TypeScript/JavaScript
 
 ```typescript
-import { PayClient } from '@agent-tech/pay';
+import { PayClient } from '@agenttech/pay';
 
 const client = new PayClient({
-  baseURL: 'https://api-pay.agent.tech',
-  apiKey: 'your-api-key',
-  secretKey: 'your-secret-key',
+  baseUrl: 'https://api-pay.agent.tech',
+  auth: { apiKey: 'your-api-key', secretKey: 'your-secret-key' },
 });
 
 // Execute intent
 const result = await client.executeIntent(intentId);
 
-console.log(`Intent ID: ${result.intent_id}`);
+console.log(`Intent ID: ${result.intentId}`);
 console.log(`Status: ${result.status}`);
 
 if (result.status === 'BASE_SETTLED') {
-  console.log(`Transaction hash: ${result.base_payment.transaction_hash}`);
+  console.log(`Transaction hash: ${result.basePayment.txHash}`);
 }
 ```
 
@@ -140,7 +150,7 @@ func main() {
     log.Printf("Status: %s", exec.Status)
     
     if exec.Status == pay.StatusBaseSettled {
-        log.Printf("Transaction hash: %s", exec.BasePayment.TransactionHash)
+        log.Printf("Transaction hash: %s", exec.BasePayment.TxHash)
     }
 }
 ```
@@ -164,7 +174,7 @@ func main() {
 try {
   const result = await client.executeIntent(intentId);
 } catch (error) {
-  if (error instanceof RequestError) {
+  if (error instanceof PayApiError) {
     switch (error.statusCode) {
       case 401:
         console.error("Authentication failed. Check your API credentials.");
@@ -195,7 +205,7 @@ try {
 3. **Status Progression**: The intent status typically progresses:
    - `AWAITING_PAYMENT` → `PENDING` → `SOURCE_SETTLED` → `BASE_SETTLING` → `BASE_SETTLED`
 
-4. **Terminal States**: Once the status reaches `BASE_SETTLED`, `EXPIRED`, or `VERIFICATION_FAILED`, it will not change.
+4. **Terminal States**: Once the status reaches `BASE_SETTLED`, `EXPIRED`, `VERIFICATION_FAILED`, or `PARTIAL_SETTLEMENT`, it will not change.
 
 5. **Polling**: For long-running operations, use [Query Intent Status](query-intent-status.md) to poll for status updates.
 

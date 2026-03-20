@@ -30,8 +30,7 @@
       },
       "payer_chain": {
         "type": "string",
-        "enum": ["base", "solana"],
-        "description": "Source chain identifier. 'base' for Base chain, 'solana' for Solana chain."
+        "description": "Source chain identifier. See Supported Chains documentation for the full list of supported chains."
       }
     },
     "required": ["amount", "payer_chain"],
@@ -70,11 +69,12 @@
 | `email` | string | One of email/recipient | Recipient email address |
 | `recipient` | string | One of email/recipient | Recipient wallet address |
 | `amount` | string | Yes | USDC amount as string (e.g. "100.50") |
-| `payer_chain` | string | Yes | Source chain: `"base"` or `"solana"` |
+| `payer_chain` | string | Yes | Source chain identifier. See [Supported Chains](../api/chains.md) for the full list. |
 
 ### Amount Rules
 
 - **Minimum**: 0.01 USDC
+- **Note**: The JS/TS SDK enforces a 0.2 USDC minimum client-side.
 - **Maximum**: 1,000,000 USDC
 - **Precision**: Up to 6 decimal places (e.g. `"0.000001"`, `"123.45"`)
 
@@ -108,12 +108,11 @@ See [Error Handling](error-handling.md) for detailed error information.
 ### TypeScript/JavaScript
 
 ```typescript
-import { PayClient } from '@agent-tech/pay';
+import { PayClient } from '@agenttech/pay';
 
 const client = new PayClient({
-  baseURL: 'https://api-pay.agent.tech',
-  apiKey: 'your-api-key',
-  secretKey: 'your-secret-key',
+  baseUrl: 'https://api-pay.agent.tech',
+  auth: { apiKey: 'your-api-key', secretKey: 'your-secret-key' },
 });
 
 // Create intent with email
@@ -123,7 +122,7 @@ const intent = await client.createIntent({
   payerChain: "base"
 });
 
-console.log(`Intent created: ${intent.intent_id}`);
+console.log(`Intent created: ${intent.intentId}`);
 console.log(`Status: ${intent.status}`);
 ```
 
@@ -172,7 +171,7 @@ func main() {
 |-------------|------------|-------------|----------|
 | 400 | ValidationError | Invalid amount (out of range) | Ensure amount is between 0.01 and 1,000,000 USDC |
 | 400 | ValidationError | Missing email or recipient | Provide either email or recipient |
-| 400 | ValidationError | Invalid payer_chain | Use "base" or "solana" |
+| 400 | ValidationError | Invalid payer_chain | Use a valid chain identifier (see Supported Chains) |
 | 401 | RequestError | Unauthorized (if auth required) | Provide valid API key and secret key |
 | 429 | RequestError | Rate limited | Implement exponential backoff, retry after delay |
 
@@ -186,7 +185,7 @@ try {
     payerChain: "base"
   });
 } catch (error) {
-  if (error instanceof RequestError) {
+  if (error instanceof PayApiError) {
     if (error.statusCode === 400) {
       console.error("Invalid request:", error.body);
     } else if (error.statusCode === 429) {
@@ -204,9 +203,7 @@ try {
    - **Public Mode**: No auth required, uses `/api` endpoints
    - **Authenticated Mode**: Requires Bearer token, uses `/v2` endpoints
 
-3. **Chain Support**:
-   - `base`: Supported in both authenticated and public modes
-   - `solana`: Public mode only
+3. **Chain Support**: See [Supported Chains](../api/chains.md) for the full list of 14 supported chains (7 testnet + 7 mainnet).
 
 4. **Settlement**: All payments ultimately settle on Base chain regardless of the source chain.
 

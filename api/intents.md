@@ -13,11 +13,12 @@ Creates a new payment intent. Returns an intent ID that you'll use for subsequen
 | Email | `email` | One of Email/Recipient | Recipient email address |
 | Recipient | `recipient` | One of Email/Recipient | Recipient wallet address |
 | Amount | `amount` | Yes | USDC amount as string (e.g. "100.50") |
-| PayerChain | `payer_chain` | Yes | Source chain: `"base"` or `"solana"` |
+| PayerChain | `payer_chain` | Yes | Source chain identifier. See [Supported Chains](chains.md) for the full list. |
 
 ### Amount Rules
 
 * **Minimum**: 0.01 USDC
+* **Note**: The JS/TS SDK enforces a 0.2 USDC minimum client-side.
 * **Maximum**: 1,000,000 USDC
 * **Precision**: Up to 6 decimal places (e.g. `"0.000001"`, `"123.45"`)
 
@@ -86,6 +87,7 @@ switch (intent.status) {
     break;
   case "EXPIRED":
   case "VERIFICATION_FAILED":
+  case "PARTIAL_SETTLEMENT":
     // Terminal failure
     break;
   default:
@@ -98,7 +100,7 @@ intent, err := client.GetIntent(ctx, intentID)
 switch intent.Status {
 case pay.StatusBaseSettled:
     // use intent.BasePayment for receipt
-case pay.StatusExpired, pay.StatusVerificationFailed:
+case pay.StatusExpired, pay.StatusVerificationFailed, pay.StatusPartialSettlement:
     // terminal failure
 default:
     // still processing — poll again

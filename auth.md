@@ -22,9 +22,8 @@ client, err := pay.NewClient(baseURL,
 
 ```typescript
 const client = new PayClient({
-  baseURL: 'https://api-pay.agent.tech',
-  apiKey: 'your-api-key',
-  secretKey: 'your-secret-key',
+  baseUrl: 'https://api-pay.agent.tech',
+  auth: { apiKey: 'your-api-key', secretKey: 'your-secret-key' },
 });
 ```
 
@@ -47,7 +46,7 @@ client, err := pay.NewClient(baseURL)
 
 ```typescript
 const client = new PublicPayClient({
-  baseURL: 'https://api-pay.agent.tech',
+  baseUrl: 'https://api-pay.agent.tech',
 });
 ```
 
