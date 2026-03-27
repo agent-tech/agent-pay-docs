@@ -46,6 +46,40 @@ Understand the lifecycle of an AgentPay Intent.
 | `PARTIAL_SETTLEMENT` | Partial amount settled on Base; remainder not fulfilled (terminal). |
 | `EXPIRED` | Intent was not executed within 10 minutes (terminal). |
 
+## SDK Constants
+
+Use typed constants instead of raw strings when checking intent status.
+
+### TypeScript / JavaScript
+
+```typescript
+import { IntentStatus } from '@cross402/usdc';
+```
+
+| Constant | Value |
+| :--- | :--- |
+| `IntentStatus.AwaitingPayment` | `"AWAITING_PAYMENT"` |
+| `IntentStatus.Pending` | `"PENDING"` |
+| `IntentStatus.VerificationFailed` | `"VERIFICATION_FAILED"` |
+| `IntentStatus.SourceSettled` | `"SOURCE_SETTLED"` |
+| `IntentStatus.BaseSettling` | `"BASE_SETTLING"` |
+| `IntentStatus.BaseSettled` | `"BASE_SETTLED"` |
+| `IntentStatus.PartialSettlement` | `"PARTIAL_SETTLEMENT"` |
+| `IntentStatus.Expired` | `"EXPIRED"` |
+
+### Go
+
+| Constant | Value |
+| :--- | :--- |
+| `pay.StatusAwaitingPayment` | `"AWAITING_PAYMENT"` |
+| `pay.StatusPending` | `"PENDING"` |
+| `pay.StatusVerificationFailed` | `"VERIFICATION_FAILED"` |
+| `pay.StatusSourceSettled` | `"SOURCE_SETTLED"` |
+| `pay.StatusBaseSettling` | `"BASE_SETTLING"` |
+| `pay.StatusBaseSettled` | `"BASE_SETTLED"` |
+| `pay.StatusPartialSettlement` | `"PARTIAL_SETTLEMENT"` |
+| `pay.StatusExpired` | `"EXPIRED"` |
+
 ## Terminal States
 
 The following states are terminal — the intent will not transition to any other state:

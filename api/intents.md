@@ -17,8 +17,7 @@ Creates a new payment intent. Returns an intent ID that you'll use for subsequen
 
 ### Amount Rules
 
-* **Minimum**: 0.01 USDC
-* **Note**: The JS/TS SDK enforces a 0.2 USDC minimum client-side.
+* **Minimum**: 0.02 USDC
 * **Maximum**: 1,000,000 USDC
 * **Precision**: Up to 6 decimal places (e.g. `"0.000001"`, `"123.45"`)
 

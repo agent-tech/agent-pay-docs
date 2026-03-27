@@ -22,6 +22,7 @@ Use chain constants from the SDK instead of hardcoded strings:
 | Arbitrum | `pay.ChainArbitrumSepolia` (`"arbitrum-sepolia"`) | `pay.ChainArbitrum` (`"arbitrum"`) |
 | Ethereum | `pay.ChainEthereumSepolia` (`"ethereum-sepolia"`) | `pay.ChainEthereum` (`"ethereum"`) |
 | Monad | `pay.ChainMonadTestnet` (`"monad-testnet"`) | `pay.ChainMonad` (`"monad"`) |
+| HyperEVM | `pay.ChainHyperEVMTestnet` (`"hyperevm-testnet"`) | `pay.ChainHyperEVM` (`"hyperevm"`) |
 
 ```go
 resp, err := client.CreateIntent(ctx, &pay.CreateIntentRequest{
@@ -31,4 +32,29 @@ resp, err := client.CreateIntent(ctx, &pay.CreateIntentRequest{
 })
 ```
 
-> 🔗 [View on GitHub](https://github.com/agent-tech/AgentPay-SDK-Go)
+### Intent Status Constants
+
+Use status constants instead of raw strings when checking intent status:
+
+| Constant | Value |
+| :--- | :--- |
+| `pay.StatusAwaitingPayment` | `"AWAITING_PAYMENT"` |
+| `pay.StatusPending` | `"PENDING"` |
+| `pay.StatusVerificationFailed` | `"VERIFICATION_FAILED"` |
+| `pay.StatusSourceSettled` | `"SOURCE_SETTLED"` |
+| `pay.StatusBaseSettling` | `"BASE_SETTLING"` |
+| `pay.StatusBaseSettled` | `"BASE_SETTLED"` |
+| `pay.StatusPartialSettlement` | `"PARTIAL_SETTLEMENT"` |
+| `pay.StatusExpired` | `"EXPIRED"` |
+
+```go
+intent, err := client.GetIntent(ctx, intentID)
+switch intent.Status {
+case pay.StatusBaseSettled:
+    // Payment complete
+case pay.StatusExpired, pay.StatusVerificationFailed:
+    // Terminal failure
+}
+```
+
+> [View on GitHub](https://github.com/agent-tech/AgentPay-SDK-Go)

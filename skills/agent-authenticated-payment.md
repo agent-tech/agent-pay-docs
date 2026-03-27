@@ -90,7 +90,7 @@ This skill enables AI agents (like OpenClaw) to complete the **entire AgentPay s
 ### Complete Example (TypeScript)
 
 ```typescript
-import { PayClient } from '@agenttech/pay';
+import { PayClient } from '@cross402/usdc';
 
 async function completeAutomatedPayment(
   email: string,
@@ -713,7 +713,7 @@ After obtaining API key and secret key, initialize the authenticated SDK client:
 ### TypeScript/JavaScript
 
 ```typescript
-import { PayClient } from '@agenttech/pay';
+import { PayClient } from '@cross402/usdc';
 
 const client = new PayClient({
   baseUrl: 'https://api-pay.agent.tech',
@@ -814,7 +814,7 @@ Full example with status polling:
 ### TypeScript/JavaScript Complete Example
 
 ```typescript
-import { PayClient } from '@agenttech/pay';
+import { PayClient } from '@cross402/usdc';
 
 async function completeAutomatedPaymentFlow(
   email: string,
@@ -1059,7 +1059,7 @@ stateDiagram-v2
 ### Error Handling Example
 
 ```typescript
-import { PayClient, PayApiError } from '@agenttech/pay';
+import { PayClient, PayApiError } from '@cross402/usdc';
 
 async function handlePaymentWithRetry(
   client: PayClient,

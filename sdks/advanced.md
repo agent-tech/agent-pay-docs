@@ -21,7 +21,7 @@ client, err := pay.NewClient(baseURL,
 ### JavaScript/TypeScript SDK
 
 ```typescript
-import { PayClient } from '@agenttech/pay';
+import { PayClient } from '@cross402/usdc';
 
 const client = new PayClient({
   baseUrl: 'https://api-pay.agent.tech',

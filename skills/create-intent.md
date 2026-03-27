@@ -74,7 +74,7 @@
 ### Amount Rules
 
 - **Minimum**: 0.01 USDC
-- **Note**: The JS/TS SDK enforces a 0.2 USDC minimum client-side.
+- **Note**: The JS/TS SDK enforces a 0.02 USDC minimum client-side (`MIN_SEND_AMOUNT_USDC`).
 - **Maximum**: 1,000,000 USDC
 - **Precision**: Up to 6 decimal places (e.g. `"0.000001"`, `"123.45"`)
 
@@ -108,7 +108,7 @@ See [Error Handling](error-handling.md) for detailed error information.
 ### TypeScript/JavaScript
 
 ```typescript
-import { PayClient } from '@agenttech/pay';
+import { PayClient } from '@cross402/usdc';
 
 const client = new PayClient({
   baseUrl: 'https://api-pay.agent.tech',
@@ -203,7 +203,7 @@ try {
    - **Public Mode**: No auth required, uses `/api` endpoints
    - **Authenticated Mode**: Requires Bearer token, uses `/v2` endpoints
 
-3. **Chain Support**: See [Supported Chains](../api/chains.md) for the full list of 14 supported chains (7 testnet + 7 mainnet).
+3. **Chain Support**: See [Supported Chains](../api/chains.md) for the full list of 16 supported chains (8 testnet + 8 mainnet).
 
 4. **Settlement**: All payments ultimately settle on Base chain regardless of the source chain.
 

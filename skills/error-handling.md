@@ -14,7 +14,7 @@ Returned for HTTP 4xx/5xx responses from the API.
 
 **TypeScript/JavaScript:**
 ```typescript
-import { PayApiError } from '@agenttech/pay';
+import { PayApiError } from '@cross402/usdc';
 
 try {
   const intent = await client.createIntent({...});
@@ -281,7 +281,7 @@ async function handleRateLimit<T>(fn: () => Promise<T>): Promise<T> {
 ### TypeScript/JavaScript
 
 ```typescript
-import { PayClient, PayApiError, PayValidationError } from '@agenttech/pay';
+import { PayClient, PayApiError, PayValidationError } from '@cross402/usdc';
 
 async function createIntentWithRetry(
   client: PayClient,

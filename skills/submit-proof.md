@@ -81,7 +81,7 @@
 ### TypeScript/JavaScript
 
 ```typescript
-import { PublicPayClient } from '@agenttech/pay';
+import { PublicPayClient } from '@cross402/usdc';
 
 // Use PublicPayClient for client-side operations (no secrets required)
 const client = new PublicPayClient({

@@ -90,7 +90,7 @@ This skill enables AI agents to complete cross-chain USDC payments **end-to-end 
 ### Complete Example (TypeScript)
 
 ```typescript
-import { PublicPayClient } from '@agenttech/pay';
+import { PublicPayClient } from '@cross402/usdc';
 import { Wallet } from 'ethers';
 import { buildEVMsettleProof } from './x402-signing';
 
@@ -561,7 +561,7 @@ async function buildSolanasettleProof(
 ### TypeScript/JavaScript Complete Example
 
 ```typescript
-import { PublicPayClient } from '@agenttech/pay';
+import { PublicPayClient } from '@cross402/usdc';
 import { Wallet } from 'ethers';
 import { buildEVMsettleProof } from './x402-signing';
 
@@ -815,7 +815,7 @@ stateDiagram-v2
 ### Error Handling Example
 
 ```typescript
-import { PublicPayClient, PayApiError } from '@agenttech/pay';
+import { PublicPayClient, PayApiError } from '@cross402/usdc';
 
 async function handlePaymentWithRetry(
   client: PublicPayClient,

@@ -299,7 +299,7 @@ async function pollWithRetry(intentId: string, maxRetries: number = 3) {
 ## Complete Example
 
 ```typescript
-import { PayClient, PayApiError } from '@agenttech/pay';
+import { PayClient, PayApiError } from '@cross402/usdc';
 
 async function waitForPaymentCompletion(intentId: string): Promise<{
   success: boolean;
