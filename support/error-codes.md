@@ -9,7 +9,7 @@ AgentPay SDKs use typed errors and sentinel values for precise error matching.
 Returned for HTTP 4xx/5xx responses from the API.
 
 ```typescript
-if (err instanceof RequestError) {
+if (err instanceof PayApiError) {
   console.log(`HTTP ${err.statusCode}: ${err.body}`);
 }
 ```
@@ -53,6 +53,7 @@ Use `errors.Is` (Go) or error type checking to match specific validation failure
 | `ErrEmptyIntentID` | intentID was empty |
 | `ErrEmptySettleProof` | settleProof was empty in SubmitProof |
 | `ErrMissingAuth` | ExecuteIntent called without auth |
+| `ErrNilParams` | params argument was nil |
 
 ### Example (Go)
 

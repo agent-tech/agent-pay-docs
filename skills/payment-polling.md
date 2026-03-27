@@ -22,10 +22,10 @@ async function pollStatus(intentId: string, intervalMs: number = 3000, maxAttemp
       return { success: true, intent };
     }
     
-    if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED') {
+    if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED' || intent.status === 'PARTIAL_SETTLEMENT') {
       return { success: false, intent, reason: intent.status };
     }
-    
+
     // Wait before next poll
     await new Promise(resolve => setTimeout(resolve, intervalMs));
   }
@@ -58,10 +58,10 @@ async function pollWithExponentialBackoff(intentId: string) {
       return { success: true, intent };
     }
     
-    if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED') {
+    if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED' || intent.status === 'PARTIAL_SETTLEMENT') {
       return { success: false, intent, reason: intent.status };
     }
-    
+
     // Exponential backoff: increase delay by 1.5x each time
     await new Promise(resolve => setTimeout(resolve, delay));
     delay = Math.min(delay * 1.5, maxDelay);
@@ -85,10 +85,10 @@ async function adaptivePoll(intentId: string) {
       return { success: true, intent };
     }
     
-    if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED') {
+    if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED' || intent.status === 'PARTIAL_SETTLEMENT') {
       return { success: false, intent, reason: intent.status };
     }
-    
+
     // Adjust delay based on status
     switch (intent.status) {
       case 'AWAITING_PAYMENT':
@@ -133,7 +133,7 @@ func pollStatus(ctx context.Context, client *pay.Client, intentID string, maxAtt
         switch intent.Status {
         case pay.StatusBaseSettled:
             return intent, nil
-        case pay.StatusExpired, pay.StatusVerificationFailed:
+        case pay.StatusExpired, pay.StatusVerificationFailed, pay.StatusPartialSettlement:
             return intent, fmt.Errorf("payment failed: %s", intent.Status)
         }
 
@@ -169,7 +169,7 @@ func pollWithBackoff(ctx context.Context, client *pay.Client, intentID string) (
         switch intent.Status {
         case pay.StatusBaseSettled:
             return intent, nil
-        case pay.StatusExpired, pay.StatusVerificationFailed:
+        case pay.StatusExpired, pay.StatusVerificationFailed, pay.StatusPartialSettlement:
             return intent, fmt.Errorf("payment failed: %s", intent.Status)
         }
 
@@ -200,16 +200,16 @@ async function pollWithRateLimitHandling(intentId: string) {
         return { success: true, intent };
       }
       
-      if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED') {
+      if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED' || intent.status === 'PARTIAL_SETTLEMENT') {
         return { success: false, intent };
       }
-      
+
       // Reset delay on success
       delay = 2000;
       await new Promise(resolve => setTimeout(resolve, delay));
-      
+
     } catch (error) {
-      if (error instanceof RequestError && error.statusCode === 429) {
+      if (error instanceof PayApiError && error.statusCode === 429) {
         // Rate limited - increase delay
         delay = Math.min(delay * 2, maxDelay);
         console.log(`Rate limited, waiting ${delay}ms`);
@@ -252,10 +252,10 @@ async function pollWithRetry(intentId: string, maxRetries: number = 3) {
       return { success: true, intent };
     }
     
-    if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED') {
+    if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED' || intent.status === 'PARTIAL_SETTLEMENT') {
       return { success: false, intent };
     }
-    
+
     await new Promise(resolve => setTimeout(resolve, delay));
     delay = Math.min(delay * 1.5, 30000);
   }
@@ -299,7 +299,7 @@ async function pollWithRetry(intentId: string, maxRetries: number = 3) {
 ## Complete Example
 
 ```typescript
-import { PayClient, RequestError } from '@agent-tech/pay';
+import { PayClient, PayApiError } from '@agenttech/pay';
 
 async function waitForPaymentCompletion(intentId: string): Promise<{
   success: boolean;
@@ -307,9 +307,8 @@ async function waitForPaymentCompletion(intentId: string): Promise<{
   transactionHash?: string;
 }> {
   const client = new PayClient({
-    baseURL: 'https://api-pay.agent.tech',
-    apiKey: 'your-api-key',
-    secretKey: 'your-secret-key',
+    baseUrl: 'https://api-pay.agent.tech',
+    auth: { apiKey: 'your-api-key', secretKey: 'your-secret-key' },
   });
 
   let delay = 2000;
@@ -331,11 +330,11 @@ async function waitForPaymentCompletion(intentId: string): Promise<{
         return {
           success: true,
           intent,
-          transactionHash: intent.base_payment?.transaction_hash,
+          transactionHash: intent.basePayment?.txHash,
         };
       }
 
-      if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED') {
+      if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED' || intent.status === 'PARTIAL_SETTLEMENT') {
         return {
           success: false,
           intent,
@@ -346,7 +345,7 @@ async function waitForPaymentCompletion(intentId: string): Promise<{
       delay = 2000;
       
     } catch (error) {
-      if (error instanceof RequestError) {
+      if (error instanceof PayApiError) {
         if (error.statusCode === 429) {
           // Rate limited - increase delay
           delay = Math.min(delay * 2, maxDelay);

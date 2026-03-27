@@ -21,13 +21,12 @@ client, err := pay.NewClient(baseURL,
 ### JavaScript/TypeScript SDK
 
 ```typescript
-import { PayClient } from '@agent-tech/pay';
+import { PayClient } from '@agenttech/pay';
 
 const client = new PayClient({
-  baseURL: 'https://api-pay.agent.tech',
-  apiKey: 'your-api-key',
-  secretKey: 'your-secret-key',
-  httpClient: customHttpClient, // Your custom fetch/axios instance
+  baseUrl: 'https://api-pay.agent.tech',
+  auth: { apiKey: 'your-api-key', secretKey: 'your-secret-key' },
+  fetcher: customFetcher, // Your custom fetch implementation
 });
 ```
 

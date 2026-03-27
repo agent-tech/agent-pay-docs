@@ -40,8 +40,7 @@ This skill enables AI agents (like OpenClaw) to complete the **entire AgentPay s
       },
       "payer_chain": {
         "type": "string",
-        "enum": ["base", "solana"],
-        "description": "Source chain: 'base' for Base chain, 'solana' for Solana chain"
+        "description": "Source chain identifier. See Supported Chains documentation for the full list of supported chains."
       }
     },
     "required": ["email", "recipient", "amount", "payer_chain"]
@@ -89,7 +88,7 @@ This skill enables AI agents (like OpenClaw) to complete the **entire AgentPay s
 ### Complete Example (TypeScript)
 
 ```typescript
-import { PayClient } from '@agent-tech/pay';
+import { PayClient } from '@agenttech/pay';
 
 async function completeAutomatedPayment(
   email: string,
@@ -102,9 +101,8 @@ async function completeAutomatedPayment(
   
   // Step 2: Initialize authenticated SDK client
   const client = new PayClient({
-    baseURL: 'https://api-pay.agent.tech',
-    apiKey,
-    secretKey,
+    baseUrl: 'https://api-pay.agent.tech',
+    auth: { apiKey, secretKey },
   });
 
   // Step 3: Create intent
@@ -114,10 +112,10 @@ async function completeAutomatedPayment(
     payerChain,
   });
 
-  console.log(`Intent created: ${intent.intent_id}`);
+  console.log(`Intent created: ${intent.intentId}`);
 
   // Step 4: Execute payment (backend signs automatically)
-  const result = await client.executeIntent(intent.intent_id);
+  const result = await client.executeIntent(intent.intentId);
   console.log(`Payment executed. Status: ${result.status}`);
 
   // Step 5: Poll until completion
@@ -125,21 +123,22 @@ async function completeAutomatedPayment(
   while (
     finalIntent.status !== 'BASE_SETTLED' &&
     finalIntent.status !== 'EXPIRED' &&
-    finalIntent.status !== 'VERIFICATION_FAILED'
+    finalIntent.status !== 'VERIFICATION_FAILED' &&
+    finalIntent.status !== 'PARTIAL_SETTLEMENT'
   ) {
     await new Promise(resolve => setTimeout(resolve, 3000));
-    finalIntent = await client.getIntent(intent.intent_id);
+    finalIntent = await client.getIntent(intent.intentId);
     console.log(`Status: ${finalIntent.status}`);
   }
 
   if (finalIntent.status === 'BASE_SETTLED') {
-    console.log(`Payment complete! Transaction: ${finalIntent.base_payment.transaction_hash}`);
+    console.log(`Payment complete! Transaction: ${finalIntent.basePayment.txHash}`);
     return {
       success: true,
       api_key: apiKey,
       agent_id: agentId,
-      intent_id: finalIntent.intent_id,
-      transaction_hash: finalIntent.base_payment.transaction_hash,
+      intent_id: finalIntent.intentId,
+      transaction_hash: finalIntent.basePayment.txHash,
     };
   } else {
     throw new Error(`Payment failed: ${finalIntent.status}`);
@@ -712,12 +711,11 @@ After obtaining API key and secret key, initialize the authenticated SDK client:
 ### TypeScript/JavaScript
 
 ```typescript
-import { PayClient } from '@agent-tech/pay';
+import { PayClient } from '@agenttech/pay';
 
 const client = new PayClient({
-  baseURL: 'https://api-pay.agent.tech',
-  apiKey: 'your-api-key',
-  secretKey: 'your-secret-key',
+  baseUrl: 'https://api-pay.agent.tech',
+  auth: { apiKey: 'your-api-key', secretKey: 'your-secret-key' },
 });
 ```
 
@@ -750,7 +748,7 @@ const intent = await client.createIntent({
   payerChain: 'base',
 });
 
-console.log(`Intent created: ${intent.intent_id}`);
+console.log(`Intent created: ${intent.intentId}`);
 console.log(`Status: ${intent.status}`);
 ```
 
@@ -781,12 +779,12 @@ With authenticated mode, use `executeIntent()` to complete payment. The backend 
 ### TypeScript/JavaScript
 
 ```typescript
-const result = await client.executeIntent(intent.intent_id);
+const result = await client.executeIntent(intent.intentId);
 
 console.log(`Payment executed. Status: ${result.status}`);
 
 if (result.status === 'BASE_SETTLED') {
-  console.log(`Transaction hash: ${result.base_payment.transaction_hash}`);
+  console.log(`Transaction hash: ${result.basePayment.txHash}`);
 }
 ```
 
@@ -801,7 +799,7 @@ if err != nil {
 log.Printf("Payment executed. Status: %s", exec.Status)
 
 if exec.Status == pay.StatusBaseSettled {
-    log.Printf("Transaction hash: %s", exec.BasePayment.TransactionHash)
+    log.Printf("Transaction hash: %s", exec.BasePayment.TxHash)
 }
 ```
 
@@ -814,7 +812,7 @@ Full example with status polling:
 ### TypeScript/JavaScript Complete Example
 
 ```typescript
-import { PayClient } from '@agent-tech/pay';
+import { PayClient } from '@agenttech/pay';
 
 async function completeAutomatedPaymentFlow(
   email: string,
@@ -830,9 +828,8 @@ async function completeAutomatedPaymentFlow(
 
   // Step 2: Initialize authenticated SDK client
   const client = new PayClient({
-    baseURL: 'https://api-pay.agent.tech',
-    apiKey,
-    secretKey,
+    baseUrl: 'https://api-pay.agent.tech',
+    auth: { apiKey, secretKey },
   });
 
   // Step 3: Create intent
@@ -842,12 +839,12 @@ async function completeAutomatedPaymentFlow(
     payerChain,
   });
 
-  console.log(`Intent created: ${intent.intent_id}`);
+  console.log(`Intent created: ${intent.intentId}`);
   console.log(`Status: ${intent.status}`);
-  console.log(`Expires at: ${intent.expires_at}`);
+  console.log(`Expires at: ${intent.expiresAt}`);
 
   // Step 4: Execute payment
-  const executeResult = await client.executeIntent(intent.intent_id);
+  const executeResult = await client.executeIntent(intent.intentId);
   console.log(`Payment executed. Status: ${executeResult.status}`);
 
   // Step 5: Poll until completion
@@ -859,13 +856,14 @@ async function completeAutomatedPaymentFlow(
     currentIntent.status !== 'BASE_SETTLED' &&
     currentIntent.status !== 'EXPIRED' &&
     currentIntent.status !== 'VERIFICATION_FAILED' &&
+    currentIntent.status !== 'PARTIAL_SETTLEMENT' &&
     attempts < maxAttempts
   ) {
     await new Promise(resolve => setTimeout(resolve, 10000)); // Poll every 10 seconds
     attempts++;
 
     try {
-      currentIntent = await client.getIntent(intent.intent_id);
+      currentIntent = await client.getIntent(intent.intentId);
       console.log(`[${attempts}] Status: ${currentIntent.status}`);
     } catch (error) {
       console.error(`Error polling status: ${error}`);
@@ -876,14 +874,14 @@ async function completeAutomatedPaymentFlow(
   // Final status check
   if (currentIntent.status === 'BASE_SETTLED') {
     console.log('✅ Payment complete!');
-    console.log(`Transaction hash: ${currentIntent.base_payment?.transaction_hash}`);
+    console.log(`Transaction hash: ${currentIntent.basePayment?.txHash}`);
     return {
       success: true,
       api_key: apiKey,
       agent_id: agentId,
-      intent_id: currentIntent.intent_id,
+      intent_id: currentIntent.intentId,
       status: currentIntent.status,
-      transaction_hash: currentIntent.base_payment?.transaction_hash,
+      transaction_hash: currentIntent.basePayment?.txHash,
     };
   } else {
     console.error(`❌ Payment failed: ${currentIntent.status}`);
@@ -891,7 +889,7 @@ async function completeAutomatedPaymentFlow(
       success: false,
       api_key: apiKey,
       agent_id: agentId,
-      intent_id: currentIntent.intent_id,
+      intent_id: currentIntent.intentId,
       status: currentIntent.status,
     };
   }
@@ -977,7 +975,8 @@ func completeAutomatedPaymentFlow(
     for attempts < maxAttempts {
         if currentIntent.Status == pay.StatusBaseSettled ||
            currentIntent.Status == pay.StatusExpired ||
-           currentIntent.Status == pay.StatusVerificationFailed {
+           currentIntent.Status == pay.StatusVerificationFailed ||
+           currentIntent.Status == pay.StatusPartialSettlement {
             break
         }
 
@@ -997,7 +996,7 @@ func completeAutomatedPaymentFlow(
     // Final status check
     if currentIntent.Status == pay.StatusBaseSettled {
         log.Println("✅ Payment complete!")
-        log.Printf("Transaction hash: %s", currentIntent.BasePayment.TransactionHash)
+        log.Printf("Transaction hash: %s", currentIntent.BasePayment.TxHash)
         return nil
     } else {
         return fmt.Errorf("payment failed: %s", currentIntent.Status)
@@ -1024,6 +1023,7 @@ With authenticated mode, the payment flow is simplified:
 | `SOURCE_SETTLED` | Payment confirmed on the source chain |
 | `BASE_SETTLING` | Final settlement is being processed on the Base chain |
 | `BASE_SETTLED` | Done; merchant received USDC on Base (terminal state) |
+| `PARTIAL_SETTLEMENT` | Partial amount settled; remainder not fulfilled (terminal state) |
 | `VERIFICATION_FAILED` | Payment verification failed (terminal state) |
 | `EXPIRED` | Intent timed out (e.g. 10 min) (terminal state) |
 
@@ -1036,6 +1036,7 @@ stateDiagram-v2
     PENDING --> VERIFICATION_FAILED: invalid
     SOURCE_SETTLED --> BASE_SETTLING: Base transfer
     BASE_SETTLING --> BASE_SETTLED: done
+    BASE_SETTLING --> PARTIAL_SETTLEMENT: partial
 ```
 
 ---
@@ -1056,7 +1057,7 @@ stateDiagram-v2
 ### Error Handling Example
 
 ```typescript
-import { PayClient, RequestError } from '@agent-tech/pay';
+import { PayClient, PayApiError } from '@agenttech/pay';
 
 async function handlePaymentWithRetry(
   client: PayClient,
@@ -1069,7 +1070,7 @@ async function handlePaymentWithRetry(
     try {
       return await client.executeIntent(intentId);
     } catch (error) {
-      if (error instanceof RequestError) {
+      if (error instanceof PayApiError) {
         // Don't retry on client errors
         if (error.statusCode === 400 || error.statusCode === 404) {
           throw error;

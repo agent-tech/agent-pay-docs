@@ -4,7 +4,7 @@ Integrate AgentPay into your application in three simple steps.
 
 ### 1. Install the SDK
 Choose your preferred environment:
-* **Node.js**: `npm install @agent-tech/pay`
+* **Node.js**: `npm install @agenttech/pay`
 * **Go**: `go get github.com/agent-tech/agent-sdk-go`
 
 ### 2. Get Your API Keys
@@ -22,12 +22,11 @@ Before initializing the client, you need to obtain your API key and secret key:
 
 #### Node.js / TypeScript
 ```typescript
-import { PayClient } from '@agent-tech/pay';
+import { PayClient } from '@agenttech/pay';
 
 const client = new PayClient({
-  baseURL: 'https://api-pay.agent.tech',
-  apiKey: 'your-api-key',
-  secretKey: 'your-secret-key',
+  baseUrl: 'https://api-pay.agent.tech',
+  auth: { apiKey: 'your-api-key', secretKey: 'your-secret-key' },
 });
 ```
 

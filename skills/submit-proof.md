@@ -35,7 +35,7 @@
       },
       "status": {
         "type": "string",
-        "enum": ["PENDING", "SOURCE_SETTLED", "BASE_SETTLING", "BASE_SETTLED", "VERIFICATION_FAILED"],
+        "enum": ["PENDING", "SOURCE_SETTLED", "BASE_SETTLING", "BASE_SETTLED", "VERIFICATION_FAILED", "PARTIAL_SETTLEMENT"],
         "description": "Current status of the intent after proof submission"
       },
       "message": {
@@ -74,17 +74,18 @@
 - `BASE_SETTLING`: Final settlement is being processed on the Base chain
 - `BASE_SETTLED`: Transfer complete (terminal state)
 - `VERIFICATION_FAILED`: Proof verification failed (terminal state)
+- `PARTIAL_SETTLEMENT`: Partial amount settled on Base (terminal state)
 
 ## Code Examples
 
 ### TypeScript/JavaScript
 
 ```typescript
-import { PublicPayClient } from '@agent-tech/pay';
+import { PublicPayClient } from '@agenttech/pay';
 
 // Use PublicPayClient for client-side operations (no secrets required)
 const client = new PublicPayClient({
-  baseURL: 'https://api-pay.agent.tech',
+  baseUrl: 'https://api-pay.agent.tech',
 });
 
 // After user signs X402 payment with their wallet
@@ -93,7 +94,7 @@ const settleProof = await getUserSignedProof(); // Get proof from wallet
 // Submit the proof
 const result = await client.submitProof(intentId, settleProof);
 
-console.log(`Intent ID: ${result.intent_id}`);
+console.log(`Intent ID: ${result.intentId}`);
 console.log(`Status: ${result.status}`);
 console.log(`Message: ${result.message}`);
 ```
@@ -155,10 +156,10 @@ const intent = await client.createIntent({
 });
 
 // Step 2: User signs X402 payment (wallet interaction)
-const settleProof = await signX402Payment(intent.intent_id);
+const settleProof = await signX402Payment(intent.intentId);
 
 // Step 3: Submit proof
-const result = await client.submitProof(intent.intent_id, settleProof);
+const result = await client.submitProof(intent.intentId, settleProof);
 
 // Step 4: Poll for status (see query-intent-status.md)
 // ...
@@ -183,7 +184,7 @@ const result = await client.submitProof(intent.intent_id, settleProof);
 try {
   const result = await client.submitProof(intentId, settleProof);
 } catch (error) {
-  if (error instanceof RequestError) {
+  if (error instanceof PayApiError) {
     switch (error.statusCode) {
       case 400:
         console.error("Invalid proof or intent ID:", error.body);

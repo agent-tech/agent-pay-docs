@@ -14,14 +14,14 @@ Returned for HTTP 4xx/5xx responses from the API.
 
 **TypeScript/JavaScript:**
 ```typescript
-import { RequestError } from '@agent-tech/pay';
+import { PayApiError } from '@agenttech/pay';
 
 try {
   const intent = await client.createIntent({...});
 } catch (error) {
-  if (error instanceof RequestError) {
+  if (error instanceof PayApiError) {
     console.log(`HTTP ${error.statusCode}: ${error.body}`);
-    
+
     // Handle specific status codes
     switch (error.statusCode) {
       case 400:
@@ -115,7 +115,7 @@ async function retryWithFixedDelay<T>(
       if (i === maxRetries - 1) throw error;
       
       // Only retry on retryable errors
-      if (error instanceof RequestError) {
+      if (error instanceof PayApiError) {
         if (error.statusCode === 429 || error.statusCode === 503) {
           await new Promise(resolve => setTimeout(resolve, delayMs));
           continue;
@@ -137,14 +137,14 @@ async function retryWithExponentialBackoff<T>(
   initialDelayMs: number = 1000
 ): Promise<T> {
   let delay = initialDelayMs;
-  
+
   for (let i = 0; i < maxRetries; i++) {
     try {
       return await fn();
     } catch (error) {
       if (i === maxRetries - 1) throw error;
-      
-      if (error instanceof RequestError) {
+
+      if (error instanceof PayApiError) {
         // Only retry on retryable errors
         if (error.statusCode === 429 || error.statusCode === 503) {
           console.log(`Retry ${i + 1}/${maxRetries} after ${delay}ms`);
@@ -175,14 +175,14 @@ async function retryWithJitter<T>(
   initialDelayMs: number = 1000
 ): Promise<T> {
   let delay = initialDelayMs;
-  
+
   for (let i = 0; i < maxRetries; i++) {
     try {
       return await fn();
     } catch (error) {
       if (i === maxRetries - 1) throw error;
-      
-      if (error instanceof RequestError) {
+
+      if (error instanceof PayApiError) {
         if (error.statusCode === 429 || error.statusCode === 503) {
           const jitteredDelay = getDelayWithJitter(delay);
           console.log(`Retry ${i + 1}/${maxRetries} after ${jitteredDelay}ms`);
@@ -261,7 +261,7 @@ async function handleRateLimit<T>(fn: () => Promise<T>): Promise<T> {
     try {
       return await fn();
     } catch (error) {
-      if (error instanceof RequestError && error.statusCode === 429) {
+      if (error instanceof PayApiError && error.statusCode === 429) {
         retries++;
         console.log(`Rate limited, waiting ${delay}ms (retry ${retries}/${maxRetries})`);
         await new Promise(resolve => setTimeout(resolve, delay));
@@ -281,7 +281,7 @@ async function handleRateLimit<T>(fn: () => Promise<T>): Promise<T> {
 ### TypeScript/JavaScript
 
 ```typescript
-import { PayClient, RequestError, ValidationError } from '@agent-tech/pay';
+import { PayClient, PayApiError, PayValidationError } from '@agenttech/pay';
 
 async function createIntentWithRetry(
   client: PayClient,
@@ -300,15 +300,15 @@ async function createIntentWithRetry(
       return await client.createIntent(params);
     } catch (error) {
       // Don't retry on validation errors
-      if (error instanceof ValidationError) {
+      if (error instanceof PayValidationError) {
         throw error;
       }
       
       // Don't retry on client errors (4xx except 429)
-      if (error instanceof RequestError) {
-        if (error.statusCode === 400 || 
-            error.statusCode === 401 || 
-            error.statusCode === 403 || 
+      if (error instanceof PayApiError) {
+        if (error.statusCode === 400 ||
+            error.statusCode === 401 ||
+            error.statusCode === 403 ||
             error.statusCode === 404) {
           throw error;
         }
@@ -458,6 +458,7 @@ Use `errors.Is` (Go) to check for specific validation failures:
 | `ErrEmptyIntentID` | intentID was empty |
 | `ErrEmptySettleProof` | settleProof was empty in SubmitProof |
 | `ErrMissingAuth` | ExecuteIntent called without auth |
+| `ErrNilParams` | params argument was nil |
 
 **Go Example:**
 ```go

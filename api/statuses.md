@@ -26,10 +26,11 @@ Understand the lifecycle of an AgentPay Intent.
                         │ BASE_SETTLING │
                         └───────┬───────┘
                                 │
-                                ▼
-                        ┌──────────────┐
-                        │ BASE_SETTLED │
-                        └──────────────┘
+                       ┌────────┼────────┐
+                       ▼                 ▼
+              ┌──────────────┐  ┌──────────────────────┐
+              │ BASE_SETTLED │  │ PARTIAL_SETTLEMENT   │
+              └──────────────┘  └──────────────────────┘
 ```
 
 ## Status Reference
@@ -42,6 +43,7 @@ Understand the lifecycle of an AgentPay Intent.
 | `SOURCE_SETTLED` | Payment confirmed on the source chain (e.g., Solana). |
 | `BASE_SETTLING` | Final settlement is being processed on the Base chain. |
 | `BASE_SETTLED` | Success. Funds have arrived at the destination (terminal). |
+| `PARTIAL_SETTLEMENT` | Partial amount settled on Base; remainder not fulfilled (terminal). |
 | `EXPIRED` | Intent was not executed within 10 minutes (terminal). |
 
 ## Terminal States
@@ -50,3 +52,4 @@ The following states are terminal — the intent will not transition to any othe
 * `BASE_SETTLED` — Success
 * `EXPIRED` — Timeout
 * `VERIFICATION_FAILED` — Verification error
+* `PARTIAL_SETTLEMENT` — Partial settlement
