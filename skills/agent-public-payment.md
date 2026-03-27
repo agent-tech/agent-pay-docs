@@ -670,7 +670,7 @@ import (
     "fmt"
     "log"
     "time"
-    "github.com/agent-tech/agent-sdk-go"
+    "github.com/cross402/usdc-sdk-go"
     "github.com/ethereum/go-ethereum/crypto"
 )
 

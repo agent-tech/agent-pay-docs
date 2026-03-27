@@ -81,9 +81,9 @@ cross402-usdc reset [--yes]                 # Remove all stored config + session
 Install the cross402-usdc CLI skill for Cursor (skills.sh) or Clawhub:
 
 ```bash
-npx skills add agent-tech/AgentPay-SDK-JS-TS
+npx skills add cross402/usdc-sdk-js-ts
 # or
-clawhub skills add agent-tech/AgentPay-SDK-JS-TS
+clawhub skills add cross402/usdc-sdk-js-ts
 ```
 
-> [View on GitHub](https://github.com/agent-tech/AgentPay-SDK-JS-TS)
+> [View on GitHub](https://github.com/cross402/usdc-sdk-js-ts)

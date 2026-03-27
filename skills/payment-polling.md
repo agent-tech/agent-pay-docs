@@ -119,7 +119,7 @@ import (
     "context"
     "fmt"
     "time"
-    "github.com/agent-tech/agent-sdk-go"
+    "github.com/cross402/usdc-sdk-go"
 )
 
 func pollStatus(ctx context.Context, client *pay.Client, intentID string, maxAttempts int) (*pay.Intent, error) {

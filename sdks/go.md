@@ -57,4 +57,4 @@ case pay.StatusExpired, pay.StatusVerificationFailed:
 }
 ```
 
-> [View on GitHub](https://github.com/agent-tech/AgentPay-SDK-Go)
+> [View on GitHub](https://github.com/cross402/usdc-sdk-go)

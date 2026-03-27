@@ -5,7 +5,7 @@ Integrate AgentPay into your application in three simple steps.
 ### 1. Install the SDK
 Choose your preferred environment:
 * **Node.js**: `npm install @cross402/usdc`
-* **Go**: `go get github.com/agent-tech/agent-sdk-go`
+* **Go**: `go get github.com/cross402/usdc-sdk-go`
 
 ### 2. Get Your API Keys
 
@@ -32,7 +32,7 @@ const client = new PayClient({
 
 #### Go
 ```go
-import "github.com/agent-tech/agent-sdk-go"
+import "github.com/cross402/usdc-sdk-go"
 
 client, err := pay.NewClient(
     "https://api-pay.agent.tech",

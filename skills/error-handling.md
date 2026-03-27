@@ -40,7 +40,7 @@ try {
 
 **Go:**
 ```go
-import "github.com/agent-tech/agent-sdk-go"
+import "github.com/cross402/usdc-sdk-go"
 
 resp, err := client.CreateIntent(ctx, &pay.CreateIntentRequest{...})
 var reqErr *pay.RequestError
@@ -211,7 +211,7 @@ import (
     "fmt"
     "math"
     "time"
-    "github.com/agent-tech/agent-sdk-go"
+    "github.com/cross402/usdc-sdk-go"
 )
 
 func retryWithBackoff(ctx context.Context, maxRetries int, fn func() error) error {
@@ -352,7 +352,7 @@ import (
     "log"
     "math"
     "time"
-    "github.com/agent-tech/agent-sdk-go"
+    "github.com/cross402/usdc-sdk-go"
 )
 
 func createIntentWithRetry(

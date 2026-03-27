@@ -724,7 +724,7 @@ const client = new PayClient({
 ### Go
 
 ```go
-import "github.com/agent-tech/agent-sdk-go"
+import "github.com/cross402/usdc-sdk-go"
 
 client, err := pay.NewClient(
     "https://api-pay.agent.tech",
@@ -919,7 +919,7 @@ import (
     "fmt"
     "log"
     "time"
-    "github.com/agent-tech/agent-sdk-go"
+    "github.com/cross402/usdc-sdk-go"
 )
 
 func completeAutomatedPaymentFlow(

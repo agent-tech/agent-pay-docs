@@ -134,7 +134,7 @@ package main
 import (
     "context"
     "log"
-    "github.com/agent-tech/agent-sdk-go"
+    "github.com/cross402/usdc-sdk-go"
 )
 
 func main() {
