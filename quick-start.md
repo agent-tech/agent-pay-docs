@@ -1,6 +1,6 @@
 # 🚀 Quick Start
 
-Integrate AgentPay into your application in three simple steps.
+Integrate AgentTech into your application in three simple steps.
 
 ### 1. Install the SDK
 Choose your preferred environment:

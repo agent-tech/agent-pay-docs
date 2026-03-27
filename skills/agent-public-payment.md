@@ -1,8 +1,8 @@
 ---
 name: agent-public-payment
 version: 1.0.0
-description: Full AI automation for X402 cross-chain payments using AgentPay SDK in public mode - generate wallets locally, sign X402 authorization locally, create intents, submit proofs, and poll status via SDK. No API key required, full control over private keys.
-metadata: {"category":"payment","blockchains":["solana","base"],"protocol":"x402","sdk":"agentpay","mode":"public"}
+description: Full AI automation for X402 cross-chain payments using AgentTech SDK in public mode - generate wallets locally, sign X402 authorization locally, create intents, submit proofs, and poll status via SDK. No API key required, full control over private keys.
+metadata: {"category":"payment","blockchains":["solana","base"],"protocol":"x402","sdk":"AgentTech","mode":"public"}
 ---
 
 # Agent Public Payment — Local-Signed Payment Workflow
@@ -11,7 +11,7 @@ This skill enables AI agents to complete cross-chain USDC payments **end-to-end 
 
 **Use Case:** Choose this mode when you need **full control over private keys** and want to sign transactions locally. No API key required - perfect for agents that need direct control over signing and wallet management. Private keys never leave your machine.
 
-**SDK Support:** This skill uses the AgentPay SDK (JavaScript/TypeScript and Go) in **public mode** (`PublicPayClient`). No API key required - you sign X402 proofs locally.
+**SDK Support:** This skill uses the AgentTech SDK (JavaScript/TypeScript and Go) in **public mode** (`PublicPayClient`). No API key required - you sign X402 proofs locally.
 
 ---
 
@@ -20,7 +20,7 @@ This skill enables AI agents to complete cross-chain USDC payments **end-to-end 
 ```json
 {
   "name": "agent_public_payment",
-  "description": "Complete end-to-end X402 cross-chain payment automation for AI agents using AgentPay SDK in public mode. Generates wallets locally, creates intents, signs X402 proofs locally, submits proofs, and polls for completion. No API key required, full control over private keys.",
+  "description": "Complete end-to-end X402 cross-chain payment automation for AI agents using AgentTech SDK in public mode. Generates wallets locally, creates intents, signs X402 proofs locally, submits proofs, and polls for completion. No API key required, full control over private keys.",
   "input_schema": {
     "type": "object",
     "properties": {

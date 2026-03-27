@@ -1,6 +1,6 @@
 # 🔐 Authentication
 
-AgentPay uses API keys and Bearer tokens to secure requests.
+AgentTech uses API keys and Bearer tokens to secure requests.
 
 ## Getting Your API Key
 

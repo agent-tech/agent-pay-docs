@@ -1,8 +1,8 @@
-# 👋 Welcome to AgentPay
+# 👋 Welcome to AgentTech
 
-AgentPay is a developer-first programmable payment layer designed to enable seamless stablecoin payments across multiple chains. It supports **USDC** intent creation on multiple source chains, with settlement unified on **Base**.
+AgentTech is a developer-first programmable payment layer designed to enable seamless stablecoin payments across multiple chains. It supports **USDC** intent creation on multiple source chains, with settlement unified on **Base**.
 
-### Why AgentPay?
+### Why AgentTech?
 **Multi-Chain Native**: Source-chain support includes **Base**, **Solana**, **BSC**, **Polygon**, **Arbitrum**, **Ethereum**, **Monad**, and **HyperEVM** (testnet/mainnet variants available by environment).
 
 **Agent-Led Automation**: Utilize managed Agent wallets for fully automated, server-side payouts.

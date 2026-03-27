@@ -1,17 +1,17 @@
 ---
 name: agent-authenticated-payment
 version: 1.0.0
-description: Full automation for AI agents (e.g., OpenClaw) to authenticate with email, create API keys programmatically, and execute automated payments using AgentPay SDK with authenticated mode. Backend automatically signs payments - no private key management required.
-metadata: {"category":"payment","blockchains":["solana","base"],"protocol":"x402","sdk":"agentpay","mode":"authenticated","automation":"full"}
+description: Full automation for AI agents (e.g., OpenClaw) to authenticate with email, create API keys programmatically, and execute automated payments using AgentTech SDK with authenticated mode. Backend automatically signs payments - no private key management required.
+metadata: {"category":"payment","blockchains":["solana","base"],"protocol":"x402","sdk":"AgentTech","mode":"authenticated","automation":"full"}
 ---
 
 # Agent Authenticated Payment — Backend-Signed Payment Workflow
 
-This skill enables AI agents (like OpenClaw) to complete the **entire AgentPay setup and payment workflow automatically**: authenticate with email, create API keys programmatically, initialize authenticated SDK client, create payment intents, and execute payments. No manual dashboard interaction required.
+This skill enables AI agents (like OpenClaw) to complete the **entire AgentTech setup and payment workflow automatically**: authenticate with email, create API keys programmatically, initialize authenticated SDK client, create payment intents, and execute payments. No manual dashboard interaction required.
 
 **Use Case:** Choose this mode when you want **backend-automated signing** - the backend handles all transaction signing automatically. You don't need to manage private keys or sign transactions locally. Perfect for agents that want simplicity and don't need direct control over signing.
 
-**SDK Support:** This skill uses the AgentPay SDK (JavaScript/TypeScript and Go) with **authenticated mode** (`PayClient`) for automated backend-signed payments. Requires API key and secret key.
+**SDK Support:** This skill uses the AgentTech SDK (JavaScript/TypeScript and Go) with **authenticated mode** (`PayClient`) for automated backend-signed payments. Requires API key and secret key.
 
 ---
 
@@ -20,7 +20,7 @@ This skill enables AI agents (like OpenClaw) to complete the **entire AgentPay s
 ```json
 {
   "name": "agent_authenticated_payment",
-  "description": "Complete end-to-end automation for AI agents: authenticate with email, create API key programmatically, and execute automated payments using AgentPay SDK with authenticated mode. Backend automatically signs payments - no private key management required.",
+  "description": "Complete end-to-end automation for AI agents: authenticate with email, create API key programmatically, and execute automated payments using AgentTech SDK with authenticated mode. Backend automatically signs payments - no private key management required.",
   "input_schema": {
     "type": "object",
     "properties": {
@@ -152,9 +152,9 @@ async function completeAutomatedPayment(
 
 ## Getting API Key — Overview
 
-To use AgentPay with authenticated mode, you need to obtain an API key and secret key. There are two ways to do this:
+To use AgentTech with authenticated mode, you need to obtain an API key and secret key. There are two ways to do this:
 
-1. **Manual Method**: Visit the [AgentPay Dashboard](https://agent.tech/dashboard) and manually create an agent to get your API credentials.
+1. **Manual Method**: Visit the [AgentTech Dashboard](https://agent.tech/dashboard) and manually create an agent to get your API credentials.
 2. **Automated Method**: Use browser automation (Puppeteer/Selenium) to programmatically login, create an agent, and extract API credentials.
 
 **Dashboard URL**: [https://agent.tech/dashboard](https://agent.tech/dashboard)
@@ -176,7 +176,7 @@ Authenticate with email to obtain session token or access credentials. Two appro
 
 ### Option A: API-Based Authentication (if available)
 
-If the AgentPay API provides authentication endpoints:
+If the AgentTech API provides authentication endpoints:
 
 ```typescript
 async function authenticateWithEmail(email: string): Promise<string> {

@@ -1,6 +1,6 @@
 # 📝 Intents
 
-Intents represent payment requests in AgentPay. This section covers all intent-related API methods.
+Intents represent payment requests in AgentTech. This section covers all intent-related API methods.
 
 ## CreateIntent
 

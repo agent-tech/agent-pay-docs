@@ -2,7 +2,7 @@
 
 ## Overview
 
-- **Function**: Comprehensive error handling and retry strategies for AgentPay SDK operations
+- **Function**: Comprehensive error handling and retry strategies for AgentTech SDK operations
 - **Use Cases**: Handle API errors, network failures, rate limiting, implement robust retry logic
 - **Authentication**: Applies to all operations (with or without authentication)
 

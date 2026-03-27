@@ -141,8 +141,8 @@ func main() {
 1. **Create Intent**: User initiates payment, create intent via SDK
 2. **User Signs**: User signs X402 payment off-chain via their wallet (MetaMask, etc.)
 3. **Get Proof**: Wallet returns signed settlement proof
-4. **Submit Proof**: Submit proof to AgentPay API using this skill
-5. **Verification**: AgentPay verifies the proof and processes settlement
+4. **Submit Proof**: Submit proof to AgentTech API using this skill
+5. **Verification**: AgentTech verifies the proof and processes settlement
 6. **Settlement**: Final USDC transfer on Base chain
 
 ### Example Flow
@@ -210,7 +210,7 @@ try {
 
 3. **Proof Format**: The settle proof is a string containing the signed payment data from the wallet.
 
-4. **Verification**: AgentPay verifies the proof before processing. Invalid proofs will result in `VERIFICATION_FAILED` status.
+4. **Verification**: AgentTech verifies the proof before processing. Invalid proofs will result in `VERIFICATION_FAILED` status.
 
 5. **Status Progression**: After successful proof submission:
    - `PENDING` → `SOURCE_SETTLED` → `BASE_SETTLING` → `BASE_SETTLED`

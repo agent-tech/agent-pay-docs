@@ -18,7 +18,7 @@ All intent responses include a `FeeBreakdown` structure that details the cost co
 
 * **Source Chain Fee**: The gas/transaction fee required on the payer's source chain (e.g., Solana or Base).
 * **Target Chain Fee**: The gas fee for the final USDC transfer on Base.
-* **Platform Fee**: AgentPay's service fee for processing the cross-chain settlement.
+* **Platform Fee**: AgentTech's service fee for processing the cross-chain settlement.
 * **Total Fee**: The sum of all fees, which is deducted from the payment amount.
 
 ## Example Response

@@ -8,7 +8,7 @@ start:
   # pro: true
 
 branding:
-  title: AgentPay
+  title: AgentTech
   label: Docs
   logo: /static/image_logo.png
   logoDark: /static/image_logo.png

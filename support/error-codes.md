@@ -1,6 +1,6 @@
 # ❌ Error Handling
 
-AgentPay SDKs use typed errors and sentinel values for precise error matching.
+AgentTech SDKs use typed errors and sentinel values for precise error matching.
 
 ## Error Types
 

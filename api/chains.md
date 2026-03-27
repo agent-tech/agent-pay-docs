@@ -1,6 +1,6 @@
 # ⛓ Supported Chains
 
-AgentPay supports multiple source chains, with all payments ultimately settling on **Base**.
+AgentTech supports multiple source chains, with all payments ultimately settling on **Base**.
 
 ## Supported Chains
 
