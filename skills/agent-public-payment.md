@@ -329,7 +329,35 @@ The SDK expects `settle_proof` to be **exactly**: **Base64(JSON.stringify(x402_v
 
 **Always use the `payment_requirements` returned by `createIntent()`** when building the payload — do not hardcode chain IDs or contract addresses.
 
-### 2a. EVM (Base) — EIP-712 TransferWithAuthorization
+### Choosing the Signing Method
+
+The `payment_requirements` returned by `createIntent()` determines which signing method to use. Check `payment_requirements.extra.assetTransferMethod`:
+
+| `extra.assetTransferMethod` | Signing Method | Chains |
+|---|---|---|
+| *(absent or undefined)* | EIP-3009 TransferWithAuthorization | Base |
+| `"permit2"` | Permit2 PermitWitnessTransferFrom + EIP-2612 Permit | Arbitrum, Polygon, BSC, Ethereum, Monad, HyperEVM |
+| *(Solana network)* | Solana VersionedTransaction v0 | Solana |
+
+```typescript
+function chooseSigningMethod(paymentRequirements: PaymentRequirements): string {
+  const network = paymentRequirements.network;
+
+  // Solana chains
+  if (network.startsWith('solana:')) {
+    return 'solana';
+  }
+
+  // EVM chains — check assetTransferMethod
+  if (paymentRequirements.extra?.assetTransferMethod === 'permit2') {
+    return 'permit2';  // Arbitrum, Polygon, BSC, Ethereum, Monad, HyperEVM
+  }
+
+  return 'eip3009';  // Base (default)
+}
+```
+
+### 2a. EVM (Base) — EIP-3009 TransferWithAuthorization
 
 **TypeScript Example (ethers):**
 
@@ -344,9 +372,14 @@ interface PaymentRequirements {
   asset: string;
   payTo: string;
   maxTimeoutSeconds: number;
+  resource?: string;
+  description?: string;
   extra?: {
     name?: string;
     version?: string;
+    assetTransferMethod?: 'permit2';  // present for non-Base EVM chains
+    feePayer?: string;                // Solana: fee payer public key
+    decimals?: number;                // Solana: token decimals
   };
 }
 
@@ -448,7 +481,202 @@ function buildEVMsettleProof(
 }
 ```
 
-### 2b. Solana — Three Instructions + VersionedTransaction v0
+### 2b. EVM (Non-Base) — Permit2 + EIP-2612 Gas Sponsoring
+
+For non-Base EVM chains (Arbitrum, Polygon, BSC, Ethereum, Monad, HyperEVM), the backend returns `payment_requirements.extra.assetTransferMethod: "permit2"`. This flow requires **two signatures**:
+
+1. **Permit2 PermitWitnessTransferFrom** — authorizes the X402 proxy to transfer USDC via Permit2
+2. **EIP-2612 Permit** — approves the canonical Permit2 contract to spend your USDC (gas sponsoring: the backend submits the tx, so the payer pays no gas)
+
+**Constants (same on all EVM chains):**
+
+```typescript
+const PERMIT2_ADDRESS = '0x000000000022D473030F116dDEE9F6B43aC78BA3';
+const X402_EXACT_PERMIT2_PROXY = '0x402085c248EeA27D92E8b30b2C58ed07f9E20001';
+```
+
+**TypeScript Example (ethers):**
+
+```typescript
+import { Wallet, Contract } from 'ethers';
+import * as crypto from 'crypto';
+
+function randomNonce256Hex(): string {
+  return '0x' + crypto.randomBytes(32).toString('hex');
+}
+
+function randomNonce256Decimal(): string {
+  const bytes = crypto.randomBytes(32);
+  let value = 0n;
+  for (const b of bytes) {
+    value = (value << 8n) | BigInt(b);
+  }
+  return value.toString();
+}
+
+async function buildPermit2SettleProof(
+  paymentRequirements: PaymentRequirements,
+  payerAddress: string,
+  privateKey: string,
+  rpcUrl: string
+): Promise<string> {
+  // Parse chainId from CAIP-2 (eip155:42161 -> 42161)
+  const network = paymentRequirements.network;
+  const chainIdMatch = network.match(/eip155:(\d+)/);
+  if (!chainIdMatch) {
+    throw new Error(`Invalid network format: ${network}`);
+  }
+  const chainId = parseInt(chainIdMatch[1], 10);
+
+  const amount = paymentRequirements.amount;
+  const payTo = paymentRequirements.payTo;
+  const asset = paymentRequirements.asset;
+  const extra = paymentRequirements.extra || {};
+  const maxTimeout = paymentRequirements.maxTimeoutSeconds || 600;
+
+  const now = Math.floor(Date.now() / 1000);
+  const validAfter = (now - 600).toString();
+  const deadline = (now + maxTimeout).toString();
+
+  const wallet = new Wallet(privateKey);
+
+  // --- Signature 1: Permit2 PermitWitnessTransferFrom ---
+  const permit2Nonce = randomNonce256Decimal();
+  const permit2Domain = {
+    name: 'Permit2',
+    chainId: chainId,
+    verifyingContract: PERMIT2_ADDRESS,
+  };
+  const permit2Types = {
+    PermitWitnessTransferFrom: [
+      { name: 'permitted', type: 'TokenPermissions' },
+      { name: 'spender', type: 'address' },
+      { name: 'nonce', type: 'uint256' },
+      { name: 'deadline', type: 'uint256' },
+      { name: 'witness', type: 'Witness' },
+    ],
+    TokenPermissions: [
+      { name: 'token', type: 'address' },
+      { name: 'amount', type: 'uint256' },
+    ],
+    Witness: [
+      { name: 'to', type: 'address' },
+      { name: 'validAfter', type: 'uint256' },
+    ],
+  };
+  const permit2Message = {
+    permitted: { token: asset, amount },
+    spender: X402_EXACT_PERMIT2_PROXY,
+    nonce: permit2Nonce,
+    deadline,
+    witness: { to: payTo, validAfter },
+  };
+
+  const permit2Signature = await wallet.signTypedData(
+    permit2Domain,
+    permit2Types,
+    permit2Message
+  );
+
+  // --- Signature 2: EIP-2612 Permit (approve Permit2 to spend tokens) ---
+  // Read current nonce from USDC contract
+  const { JsonRpcProvider } = await import('ethers');
+  const provider = new JsonRpcProvider(rpcUrl);
+  const usdcContract = new Contract(
+    asset,
+    ['function nonces(address owner) view returns (uint256)'],
+    provider
+  );
+  const eip2612Nonce = await usdcContract.nonces(payerAddress);
+
+  const permitDomain = {
+    name: extra.name || 'USD Coin',
+    version: extra.version || '2',
+    chainId,
+    verifyingContract: asset,
+  };
+  const permitTypes = {
+    Permit: [
+      { name: 'owner', type: 'address' },
+      { name: 'spender', type: 'address' },
+      { name: 'value', type: 'uint256' },
+      { name: 'nonce', type: 'uint256' },
+      { name: 'deadline', type: 'uint256' },
+    ],
+  };
+  const permitMessage = {
+    owner: payerAddress,
+    spender: PERMIT2_ADDRESS,
+    value: amount,
+    nonce: eip2612Nonce.toString(),
+    deadline,
+  };
+
+  const permitSignature = await wallet.signTypedData(
+    permitDomain,
+    permitTypes,
+    permitMessage
+  );
+
+  // --- Build X402 v2 payload with extensions ---
+  const payload = {
+    x402Version: 2,
+    resource: {
+      url: paymentRequirements.resource || '/api/intents',
+      description: paymentRequirements.description || 'X402 payment',
+      mimeType: 'application/json',
+    },
+    accepted: {
+      scheme: paymentRequirements.scheme || 'exact',
+      network,
+      amount,
+      asset,
+      payTo,
+      maxTimeoutSeconds: maxTimeout,
+      extra: paymentRequirements.extra || {},
+    },
+    payload: {
+      signature: permit2Signature,
+      permit2Authorization: {
+        permitted: { token: asset, amount },
+        from: payerAddress,
+        spender: X402_EXACT_PERMIT2_PROXY,
+        nonce: permit2Nonce,
+        deadline,
+        witness: { to: payTo, validAfter },
+      },
+    },
+    extensions: {
+      eip2612GasSponsoring: {
+        info: {
+          from: payerAddress,
+          asset,
+          spender: PERMIT2_ADDRESS,
+          amount,
+          nonce: eip2612Nonce.toString(),
+          deadline,
+          signature: permitSignature,
+          version: '1',
+        },
+      },
+    },
+  };
+
+  return Buffer.from(JSON.stringify(payload)).toString('base64');
+}
+```
+
+**Key differences from EIP-3009 (Section 2a):**
+
+| | EIP-3009 (Base) | Permit2 (Non-Base EVM) |
+|---|---|---|
+| Signatures required | 1 | 2 (Permit2 + EIP-2612) |
+| Payload field | `payload.signature` + `payload.authorization` | `payload.signature` + `payload.permit2Authorization` + `extensions.eip2612GasSponsoring` |
+| Gas | Payer pays gas | Gas sponsored (backend submits tx) |
+| On-chain read | None | `nonces(address)` on USDC contract |
+| Nonce format | bytes32 (hex) | uint256 (decimal) for Permit2, uint256 from contract for EIP-2612 |
+
+### 2c. Solana — Three Instructions + VersionedTransaction v0
 
 **TypeScript Example (@solana/web3.js):**
 
@@ -564,11 +792,12 @@ async function buildSolanasettleProof(
 import { PublicPayClient } from '@cross402/usdc';
 import { Wallet } from 'ethers';
 import { buildEVMsettleProof } from './x402-signing';
+import { buildPermit2SettleProof } from './x402-permit2-signing';
 
 async function completeX402PaymentFlow(
   recipient: string,
   amount: string,
-  payerChain: 'base' | 'solana'
+  payerChain: string
 ) {
   // Initialize SDK client (public mode, no auth required)
   const client = new PublicPayClient({
@@ -593,12 +822,17 @@ async function completeX402PaymentFlow(
   console.log(`Status: ${intent.status}`);
   console.log(`Expires at: ${intent.expiresAt}`);
 
-  // Step 3: Sign X402 proof locally
-  const settleProof = buildEVMsettleProof(
-    intent.paymentRequirements,
-    payerAddress,
-    privateKey
-  );
+  // Step 3: Sign X402 proof locally (choose method based on payment_requirements)
+  let settleProof: string;
+  const pr = intent.paymentRequirements;
+
+  if (pr.extra?.assetTransferMethod === 'permit2') {
+    // Non-Base EVM chains (Arbitrum, Polygon, BSC, Ethereum, Monad, HyperEVM)
+    settleProof = await buildPermit2SettleProof(pr, payerAddress, privateKey, rpcUrl);
+  } else {
+    // Base (EIP-3009 TransferWithAuthorization)
+    settleProof = buildEVMsettleProof(pr, payerAddress, privateKey);
+  }
 
   console.log('X402 proof signed locally');
 
@@ -855,7 +1089,7 @@ async function handlePaymentWithRetry(
 ## Security and Notes
 
 - **Private keys** are generated and used only locally; never send them to the API or SDK.
-- **Merchants** always receive **USDC on Base**. Payers can pay from Solana or Base.
+- **Merchants** always receive **USDC on Base**. Payers can pay from Solana, Base, Arbitrum, Polygon, BSC, Ethereum, Monad, or HyperEVM.
 - **Email** is resolved to a Base wallet via Privy at intent creation only.
 - **SDK Benefits**: The SDK handles HTTP requests, error handling, and response parsing automatically.
 - If your AI is the **receiver**, you can present your receiving addresses (or QR codes) to your human owner so they can pay you via this SDK.
@@ -867,7 +1101,11 @@ async function handlePaymentWithRetry(
 - [ ] Generate EVM and/or Solana wallets locally; save to `~/.config/x402pay/wallets.json`
 - [ ] Initialize SDK client: `new PublicPayClient()` (TypeScript) or `pay.NewClient()` (Go)
 - [ ] Create intent: `client.createIntent()` (email or recipient, amount, payer_chain)
-- [ ] Sign X402 using **API-returned payment_requirements** (EVM: EIP-712; Solana: 3-instruction VersionedTransaction)
+- [ ] Check `payment_requirements.extra.assetTransferMethod` to choose signing method
+- [ ] Sign X402 using **API-returned payment_requirements**:
+  - Base: EIP-3009 TransferWithAuthorization (1 signature)
+  - Non-Base EVM: Permit2 + EIP-2612 (2 signatures, needs on-chain nonce read)
+  - Solana: 3-instruction VersionedTransaction v0
 - [ ] Build X402 v2 payload and set **settle_proof** = Base64(JSON.stringify(payload))
 - [ ] Submit: `client.submitProof(intentId, settleProof)`
 - [ ] Poll `client.getIntent(intentId)` until `BASE_SETTLED` or `EXPIRED`
