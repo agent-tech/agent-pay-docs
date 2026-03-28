@@ -13,16 +13,15 @@ All payments settle on **Base**, while the payer can pay from multiple source ch
 
 Use chain constants from the SDK instead of hardcoded strings:
 
-| Chain | Testnet Constant | Mainnet Constant |
-| :--- | :--- | :--- |
-| Solana | `pay.ChainSolanaDevnet` (`"solana-devnet"`) | `pay.ChainSolanaMainnet` (`"solana-mainnet-beta"`) |
-| Base | `pay.ChainBaseSepolia` (`"base-sepolia"`) | `pay.ChainBase` (`"base"`) |
-| BSC | `pay.ChainBSCTestnet` (`"bsc-testnet"`) | `pay.ChainBSC` (`"bsc"`) |
-| Polygon | `pay.ChainPolygonAmoy` (`"polygon-amoy"`) | `pay.ChainPolygon` (`"polygon"`) |
-| Arbitrum | `pay.ChainArbitrumSepolia` (`"arbitrum-sepolia"`) | `pay.ChainArbitrum` (`"arbitrum"`) |
-| Ethereum | `pay.ChainEthereumSepolia` (`"ethereum-sepolia"`) | `pay.ChainEthereum` (`"ethereum"`) |
-| Monad | `pay.ChainMonadTestnet` (`"monad-testnet"`) | `pay.ChainMonad` (`"monad"`) |
-| HyperEVM | `pay.ChainHyperEVMTestnet` (`"hyperevm-testnet"`) | `pay.ChainHyperEVM` (`"hyperevm"`) |
+| Chain | Constant |
+| :--- | :--- |
+| Solana | `pay.ChainSolanaMainnet` (`"solana-mainnet-beta"`) |
+| Base | `pay.ChainBase` (`"base"`) |
+| Polygon | `pay.ChainPolygon` (`"polygon"`) |
+| Arbitrum | `pay.ChainArbitrum` (`"arbitrum"`) |
+| Ethereum | `pay.ChainEthereum` (`"ethereum"`) |
+| Monad | `pay.ChainMonad` (`"monad"`) |
+| HyperEVM | `pay.ChainHyperEVM` (`"hyperevm"`) |
 
 ```go
 resp, err := client.CreateIntent(ctx, &pay.CreateIntentRequest{

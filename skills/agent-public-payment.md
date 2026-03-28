@@ -336,7 +336,7 @@ The `payment_requirements` returned by `createIntent()` determines which signing
 | `extra.assetTransferMethod` | Signing Method | Chains |
 |---|---|---|
 | *(absent or undefined)* | EIP-3009 TransferWithAuthorization | Base |
-| `"permit2"` | Permit2 PermitWitnessTransferFrom + EIP-2612 Permit | Arbitrum, Polygon, BSC, Ethereum, Monad, HyperEVM |
+| `"permit2"` | Permit2 PermitWitnessTransferFrom + EIP-2612 Permit | Arbitrum, Polygon, Ethereum, Monad, HyperEVM |
 | *(Solana network)* | Solana VersionedTransaction v0 | Solana |
 
 ```typescript
@@ -350,7 +350,7 @@ function chooseSigningMethod(paymentRequirements: PaymentRequirements): string {
 
   // EVM chains — check assetTransferMethod
   if (paymentRequirements.extra?.assetTransferMethod === 'permit2') {
-    return 'permit2';  // Arbitrum, Polygon, BSC, Ethereum, Monad, HyperEVM
+    return 'permit2';  // Arbitrum, Polygon, Ethereum, Monad, HyperEVM
   }
 
   return 'eip3009';  // Base (default)
@@ -483,7 +483,7 @@ function buildEVMsettleProof(
 
 ### 2b. EVM (Non-Base) — Permit2 + EIP-2612 Gas Sponsoring
 
-For non-Base EVM chains (Arbitrum, Polygon, BSC, Ethereum, Monad, HyperEVM), the backend returns `payment_requirements.extra.assetTransferMethod: "permit2"`. This flow requires **two signatures**:
+For non-Base EVM chains (Arbitrum, Polygon, Ethereum, Monad, HyperEVM), the backend returns `payment_requirements.extra.assetTransferMethod: "permit2"`. This flow requires **two signatures**:
 
 1. **Permit2 PermitWitnessTransferFrom** — authorizes the X402 proxy to transfer USDC via Permit2
 2. **EIP-2612 Permit** — approves the canonical Permit2 contract to spend your USDC (gas sponsoring: the backend submits the tx, so the payer pays no gas)
@@ -827,7 +827,7 @@ async function completeX402PaymentFlow(
   const pr = intent.paymentRequirements;
 
   if (pr.extra?.assetTransferMethod === 'permit2') {
-    // Non-Base EVM chains (Arbitrum, Polygon, BSC, Ethereum, Monad, HyperEVM)
+    // Non-Base EVM chains (Arbitrum, Polygon, Ethereum, Monad, HyperEVM)
     settleProof = await buildPermit2SettleProof(pr, payerAddress, privateKey, rpcUrl);
   } else {
     // Base (EIP-3009 TransferWithAuthorization)
@@ -1089,7 +1089,7 @@ async function handlePaymentWithRetry(
 ## Security and Notes
 
 - **Private keys** are generated and used only locally; never send them to the API or SDK.
-- **Merchants** always receive **USDC on Base**. Payers can pay from Solana, Base, Arbitrum, Polygon, BSC, Ethereum, Monad, or HyperEVM.
+- **Merchants** always receive **USDC on Base**. Payers can pay from Solana, Base, Arbitrum, Polygon, Ethereum, Monad, or HyperEVM.
 - **Email** is resolved to a Base wallet via Privy at intent creation only.
 - **SDK Benefits**: The SDK handles HTTP requests, error handling, and response parsing automatically.
 - If your AI is the **receiver**, you can present your receiving addresses (or QR codes) to your human owner so they can pay you via this SDK.

@@ -203,7 +203,7 @@ try {
    - **Public Mode**: No auth required, uses `/api` endpoints
    - **Authenticated Mode**: Requires Bearer token, uses `/v2` endpoints
 
-3. **Chain Support**: See [Supported Chains](../api/chains.md) for the full list of 16 supported chains (8 testnet + 8 mainnet).
+3. **Chain Support**: See [Supported Chains](../api/chains.md) for the full list of 7 supported chains.
 
 4. **Settlement**: All payments ultimately settle on Base chain regardless of the source chain.
 

@@ -4,26 +4,10 @@ AgentTech supports multiple source chains, with all payments ultimately settling
 
 ## Supported Chains
 
-### Testnet
-
-| Chain | Identifier | Go Constant | TS Constant |
-| :--- | :--- | :--- | :--- |
-| Solana Devnet | `"solana-devnet"` | `pay.ChainSolanaDevnet` | `Chain.SolanaDevnet` |
-| Base Sepolia | `"base-sepolia"` | `pay.ChainBaseSepolia` | `Chain.BaseSepolia` |
-| BSC Testnet | `"bsc-testnet"` | `pay.ChainBSCTestnet` | `Chain.BscTestnet` |
-| Polygon Amoy | `"polygon-amoy"` | `pay.ChainPolygonAmoy` | `Chain.PolygonAmoy` |
-| Arbitrum Sepolia | `"arbitrum-sepolia"` | `pay.ChainArbitrumSepolia` | `Chain.ArbitrumSepolia` |
-| Ethereum Sepolia | `"ethereum-sepolia"` | `pay.ChainEthereumSepolia` | `Chain.EthereumSepolia` |
-| Monad Testnet | `"monad-testnet"` | `pay.ChainMonadTestnet` | `Chain.MonadTestnet` |
-| HyperEVM Testnet | `"hyperevm-testnet"` | `pay.ChainHyperEVMTestnet` | `Chain.HyperEvmTestnet` |
-
-### Mainnet
-
 | Chain | Identifier | Go Constant | TS Constant |
 | :--- | :--- | :--- | :--- |
 | Solana | `"solana-mainnet-beta"` | `pay.ChainSolanaMainnet` | `Chain.SolanaMainnet` |
 | Base | `"base"` | `pay.ChainBase` | `Chain.Base` |
-| BSC | `"bsc"` | `pay.ChainBSC` | `Chain.Bsc` |
 | Polygon | `"polygon"` | `pay.ChainPolygon` | `Chain.Polygon` |
 | Arbitrum | `"arbitrum"` | `pay.ChainArbitrum` | `Chain.Arbitrum` |
 | Ethereum | `"ethereum"` | `pay.ChainEthereum` | `Chain.Ethereum` |
@@ -38,16 +22,15 @@ AgentTech supports multiple source chains, with all payments ultimately settling
 
 Use the chain constants from each SDK instead of hardcoded strings.
 
-| Chain | Testnet Identifier | Mainnet Identifier |
-| :--- | :--- | :--- |
-| Solana | `"solana-devnet"` | `"solana-mainnet-beta"` |
-| Base | `"base-sepolia"` | `"base"` |
-| BSC | `"bsc-testnet"` | `"bsc"` |
-| Polygon | `"polygon-amoy"` | `"polygon"` |
-| Arbitrum | `"arbitrum-sepolia"` | `"arbitrum"` |
-| Ethereum | `"ethereum-sepolia"` | `"ethereum"` |
-| Monad | `"monad-testnet"` | `"monad"` |
-| HyperEVM | `"hyperevm-testnet"` | `"hyperevm"` |
+| Chain | Identifier |
+| :--- | :--- |
+| Solana | `"solana-mainnet-beta"` |
+| Base | `"base"` |
+| Polygon | `"polygon"` |
+| Arbitrum | `"arbitrum"` |
+| Ethereum | `"ethereum"` |
+| Monad | `"monad"` |
+| HyperEVM | `"hyperevm"` |
 
 ## Usage
 
