@@ -10,9 +10,9 @@ start:
 branding:
   title: AgentTech
   label: Docs
-  logo: /static/agent-tech-logo.svg
-  logoDark: /static/agent-tech-logo.svg
-  favicon: /static/agent-tech-logo.svg
+  logo: /static/agent-logo.png
+  logoDark: /static/agent-logo.png
+  favicon: /static/agent-logo.png
 
 
 
