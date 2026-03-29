@@ -1,7 +1,7 @@
 {
-  "name": "agentpaydoc",
+  "name": "AgentTechdoc",
   "version": "1.0.0",
-  "description": "AgentPay is a developer-first programmable payment layer designed to enable seamless stablecoin payment across multiple chains. The first release supports **USDC** payments on **Base** and **Solana** via **x402**, with active expansion to **BNB Chain**, **Ethereum**, and more.",
+  "description": "AgentTech is a developer-first programmable payment layer designed to enable seamless stablecoin payment across multiple chains. The first release supports **USDC** payments on **Base** and **Solana** via **x402**, with active expansion to **BNB Chain**, **Ethereum**, and more.",
   "main": "index.js",
   "directories": {
     "doc": "docs"

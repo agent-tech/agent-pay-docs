@@ -678,6 +678,14 @@ async function buildPermit2SettleProof(
 
 ### 2c. Solana — Three Instructions + VersionedTransaction v0
 
+> **Partial Sign Required:** In Solana X402 payments, the `feePayer` is the server's
+> gas-sponsoring address — **you do not have its private key**. You must use
+> **partial signing** (sign only with your own keypair) and leave the feePayer's
+> signature slot as zero bytes. The server will add the feePayer's signature
+> after receiving your transaction. Do NOT call `transaction.sign()` — use
+> `transaction.addSignature()` instead (TypeScript) or manually place your
+> signature at the correct index (Go).
+
 **TypeScript Example (@solana/web3.js):**
 
 ```typescript
@@ -694,6 +702,7 @@ import {
   createTransferCheckedInstruction,
   getAssociatedTokenAddress,
 } from '@solana/spl-token';
+import nacl from 'tweetnacl';
 
 interface SolanaPaymentRequirements {
   scheme: string;
@@ -716,8 +725,12 @@ async function buildSolanasettleProof(
   const asset = new PublicKey(paymentRequirements.asset);
   const amount = BigInt(paymentRequirements.amount);
   const extra = paymentRequirements.extra || {};
-  const feePayer = extra.feePayer ? new PublicKey(extra.feePayer) : payTo;
   const decimals = extra.decimals || 6;
+
+  // IMPORTANT: feePayer is the server's gas-sponsoring address.
+  // The user does NOT have the feePayer's private key.
+  // The server will add the feePayer signature after receiving this transaction.
+  const feePayer = extra.feePayer ? new PublicKey(extra.feePayer) : payTo;
 
   // Get associated token address
   const sourceATA = await getAssociatedTokenAddress(asset, payerKeypair.publicKey);
@@ -749,7 +762,16 @@ async function buildSolanasettleProof(
 
   // Create versioned transaction
   const transaction = new VersionedTransaction(messageV0);
-  transaction.sign([payerKeypair]);
+
+  // CRITICAL: Use partial sign — only sign with YOUR keypair.
+  // Do NOT use transaction.sign([payerKeypair]) — that would fail because
+  // sign() expects ALL signers (including feePayer) to be provided.
+  // The feePayer is the server's address; we don't have its private key.
+  // addSignature() lets us sign only our part, leaving the feePayer's
+  // signature slot as zero bytes for the server to fill in later.
+  transaction.addSignature(payerKeypair.publicKey,
+    nacl.sign.detached(transaction.message.serialize(), payerKeypair.secretKey)
+  );
 
   // Serialize and encode
   const transactionBytes = transaction.serialize();
@@ -781,6 +803,97 @@ async function buildSolanasettleProof(
   return Buffer.from(JSON.stringify(payload)).toString('base64');
 }
 ```
+
+**Go Example (github.com/gagliardetto/solana-go):**
+
+```go
+package main
+
+import (
+	"crypto/ed25519"
+	"encoding/base64"
+	"encoding/json"
+
+	"github.com/gagliardetto/solana-go"
+)
+
+// buildSolanaSettleProof constructs a Solana X402 settle proof using partial signing.
+//
+// CRITICAL CONCEPTS:
+//   - feePayer is the SERVER's gas-sponsoring address. You do NOT have its private key.
+//   - You must use partial signing: sign only with your own keypair.
+//   - The Signatures slice must be pre-allocated with the correct length
+//     (one slot per signer in the compiled message). NewTransaction() does NOT
+//     do this automatically — you must allocate it yourself.
+//   - The feePayer is always index 0 in the Signatures slice. Leave it as
+//     zero bytes (64 bytes of 0x00). The server will fill it in.
+//   - Your signature goes at the index matching your public key's position
+//     in the message's account keys.
+func buildSolanaSettleProof(
+	paymentRequirements map[string]interface{},
+	payerPrivateKey ed25519.PrivateKey,
+) (string, error) {
+	extra, _ := paymentRequirements["extra"].(map[string]interface{})
+	feePayerStr, _ := extra["feePayer"].(string)
+	feePayer := solana.MustPublicKeyFromBase58(feePayerStr)
+	payTo := solana.MustPublicKeyFromBase58(paymentRequirements["payTo"].(string))
+	asset := solana.MustPublicKeyFromBase58(paymentRequirements["asset"].(string))
+	_ = payTo
+	_ = asset
+
+	// ... (build instructions: SetComputeUnitLimit, SetComputeUnitPrice, TransferChecked)
+	// ... (compile to MessageV0 with payerKey = feePayer)
+
+	// After compiling the message to messageBytes:
+	var messageBytes []byte // = compiled message bytes
+
+	// Pre-allocate the Signatures slice.
+	// The number of required signatures is in messageBytes[0] (the first byte
+	// of a Solana v0 message header). Each signature is 64 bytes of zeros initially.
+	numSigners := int(messageBytes[0])
+	signatures := make([]solana.Signature, numSigners)
+	// All slots are initialized to zero bytes — the feePayer slot (index 0)
+	// stays as zeros for the server to fill in later.
+
+	// Find YOUR public key's index in the account keys and sign at that index.
+	payerPubkey := solana.PublicKeyFromBytes(payerPrivateKey.Public().(ed25519.PublicKey))
+	// The feePayer is index 0. Your key will typically be index 1 if you are
+	// the second signer. Loop through the message's account keys to find it.
+	myIndex := 1 // Typically 1 when feePayer is index 0 and you are the only other signer
+
+	sig := ed25519.Sign(payerPrivateKey, messageBytes)
+	copy(signatures[myIndex][:], sig)
+
+	// Serialize: [compact-array of signatures] + [message bytes]
+	// Then base64-encode the whole thing for the X402 payload.
+	_ = feePayer
+	_ = signatures
+
+	// Build X402 v2 payload (same structure as TypeScript example)
+	payload := map[string]interface{}{
+		"x402Version": 2,
+		"payload": map[string]interface{}{
+			"transaction": base64.StdEncoding.EncodeToString(messageBytes), // replace with full serialized tx
+		},
+		// ... include resource, accepted fields
+	}
+
+	payloadJSON, err := json.Marshal(payload)
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(payloadJSON), nil
+}
+```
+
+> **Common Pitfalls (Solana Partial Sign):**
+>
+> | Pitfall | Symptom | Fix |
+> |---------|---------|-----|
+> | Using `transaction.sign()` instead of `addSignature()` (TS) | Error: missing private key for feePayer | Use `transaction.addSignature()` with `nacl.sign.detached()` |
+> | Not pre-allocating `Signatures` slice (Go) | Index out of range panic or missing signatures | Allocate `make([]Signature, numSigners)` before placing your signature |
+> | Signing at wrong index | Server rejects: signature verification failed | feePayer is always index 0; your key is at its position in the account keys list |
+> | Using `Sign()` in Go SDK | Requires all signer private keys including feePayer | Manually construct the signatures slice and place only your signature |
 
 ---
 
