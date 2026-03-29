@@ -233,77 +233,9 @@ AWAITING_PAYMENT
 | 429 | RequestError | Rate limited | Implement exponential backoff, retry after delay |
 | 503 | RequestError | Service unavailable | Retry after delay |
 
-### Example Error Handling
+> For comprehensive error handling patterns and retry strategies, see [Error Handling](error-handling.md).
 
-```typescript
-try {
-  const intent = await client.getIntent(intentId);
-} catch (error) {
-  if (error instanceof PayApiError) {
-    switch (error.statusCode) {
-      case 404:
-        console.error("Intent not found. Verify the intent ID.");
-        break;
-      case 429:
-        console.error("Rate limited. Retry after delay.");
-        break;
-      default:
-        console.error(`Error: ${error.statusCode} - ${error.body}`);
-    }
-  }
-}
-```
-
-## Polling Strategy
-
-### Basic Polling
-
-```typescript
-async function pollIntentStatus(intentId: string, maxAttempts: number = 30) {
-  for (let i = 0; i < maxAttempts; i++) {
-    const intent = await client.getIntent(intentId);
-    
-    // Check for terminal states
-    if (intent.status === 'BASE_SETTLED') {
-      return { success: true, intent };
-    }
-    
-    if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED' || intent.status === 'PARTIAL_SETTLEMENT') {
-      return { success: false, intent };
-    }
-
-    // Wait before next poll (2-5 seconds recommended)
-    await new Promise(resolve => setTimeout(resolve, 3000));
-  }
-  
-  throw new Error('Polling timeout');
-}
-```
-
-### Exponential Backoff Polling
-
-```typescript
-async function pollWithBackoff(intentId: string) {
-  let delay = 2000; // Start with 2 seconds
-  const maxDelay = 30000; // Max 30 seconds
-  
-  while (true) {
-    const intent = await client.getIntent(intentId);
-    
-    if (intent.status === 'BASE_SETTLED') {
-      return intent;
-    }
-    
-    if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED' || intent.status === 'PARTIAL_SETTLEMENT') {
-      throw new Error(`Payment failed: ${intent.status}`);
-    }
-    
-    // Exponential backoff
-    await new Promise(resolve => setTimeout(resolve, delay));
-    delay = Math.min(delay * 1.5, maxDelay);
-  }
-}
-```
+> For polling strategies and best practices, see [Payment Polling](payment-polling.md).
 
 ## Important Notes
 

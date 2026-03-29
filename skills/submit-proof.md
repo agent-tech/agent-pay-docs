@@ -178,29 +178,7 @@ const result = await client.submitProof(intent.intentId, settleProof);
 | 429 | RequestError | Rate limited | Implement exponential backoff, retry after delay |
 | 503 | RequestError | Service unavailable | Retry after delay |
 
-### Example Error Handling
-
-```typescript
-try {
-  const result = await client.submitProof(intentId, settleProof);
-} catch (error) {
-  if (error instanceof PayApiError) {
-    switch (error.statusCode) {
-      case 400:
-        console.error("Invalid proof or intent ID:", error.body);
-        break;
-      case 404:
-        console.error("Intent not found. Verify the intent ID.");
-        break;
-      case 429:
-        console.error("Rate limited. Retry after delay.");
-        break;
-      default:
-        console.error(`Error: ${error.statusCode} - ${error.body}`);
-    }
-  }
-}
-```
+> For comprehensive error handling patterns and retry strategies, see [Error Handling](error-handling.md).
 
 ## Important Notes
 

@@ -175,25 +175,7 @@ func main() {
 | 401 | RequestError | Unauthorized (if auth required) | Provide valid API key and secret key |
 | 429 | RequestError | Rate limited | Implement exponential backoff, retry after delay |
 
-### Example Error Handling
-
-```typescript
-try {
-  const intent = await client.createIntent({
-    email: "merchant@example.com",
-    amount: "100.50",
-    payerChain: "base"
-  });
-} catch (error) {
-  if (error instanceof PayApiError) {
-    if (error.statusCode === 400) {
-      console.error("Invalid request:", error.body);
-    } else if (error.statusCode === 429) {
-      console.error("Rate limited, retry after delay");
-    }
-  }
-}
-```
+> For comprehensive error handling patterns and retry strategies, see [Error Handling](error-handling.md).
 
 ## Important Notes
 

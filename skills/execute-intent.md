@@ -168,30 +168,7 @@ func main() {
 | 429 | RequestError | Rate limited | Implement exponential backoff, retry after delay |
 | 503 | RequestError | Service unavailable | Retry after delay |
 
-### Example Error Handling
-
-```typescript
-try {
-  const result = await client.executeIntent(intentId);
-} catch (error) {
-  if (error instanceof PayApiError) {
-    switch (error.statusCode) {
-      case 401:
-        console.error("Authentication failed. Check your API credentials.");
-        break;
-      case 404:
-        console.error("Intent not found. Verify the intent ID.");
-        break;
-      case 429:
-        console.error("Rate limited. Retry after delay.");
-        // Implement exponential backoff
-        break;
-      default:
-        console.error(`Error: ${error.statusCode} - ${error.body}`);
-    }
-  }
-}
-```
+> For comprehensive error handling patterns and retry strategies, see [Error Handling](error-handling.md).
 
 ## Important Notes
 
