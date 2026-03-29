@@ -7,12 +7,13 @@ start:
   # Uncomment the next line to try Retype Pro features
   # pro: true
 
+favicon: /static/agent-logo.png
+
 branding:
   title: AgentTech
   label: Docs
   logo: /static/agent-logo.png
   logoDark: /static/agent-logo.png
-  favicon: /static/agent-logo.png
 
 
 
