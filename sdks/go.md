@@ -13,15 +13,15 @@ All payments settle on **Base**, while the payer can pay from multiple source ch
 
 Use chain constants from the SDK instead of hardcoded strings:
 
-| Chain | Constant |
-| :--- | :--- |
-| Solana | `pay.ChainSolanaMainnet` (`"solana-mainnet-beta"`) |
-| Base | `pay.ChainBase` (`"base"`) |
-| Polygon | `pay.ChainPolygon` (`"polygon"`) |
-| Arbitrum | `pay.ChainArbitrum` (`"arbitrum"`) |
-| Ethereum | `pay.ChainEthereum` (`"ethereum"`) |
-| Monad | `pay.ChainMonad` (`"monad"`) |
-| HyperEVM | `pay.ChainHyperEVM` (`"hyperevm"`) |
+| Chain | Constant | Status |
+| :--- | :--- | :--- |
+| Solana | `pay.ChainSolanaMainnet` (`"solana-mainnet-beta"`) | Available |
+| Base | `pay.ChainBase` (`"base"`) | Available |
+| Polygon | `pay.ChainPolygon` (`"polygon"`) | Under maintenance |
+| Arbitrum | `pay.ChainArbitrum` (`"arbitrum"`) | Under maintenance |
+| Ethereum | `pay.ChainEthereum` (`"ethereum"`) | Under maintenance |
+| Monad | `pay.ChainMonad` (`"monad"`) | Under maintenance |
+| HyperEVM | `pay.ChainHyperEVM` (`"hyperevm"`) | Under maintenance |
 
 ```go
 resp, err := client.CreateIntent(ctx, &pay.CreateIntentRequest{

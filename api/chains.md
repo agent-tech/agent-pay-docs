@@ -4,15 +4,15 @@ AgentTech supports multiple source chains, with all payments ultimately settling
 
 ## Supported Chains
 
-| Chain | Identifier | Go Constant | TS Constant |
-| :--- | :--- | :--- | :--- |
-| Solana | `"solana-mainnet-beta"` | `pay.ChainSolanaMainnet` | `Chain.SolanaMainnet` |
-| Base | `"base"` | `pay.ChainBase` | `Chain.Base` |
-| Polygon | `"polygon"` | `pay.ChainPolygon` | `Chain.Polygon` |
-| Arbitrum | `"arbitrum"` | `pay.ChainArbitrum` | `Chain.Arbitrum` |
-| Ethereum | `"ethereum"` | `pay.ChainEthereum` | `Chain.Ethereum` |
-| Monad | `"monad"` | `pay.ChainMonad` | `Chain.Monad` |
-| HyperEVM | `"hyperevm"` | `pay.ChainHyperEVM` | `Chain.HyperEvm` |
+| Chain | Identifier | Go Constant | TS Constant | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| Solana | `"solana-mainnet-beta"` | `pay.ChainSolanaMainnet` | `Chain.SolanaMainnet` | Available |
+| Base | `"base"` | `pay.ChainBase` | `Chain.Base` | Available |
+| Polygon | `"polygon"` | `pay.ChainPolygon` | `Chain.Polygon` | Under maintenance |
+| Arbitrum | `"arbitrum"` | `pay.ChainArbitrum` | `Chain.Arbitrum` | Under maintenance |
+| Ethereum | `"ethereum"` | `pay.ChainEthereum` | `Chain.Ethereum` | Under maintenance |
+| Monad | `"monad"` | `pay.ChainMonad` | `Chain.Monad` | Under maintenance |
+| HyperEVM | `"hyperevm"` | `pay.ChainHyperEVM` | `Chain.HyperEvm` | Under maintenance |
 
 ## Settlement Chain
 
@@ -22,15 +22,15 @@ AgentTech supports multiple source chains, with all payments ultimately settling
 
 Use the chain constants from each SDK instead of hardcoded strings.
 
-| Chain | Identifier |
-| :--- | :--- |
-| Solana | `"solana-mainnet-beta"` |
-| Base | `"base"` |
-| Polygon | `"polygon"` |
-| Arbitrum | `"arbitrum"` |
-| Ethereum | `"ethereum"` |
-| Monad | `"monad"` |
-| HyperEVM | `"hyperevm"` |
+| Chain | Identifier | Status |
+| :--- | :--- | :--- |
+| Solana | `"solana-mainnet-beta"` | Available |
+| Base | `"base"` | Available |
+| Polygon | `"polygon"` | Under maintenance |
+| Arbitrum | `"arbitrum"` | Under maintenance |
+| Ethereum | `"ethereum"` | Under maintenance |
+| Monad | `"monad"` | Under maintenance |
+| HyperEVM | `"hyperevm"` | Under maintenance |
 
 ## Usage
 
