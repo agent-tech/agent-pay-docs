@@ -4,15 +4,16 @@ AgentTech supports multiple source chains, with all payments ultimately settling
 
 ## Supported Chains
 
-| Chain | Identifier | Go Constant | TS Constant | Status |
-| :--- | :--- | :--- | :--- | :--- |
-| Solana | `"solana-mainnet-beta"` | `pay.ChainSolanaMainnet` | `Chain.SolanaMainnet` | Available |
-| Base | `"base"` | `pay.ChainBase` | `Chain.Base` | Available |
-| Polygon | `"polygon"` | `pay.ChainPolygon` | `Chain.Polygon` | Under maintenance |
-| Arbitrum | `"arbitrum"` | `pay.ChainArbitrum` | `Chain.Arbitrum` | Under maintenance |
-| Ethereum | `"ethereum"` | `pay.ChainEthereum` | `Chain.Ethereum` | Under maintenance |
-| Monad | `"monad"` | `pay.ChainMonad` | `Chain.Monad` | Under maintenance |
-| HyperEVM | `"hyperevm"` | `pay.ChainHyperEVM` | `Chain.HyperEvm` | Under maintenance |
+| Chain | Identifier | Go Constant | TS Constant | USDC Decimals | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Solana | `"solana-mainnet-beta"` | `pay.ChainSolanaMainnet` | `Chain.SolanaMainnet` | 6 | Available |
+| Base | `"base"` | `pay.ChainBase` | `Chain.Base` | 6 | Available |
+| BSC | `"bsc"` | `pay.ChainBSC` | `Chain.BSC` | **18** | Available |
+| Polygon | `"polygon"` | `pay.ChainPolygon` | `Chain.Polygon` | 6 | Under maintenance |
+| Arbitrum | `"arbitrum"` | `pay.ChainArbitrum` | `Chain.Arbitrum` | 6 | Under maintenance |
+| Ethereum | `"ethereum"` | `pay.ChainEthereum` | `Chain.Ethereum` | 6 | Under maintenance |
+| Monad | `"monad"` | `pay.ChainMonad` | `Chain.Monad` | 6 | Under maintenance |
+| HyperEVM | `"hyperevm"` | `pay.ChainHyperEVM` | `Chain.HyperEvm` | 6 | Under maintenance |
 
 ## Settlement Chain
 
@@ -22,15 +23,36 @@ AgentTech supports multiple source chains, with all payments ultimately settling
 
 Use the chain constants from each SDK instead of hardcoded strings.
 
-| Chain | Identifier | Status |
-| :--- | :--- | :--- |
-| Solana | `"solana-mainnet-beta"` | Available |
-| Base | `"base"` | Available |
-| Polygon | `"polygon"` | Under maintenance |
-| Arbitrum | `"arbitrum"` | Under maintenance |
-| Ethereum | `"ethereum"` | Under maintenance |
-| Monad | `"monad"` | Under maintenance |
-| HyperEVM | `"hyperevm"` | Under maintenance |
+| Chain | Identifier | USDC Decimals | Status |
+| :--- | :--- | :--- | :--- |
+| Solana | `"solana-mainnet-beta"` | 6 | Available |
+| Base | `"base"` | 6 | Available |
+| BSC | `"bsc"` | **18** | Available |
+| Polygon | `"polygon"` | 6 | Under maintenance |
+| Arbitrum | `"arbitrum"` | 6 | Under maintenance |
+| Ethereum | `"ethereum"` | 6 | Under maintenance |
+| Monad | `"monad"` | 6 | Under maintenance |
+| HyperEVM | `"hyperevm"` | 6 | Under maintenance |
+
+## Chain-Specific Notes
+
+### BSC (BNB Smart Chain)
+
+> **Important**: USDC on BSC uses **18 decimals**, unlike the standard 6 decimals used on most other chains.
+
+Two things to be aware of when paying from BSC:
+
+1. **Amount scaling**: Do not hardcode 6 decimals for USDC amounts. Always use `extra.decimals` from the backend response to determine the correct decimal precision for the source chain.
+2. **Permit2 pre-approval**: BSC requires a one-time Permit2 contract approval before the first payment. This is specific to BSC — other EVM chains do not require this step.
+
+```go
+// Always use extra.decimals from the intent response, not hardcoded values
+decimals := resp.Extra.Decimals // e.g. 18 for BSC, 6 for Base/Polygon
+amount := new(big.Int).Mul(
+    amountFloat,
+    new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(decimals)), nil),
+)
+```
 
 ## Usage
 

@@ -13,15 +13,16 @@ All payments settle on **Base**, while the payer can pay from multiple source ch
 
 Use chain constants from the SDK instead of hardcoded strings:
 
-| Chain | Constant | Status |
-| :--- | :--- | :--- |
-| Solana | `pay.ChainSolanaMainnet` (`"solana-mainnet-beta"`) | Available |
-| Base | `pay.ChainBase` (`"base"`) | Available |
-| Polygon | `pay.ChainPolygon` (`"polygon"`) | Under maintenance |
-| Arbitrum | `pay.ChainArbitrum` (`"arbitrum"`) | Under maintenance |
-| Ethereum | `pay.ChainEthereum` (`"ethereum"`) | Under maintenance |
-| Monad | `pay.ChainMonad` (`"monad"`) | Under maintenance |
-| HyperEVM | `pay.ChainHyperEVM` (`"hyperevm"`) | Under maintenance |
+| Chain | Constant | USDC Decimals | Status |
+| :--- | :--- | :--- | :--- |
+| Solana | `pay.ChainSolanaMainnet` (`"solana-mainnet-beta"`) | 6 | Available |
+| Base | `pay.ChainBase` (`"base"`) | 6 | Available |
+| BSC | `pay.ChainBSC` (`"bsc"`) | **18** | Available |
+| Polygon | `pay.ChainPolygon` (`"polygon"`) | 6 | Under maintenance |
+| Arbitrum | `pay.ChainArbitrum` (`"arbitrum"`) | 6 | Under maintenance |
+| Ethereum | `pay.ChainEthereum` (`"ethereum"`) | 6 | Under maintenance |
+| Monad | `pay.ChainMonad` (`"monad"`) | 6 | Under maintenance |
+| HyperEVM | `pay.ChainHyperEVM` (`"hyperevm"`) | 6 | Under maintenance |
 
 ```go
 resp, err := client.CreateIntent(ctx, &pay.CreateIntentRequest{
@@ -30,6 +31,8 @@ resp, err := client.CreateIntent(ctx, &pay.CreateIntentRequest{
     PayerChain: pay.ChainBase, // use constants instead of bare strings
 })
 ```
+
+> **BSC note**: USDC on BSC uses 18 decimals. Always read `resp.Extra.Decimals` from the intent response rather than hardcoding `6`. See [Chain-Specific Notes](../api/chains.md#chain-specific-notes) for details.
 
 ### Intent Status Constants
 

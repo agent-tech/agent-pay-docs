@@ -96,7 +96,9 @@ if errors.As(err, &unexpErr) {
 | `403` | Forbidden — insufficient permissions | No | Check API key permissions |
 | `404` | Not found — intent does not exist | No | Verify intent ID |
 | `429` | Rate limited — too many requests (60 req/min/IP typical) | Yes | Implement exponential backoff |
-| `503` | Service unavailable — temporary backend issue | Yes | Retry after delay |
+| `503` | Service unavailable — temporary backend issue or facilitator timeout | Yes | Retry after delay |
+
+> **Note on 503 errors**: A `503` may indicate a transient timeout communicating with the X402 payment facilitator. These errors surface as a generic message without exposing internal URLs. Treat them as retryable with exponential backoff (3–5 attempts, 2s initial delay).
 
 ## Retry Strategies
 
