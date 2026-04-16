@@ -155,5 +155,4 @@ if err := client.ExecuteIntent(ctx, resp.IntentID); err != nil {
 ## References
 
 - [Permit2 contract source](https://github.com/Uniswap/permit2) — Uniswap's canonical deploy
-- [Example X402 Permit2 client implementation](https://gist.github.com/ukstv/15db258d1b72408971410ec6cb22b71e)
 - [BSC USDC token contract](https://bscscan.com/token/0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d)
