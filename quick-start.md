@@ -18,6 +18,10 @@ Before initializing the client, you need to obtain your API key and secret key:
 
 > **Note**: Each account can create up to 10 agents. For detailed instructions, see the [Authentication documentation](api/auth.md#getting-your-api-key).
 
+!!! danger "Protect your keys"
+Always store your API key and secret key in **environment variables**. Never hardcode them in source code or share them in any chat, AI assistant, or support channel. A leaked key can be used to initiate payments from your wallet, resulting in permanent fund loss.
+!!!
+
 ### 3. Initialize the Client
 
 #### Node.js / TypeScript

@@ -18,11 +18,11 @@ Use chain constants from the SDK instead of hardcoded strings:
 | Solana | `pay.ChainSolanaMainnet` (`"solana-mainnet-beta"`) | 6 | Available |
 | Base | `pay.ChainBase` (`"base"`) | 6 | Available |
 | BSC | `pay.ChainBSC` (`"bsc"`) | **18** | Available |
-| Polygon | `pay.ChainPolygon` (`"polygon"`) | 6 | Under maintenance |
-| Arbitrum | `pay.ChainArbitrum` (`"arbitrum"`) | 6 | Under maintenance |
-| Ethereum | `pay.ChainEthereum` (`"ethereum"`) | 6 | Under maintenance |
-| Monad | `pay.ChainMonad` (`"monad"`) | 6 | Under maintenance |
-| HyperEVM | `pay.ChainHyperEVM` (`"hyperevm"`) | 6 | Under maintenance |
+| Polygon | `pay.ChainPolygon` (`"polygon"`) | 6 | Available |
+| Arbitrum | `pay.ChainArbitrum` (`"arbitrum"`) | 6 | Available |
+| Ethereum | `pay.ChainEthereum` (`"ethereum"`) | 6 | Available |
+| Monad | `pay.ChainMonad` (`"monad"`) | 6 | Available |
+| HyperEVM | `pay.ChainHyperEVM` (`"hyperevm"`) | 6 | Available |
 
 ```go
 resp, err := client.CreateIntent(ctx, &pay.CreateIntentRequest{

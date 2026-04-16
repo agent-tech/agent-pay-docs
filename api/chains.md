@@ -9,11 +9,11 @@ AgentTech supports multiple source chains, with all payments ultimately settling
 | Solana | `"solana-mainnet-beta"` | `pay.ChainSolanaMainnet` | `Chain.SolanaMainnet` | 6 | Available |
 | Base | `"base"` | `pay.ChainBase` | `Chain.Base` | 6 | Available |
 | BSC | `"bsc"` | `pay.ChainBSC` | `Chain.BSC` | **18** | Available |
-| Polygon | `"polygon"` | `pay.ChainPolygon` | `Chain.Polygon` | 6 | Under maintenance |
-| Arbitrum | `"arbitrum"` | `pay.ChainArbitrum` | `Chain.Arbitrum` | 6 | Under maintenance |
-| Ethereum | `"ethereum"` | `pay.ChainEthereum` | `Chain.Ethereum` | 6 | Under maintenance |
-| Monad | `"monad"` | `pay.ChainMonad` | `Chain.Monad` | 6 | Under maintenance |
-| HyperEVM | `"hyperevm"` | `pay.ChainHyperEVM` | `Chain.HyperEvm` | 6 | Under maintenance |
+| Polygon | `"polygon"` | `pay.ChainPolygon` | `Chain.Polygon` | 6 | Available |
+| Arbitrum | `"arbitrum"` | `pay.ChainArbitrum` | `Chain.Arbitrum` | 6 | Available |
+| Ethereum | `"ethereum"` | `pay.ChainEthereum` | `Chain.Ethereum` | 6 | Available |
+| Monad | `"monad"` | `pay.ChainMonad` | `Chain.Monad` | 6 | Available |
+| HyperEVM | `"hyperevm"` | `pay.ChainHyperEVM` | `Chain.HyperEvm` | 6 | Available |
 
 ## Settlement Chain
 
@@ -28,11 +28,11 @@ Use the chain constants from each SDK instead of hardcoded strings.
 | Solana | `"solana-mainnet-beta"` | 6 | Available |
 | Base | `"base"` | 6 | Available |
 | BSC | `"bsc"` | **18** | Available |
-| Polygon | `"polygon"` | 6 | Under maintenance |
-| Arbitrum | `"arbitrum"` | 6 | Under maintenance |
-| Ethereum | `"ethereum"` | 6 | Under maintenance |
-| Monad | `"monad"` | 6 | Under maintenance |
-| HyperEVM | `"hyperevm"` | 6 | Under maintenance |
+| Polygon | `"polygon"` | 6 | Available |
+| Arbitrum | `"arbitrum"` | 6 | Available |
+| Ethereum | `"ethereum"` | 6 | Available |
+| Monad | `"monad"` | 6 | Available |
+| HyperEVM | `"hyperevm"` | 6 | Available |
 
 ## Chain-Specific Notes
 

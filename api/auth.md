@@ -73,7 +73,23 @@ The SDK automatically selects the API prefix based on authentication:
 
 ## Security Best Practices
 
+!!! danger "Never expose your API key or secret key"
+Store credentials in environment variables, not in source code or config files.
+
+```bash
+export AGENTTECH_API_KEY="your-api-key"
+export AGENTTECH_SECRET_KEY="your-secret-key"
+```
+
+```go
+apiKey := os.Getenv("AGENTTECH_API_KEY")
+secretKey := os.Getenv("AGENTTECH_SECRET_KEY")
+```
+
+**Do not paste your API key or secret key into any AI assistant, chat, or support channel.** If your key is compromised, an attacker can initiate payments from your agent wallet, resulting in permanent fund loss.
+!!!
+
 1. **Never expose secrets in frontend code** — use `PublicPayClient` for browser environments
-2. **Store API keys securely** — use environment variables or secret management services
+2. **Store API keys in environment variables** — never hardcode credentials in source code or commit them to version control
 3. **Rotate keys regularly** — update credentials periodically for better security
 4. **Use HTTPS only** — ensure all API calls are made over encrypted connections

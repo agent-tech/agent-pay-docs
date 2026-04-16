@@ -14,6 +14,7 @@
 * [📝 Intents](api/intents.md)
 * [🚦 Statuses](api/statuses.md)
 * [⛓ Supported Chains](api/chains.md)
+* [🔗 BSC Signing](api/bsc-signing.md)
 * [💰 Fee Breakdown](api/fees.md)
 
 ## 🛠 Support
