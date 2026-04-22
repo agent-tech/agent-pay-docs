@@ -31,16 +31,16 @@
       },
       "status": {
         "type": "string",
-        "enum": ["AWAITING_PAYMENT", "PENDING", "SOURCE_SETTLED", "BASE_SETTLING", "BASE_SETTLED", "VERIFICATION_FAILED", "EXPIRED", "PARTIAL_SETTLEMENT"],
+        "enum": ["AWAITING_PAYMENT", "PENDING", "SOURCE_SETTLED", "TARGET_SETTLING", "TARGET_SETTLED", "VERIFICATION_FAILED", "EXPIRED", "PARTIAL_SETTLEMENT"],
         "description": "Current status of the intent"
       },
-      "base_payment": {
+      "target_payment": {
         "type": "object",
-        "description": "Payment receipt information (available when status is BASE_SETTLED)",
+        "description": "Payment receipt on the target chain (present when status is TARGET_SETTLED)",
         "properties": {
           "tx_hash": {
             "type": "string",
-            "description": "Transaction hash on Base chain"
+            "description": "Transaction hash on the target chain"
           },
           "settle_proof": {
             "type": "string",
@@ -52,9 +52,13 @@
           },
           "explorer_url": {
             "type": "string",
-            "description": "Block explorer URL"
+            "description": "Block explorer URL on the target chain"
           }
         }
+      },
+      "source_payment": {
+        "type": "object",
+        "description": "Payment details on the payer (source) chain (present once the source chain has settled)"
       },
       "fee_breakdown": {
         "type": "object",
@@ -89,21 +93,30 @@
 ```json
 {
   "intent_id": "int_abc123xyz",
-  "status": "BASE_SETTLED",
-  "base_payment": {
+  "status": "TARGET_SETTLED",
+  "payer_chain": "base",
+  "merchant_recipient": "0x742d35Cc...",
+  "target_payment": {
     "tx_hash": "0x1234...abcd",
     "settle_proof": "...",
     "settled_at": "2024-01-01T12:05:00Z",
-    "explorer_url": "https://basescan.org/tx/0x1234...abcd"
+    "explorer_url": "https://etherscan.io/tx/0x1234...abcd"
+  },
+  "source_payment": {
+    "chain": "base",
+    "tx_hash": "0x9876...fedc",
+    "settle_proof": "...",
+    "settled_at": "2024-01-01T12:04:30Z",
+    "explorer_url": "https://basescan.org/tx/0x9876...fedc"
   },
   "fee_breakdown": {
     "source_chain": "base",
     "source_chain_fee": "0.001",
-    "target_chain": "base",
-    "target_chain_fee": "0.0001",
+    "target_chain": "ethereum",
+    "target_chain_fee": "0.85",
     "platform_fee": "1.00",
     "platform_fee_percentage": "1.0",
-    "total_fee": "1.0011"
+    "total_fee": "1.851"
   },
   "created_at": "2024-01-01T12:00:00Z",
   "expires_at": "2024-01-01T12:10:00Z"
@@ -116,19 +129,19 @@
 |--------|-------------|----------|
 | `AWAITING_PAYMENT` | Intent created; waiting for the payer to initiate transfer | No |
 | `PENDING` | Execution initiated, processing | No |
-| `SOURCE_SETTLED` | Payment confirmed on the source chain | No |
-| `BASE_SETTLING` | Final settlement is being processed on the Base chain | No |
-| `BASE_SETTLED` | Success. Funds have arrived at the destination | Yes |
+| `SOURCE_SETTLED` | Payment confirmed on the payer chain | No |
+| `TARGET_SETTLING` | Settlement is being processed on the target chain | No |
+| `TARGET_SETTLED` | Success. Funds have arrived at the merchant on the target chain | Yes |
 | `VERIFICATION_FAILED` | Source payment verification failed | Yes |
 | `EXPIRED` | Intent was not executed within 10 minutes | Yes |
-| `PARTIAL_SETTLEMENT` | Partial amount settled on Base | Yes |
+| `PARTIAL_SETTLEMENT` | Source settled but target transfer could not be completed | Yes |
 
 ## Code Examples
 
 ### TypeScript/JavaScript
 
 ```typescript
-import { PayClient } from '@cross402/usdc';
+import { PayClient, IntentStatus } from '@cross402/usdc';
 
 const client = new PayClient({
   baseUrl: 'https://api-pay.agent.tech',
@@ -141,14 +154,14 @@ const intent = await client.getIntent(intentId);
 console.log(`Intent ID: ${intent.intentId}`);
 console.log(`Status: ${intent.status}`);
 
-// Handle different statuses
 switch (intent.status) {
-  case 'BASE_SETTLED':
+  case IntentStatus.TargetSettled:
     console.log('Payment complete!');
-    console.log(`Transaction hash: ${intent.basePayment.txHash}`);
+    console.log(`Transaction hash: ${intent.targetPayment.txHash}`);
     break;
-  case 'EXPIRED':
-  case 'VERIFICATION_FAILED':
+  case IntentStatus.Expired:
+  case IntentStatus.VerificationFailed:
+  case IntentStatus.PartialSettlement:
     console.log('Payment failed:', intent.status);
     break;
   default:
@@ -178,8 +191,7 @@ func main() {
     }
 
     ctx := context.Background()
-    
-    // Query intent status
+
     intent, err := client.GetIntent(ctx, intentID)
     if err != nil {
         log.Fatal(err)
@@ -188,12 +200,11 @@ func main() {
     log.Printf("Intent ID: %s", intent.IntentID)
     log.Printf("Status: %s", intent.Status)
 
-    // Handle different statuses
     switch intent.Status {
-    case pay.StatusBaseSettled:
+    case pay.StatusTargetSettled:
         log.Println("Payment complete!")
-        log.Printf("Transaction hash: %s", intent.BasePayment.TxHash)
-    case pay.StatusExpired, pay.StatusVerificationFailed:
+        log.Printf("Transaction hash: %s", intent.TargetPayment.TxHash)
+    case pay.StatusExpired, pay.StatusVerificationFailed, pay.StatusPartialSettlement:
         log.Printf("Payment failed: %s", intent.Status)
     default:
         log.Println("Payment still processing...")
@@ -213,14 +224,16 @@ AWAITING_PAYMENT
             │
             ├──> VERIFICATION_FAILED (if verification fails)
             │
-            ├──> PARTIAL_SETTLEMENT (if partial amount settled)
-            │
             └──> SOURCE_SETTLED
                     │
-                    └──> BASE_SETTLING
+                    └──> TARGET_SETTLING
                             │
-                            └──> BASE_SETTLED (success)
+                            ├──> TARGET_SETTLED (success)
+                            │
+                            └──> PARTIAL_SETTLEMENT (source settled, target not completed)
 ```
+
+`TARGET_SETTLING` may roll back to `SOURCE_SETTLED` and retry; this is transparent to polling callers and only observable as a transient state dip.
 
 ## Error Handling
 
@@ -239,13 +252,13 @@ AWAITING_PAYMENT
 
 ## Important Notes
 
-1. **Terminal States**: Once status reaches `BASE_SETTLED`, `EXPIRED`, `VERIFICATION_FAILED`, or `PARTIAL_SETTLEMENT`, it will not change. Stop polling.
+1. **Terminal States**: Once status reaches `TARGET_SETTLED`, `EXPIRED`, `VERIFICATION_FAILED`, or `PARTIAL_SETTLEMENT`, it will not change. Stop polling.
 
 2. **Polling Interval**: Recommended polling interval is 2-5 seconds. Avoid polling too frequently to respect rate limits (60 req/min/IP).
 
 3. **Timeout**: Intents expire 10 minutes after creation. If status is still `AWAITING_PAYMENT` after expiration, it will become `EXPIRED`.
 
-4. **Transaction Receipt**: When status is `BASE_SETTLED`, save the `basePayment.txHash` for record-keeping.
+4. **Transaction Receipt**: When status is `TARGET_SETTLED`, save `target_payment.tx_hash` for record-keeping.
 
 5. **Rate Limiting**: Be mindful of rate limits. Use exponential backoff for retries.
 
@@ -253,7 +266,7 @@ AWAITING_PAYMENT
 
 1. **Polling Strategy**: Use exponential backoff to reduce API calls while maintaining responsiveness.
 
-2. **Terminal State Detection**: Always check for terminal states (`BASE_SETTLED`, `EXPIRED`, `VERIFICATION_FAILED`) to stop polling.
+2. **Terminal State Detection**: Always check for terminal states (`TARGET_SETTLED`, `EXPIRED`, `VERIFICATION_FAILED`, `PARTIAL_SETTLEMENT`) to stop polling.
 
 3. **Error Handling**: Implement proper error handling for network errors and API errors.
 

@@ -4,6 +4,9 @@
 * [🚀 Quick Start](quick-start.md)
 * [🏗 Architecture](architecture.md)
 
+## 📚 Concepts
+* [Multi-Chain Settlement](docs/concepts/multi-chain-settlement.md)
+
 ## 📦 SDKs
 * [JavaScript / TypeScript](sdks/js-ts.md)
 * [Go](sdks/go.md)
@@ -29,3 +32,6 @@
 * [Error Handling and Retry](skills/error-handling.md)
 * [Agent Authenticated Payment](skills/agent-authenticated-payment.md) - Authenticated mode: Requires API key, backend auto-signs payments, ideal for scenarios where you don't want to manage private keys
 * [Agent Public Payment](skills/agent-public-payment.md) - Public mode: No API key required, local signing, ideal for scenarios where you need full control over private keys
+
+## 🔀 Migration
+* [v2: Any-Chain → Any-Chain](docs/migration/v2-any-to-any.md)

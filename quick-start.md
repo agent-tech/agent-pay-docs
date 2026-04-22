@@ -1,6 +1,6 @@
 # 🚀 Quick Start
 
-Integrate AgentTech into your application in three simple steps.
+Integrate AgentPay into your application in three simple steps.
 
 ### 1. Install the SDK
 Choose your preferred environment:
@@ -47,14 +47,18 @@ client, err := pay.NewClient(
 ---
 
 ### 4. Create an Intent
-An "Intent" represents a payment request.
+An "Intent" represents a payment request. You pick where the payer sends USDC (`payerChain`) and where the merchant receives it (`targetChain`, optional — defaults to `"base"`). In this example the payer sends on Base and the merchant is paid on Ethereum.
 ```typescript
 const intent = await client.createIntent({
   email: "merchant@example.com",
   amount: "100.50",
-  payerChain: "base"
+  payerChain: "base",
+  targetChain: "ethereum",
 });
 ```
+
+> `targetChain` is optional. Omit it to keep v1 behaviour (settle on Base). If you pass it, the value must be a chain listed by `GET /api/chains`; otherwise the request is rejected with `400 invalid target_chain`. Full matrix and per-chain caveats in [Supported Chains](api/chains.md).
+
 ---
 
 ### 5. Finalize Payment
@@ -71,4 +75,6 @@ Ideal for e-commerce checkouts where the actual user (payer) must sign with thei
 1. **Sign**: The payer signs the **X402 payment** off-chain via their wallet.
 2. **Submit**: Use the SDK to submit the settlement proof to our API.
 * **Code**: `await client.submitProof(intentId, settleProof);`
+
+Poll `client.getIntent(intentId)` until `status === "TARGET_SETTLED"` (success) or one of the terminal failure states (`EXPIRED`, `VERIFICATION_FAILED`, `PARTIAL_SETTLEMENT`). The full state machine is in [Statuses](api/statuses.md).
 ---

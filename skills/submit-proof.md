@@ -21,7 +21,7 @@
       },
       "settle_proof": {
         "type": "string",
-        "description": "The settlement proof from X402 payment. This is the signed proof from the user's wallet after completing the payment on the source chain."
+        "description": "The settlement proof from X402 payment. This is the signed proof from the user's wallet after completing the payment on the payer chain."
       }
     },
     "required": ["intent_id", "settle_proof"]
@@ -35,7 +35,7 @@
       },
       "status": {
         "type": "string",
-        "enum": ["PENDING", "SOURCE_SETTLED", "BASE_SETTLING", "BASE_SETTLED", "VERIFICATION_FAILED", "PARTIAL_SETTLEMENT"],
+        "enum": ["PENDING", "SOURCE_SETTLED", "TARGET_SETTLING", "TARGET_SETTLED", "VERIFICATION_FAILED", "PARTIAL_SETTLEMENT"],
         "description": "Current status of the intent after proof submission"
       },
       "message": {
@@ -70,11 +70,11 @@
 ### Status Values
 
 - `PENDING`: Proof submitted, verification in progress
-- `SOURCE_SETTLED`: Payment confirmed on the source chain
-- `BASE_SETTLING`: Final settlement is being processed on the Base chain
-- `BASE_SETTLED`: Transfer complete (terminal state)
+- `SOURCE_SETTLED`: Payment confirmed on the payer chain
+- `TARGET_SETTLING`: Settlement is being processed on the target chain
+- `TARGET_SETTLED`: Transfer complete (terminal state)
 - `VERIFICATION_FAILED`: Proof verification failed (terminal state)
-- `PARTIAL_SETTLEMENT`: Partial amount settled on Base (terminal state)
+- `PARTIAL_SETTLEMENT`: Source settled but target did not complete (terminal state)
 
 ## Code Examples
 
@@ -118,10 +118,10 @@ func main() {
     }
 
     ctx := context.Background()
-    
+
     // Get settle proof from user's wallet (X402 payment)
     settleProof := getUserSignedProof()
-    
+
     // Submit the proof
     proof, err := client.SubmitProof(ctx, intentID, settleProof)
     if err != nil {
@@ -138,21 +138,22 @@ func main() {
 
 ### X402 Payment Process
 
-1. **Create Intent**: User initiates payment, create intent via SDK
-2. **User Signs**: User signs X402 payment off-chain via their wallet (MetaMask, etc.)
-3. **Get Proof**: Wallet returns signed settlement proof
-4. **Submit Proof**: Submit proof to AgentTech API using this skill
-5. **Verification**: AgentTech verifies the proof and processes settlement
-6. **Settlement**: Final USDC transfer on Base chain
+1. **Create Intent**: The caller initiates a payment with `payer_chain` and (optionally) `target_chain`.
+2. **User Signs**: The payer signs X402 payment off-chain via their wallet (EIP-3009 / Permit2 / Solana partial sign depending on payer chain).
+3. **Get Proof**: The wallet returns the signed settlement proof.
+4. **Submit Proof**: Submit the proof to AgentPay using this skill.
+5. **Verification**: AgentPay verifies the proof and settles on the payer chain.
+6. **Target Settlement**: AgentPay transfers USDC to the merchant on the target chain.
 
-### Example Flow
+### Example Flow — base → Ethereum
 
 ```typescript
 // Step 1: Create intent
 const intent = await client.createIntent({
   email: "merchant@example.com",
   amount: "100.50",
-  payerChain: "base"
+  payerChain: "base",
+  targetChain: "ethereum",
 });
 
 // Step 2: User signs X402 payment (wallet interaction)
@@ -186,12 +187,11 @@ const result = await client.submitProof(intent.intentId, settleProof);
 
 2. **X402 Payment**: The settle proof must come from a valid X402 payment signed by the user's wallet.
 
-3. **Proof Format**: The settle proof is a string containing the signed payment data from the wallet.
+3. **Proof Format**: The settle proof is a string containing the signed payment data from the wallet (base64-encoded X402 v2 payload).
 
-4. **Verification**: AgentTech verifies the proof before processing. Invalid proofs will result in `VERIFICATION_FAILED` status.
+4. **Verification**: AgentPay verifies the proof before processing. Invalid proofs result in `VERIFICATION_FAILED` status.
 
-5. **Status Progression**: After successful proof submission:
-   - `PENDING` → `SOURCE_SETTLED` → `BASE_SETTLING` → `BASE_SETTLED`
+5. **Status Progression**: `PENDING` → `SOURCE_SETTLED` → `TARGET_SETTLING` → `TARGET_SETTLED`.
 
 6. **Polling**: Use [Query Intent Status](query-intent-status.md) to poll for status updates after submission.
 

@@ -2,12 +2,12 @@
 name: agent-public-payment
 version: 1.0.0
 description: Full AI automation for X402 cross-chain payments using AgentTech SDK in public mode - generate wallets locally, sign X402 authorization locally, create intents, submit proofs, and poll status via SDK. No API key required, full control over private keys.
-metadata: {"category":"payment","blockchains":["solana","base"],"protocol":"x402","sdk":"AgentTech","mode":"public"}
+metadata: {"category":"payment","blockchains":["solana","base","bsc","polygon","arbitrum","ethereum","monad","hyperevm"],"protocol":"x402","sdk":"AgentPay","mode":"public"}
 ---
 
 # Agent Public Payment — Local-Signed Payment Workflow
 
-This skill enables AI agents to complete cross-chain USDC payments **end-to-end without a browser or human**: generate wallets locally, create a payment intent via the SDK, sign the X402 authorization with your local key, submit the proof, and poll until settled. Merchants always receive USDC on Base.
+This skill enables AI agents to complete cross-chain USDC payments **end-to-end without a browser or human**: generate wallets locally, create a payment intent via the SDK, sign the X402 authorization with your local key, submit the proof, and poll until settled. The payer chain and the target (merchant) chain can differ — AgentPay picks the settlement mode from the `(payer_chain, target_chain)` pair.
 
 **Use Case:** Choose this mode when you need **full control over private keys** and want to sign transactions locally. No API key required - perfect for agents that need direct control over signing and wallet management. Private keys never leave your machine.
 
@@ -61,12 +61,12 @@ This skill enables AI agents to complete cross-chain USDC payments **end-to-end 
       },
       "status": {
         "type": "string",
-        "enum": ["BASE_SETTLED", "EXPIRED", "VERIFICATION_FAILED"],
+        "enum": ["TARGET_SETTLED", "EXPIRED", "VERIFICATION_FAILED", "PARTIAL_SETTLEMENT"],
         "description": "Final status of the payment"
       },
       "transaction_hash": {
         "type": "string",
-        "description": "Transaction hash on Base chain (available when status is BASE_SETTLED)"
+        "description": "Transaction hash on the target chain (available when status is TARGET_SETTLED)"
       },
       "payer_wallet": {
         "type": "object",
@@ -85,7 +85,7 @@ This skill enables AI agents to complete cross-chain USDC payments **end-to-end 
 1. **Generate and save wallets** (EVM for Base, Solana) — see [Step 1: Generate Wallets](#step-1-generate-wallets).
 2. **Create payment intent** — Use SDK `createIntent()` with `email` or `recipient`, `amount`, `payer_chain` → get `intent_id` and `payment_requirements`.
 3. **Sign X402 locally** using `payment_requirements` and your wallet private key → produce `settle_proof` (base64 string). See [Step 2: Sign and Produce settle_proof](#step-2-sign-and-produce-settle_proof).
-4. **Submit proof** — Use SDK `submitProof(intentId, settleProof)`, then **poll** `getIntent(intentId)` until `status` is `BASE_SETTLED` or `EXPIRED`.
+4. **Submit proof** — Use SDK `submitProof(intentId, settleProof)`, then **poll** `getIntent(intentId)` until `status` is `TARGET_SETTLED` (success) or a terminal failure (`EXPIRED`, `VERIFICATION_FAILED`, `PARTIAL_SETTLEMENT`).
 
 ### Complete Example (TypeScript)
 
@@ -105,11 +105,12 @@ async function completeX402Payment(recipient: string, amount: string) {
     baseUrl: 'https://api-pay.agent.tech',
   });
 
-  // Step 3: Create intent
+  // Step 3: Create intent — payer on Base, merchant paid on Ethereum.
   const intent = await client.createIntent({
     recipient,
     amount,
     payerChain: 'base',
+    targetChain: 'ethereum',
   });
 
   console.log(`Intent created: ${intent.intentId}`);
@@ -129,7 +130,7 @@ async function completeX402Payment(recipient: string, amount: string) {
   // Step 6: Poll until completion
   let finalIntent = result;
   while (
-    finalIntent.status !== 'BASE_SETTLED' &&
+    finalIntent.status !== 'TARGET_SETTLED' &&
     finalIntent.status !== 'PARTIAL_SETTLEMENT' &&
     finalIntent.status !== 'EXPIRED' &&
     finalIntent.status !== 'VERIFICATION_FAILED'
@@ -139,12 +140,12 @@ async function completeX402Payment(recipient: string, amount: string) {
     console.log(`Status: ${finalIntent.status}`);
   }
 
-  if (finalIntent.status === 'BASE_SETTLED') {
-    console.log(`Payment complete! Transaction: ${finalIntent.basePayment.txHash}`);
+  if (finalIntent.status === 'TARGET_SETTLED') {
+    console.log(`Payment complete! Transaction: ${finalIntent.targetPayment.txHash}`);
     return {
       success: true,
       intentId: finalIntent.intentId,
-      txHash: finalIntent.basePayment.txHash,
+      txHash: finalIntent.targetPayment.txHash,
     };
   } else {
     throw new Error(`Payment failed: ${finalIntent.status}`);
@@ -158,7 +159,7 @@ async function completeX402Payment(recipient: string, amount: string) {
 
 Generate payer wallets **locally**. Private keys never leave your machine; the SDK only ever receives a signed `settle_proof`.
 
-### EVM (Base)
+### EVM wallet (any EVM payer chain)
 
 **TypeScript/JavaScript (ethers):**
 
@@ -331,13 +332,13 @@ The SDK expects `settle_proof` to be **exactly**: **Base64(JSON.stringify(x402_v
 
 ### Choosing the Signing Method
 
-The `payment_requirements` returned by `createIntent()` determines which signing method to use. Check `payment_requirements.extra.assetTransferMethod`:
+The signing method is a property of the **payer chain**, not of the target chain. AgentPay communicates the method via `payment_requirements` returned by `createIntent()`. Always inspect the returned object rather than hardcoding per chain:
 
-| `extra.assetTransferMethod` | Signing Method | Chains |
+| `payment_requirements` signal | Signing Method | Typical payer chains |
 |---|---|---|
-| *(absent or undefined)* | EIP-3009 TransferWithAuthorization | Base |
-| `"permit2"` | Permit2 PermitWitnessTransferFrom + EIP-2612 Permit | Arbitrum, Polygon, Ethereum, Monad, HyperEVM |
-| *(Solana network)* | Solana VersionedTransaction v0 | Solana |
+| `network` starts with `solana:` | Solana VersionedTransaction v0 (partial sign) | Solana |
+| `extra.assetTransferMethod === "permit2"` | Permit2 `PermitWitnessTransferFrom` + EIP-2612 `Permit` | BSC, Monad, MegaETH |
+| otherwise (EVM network, no `assetTransferMethod`) | EIP-3009 `TransferWithAuthorization` | Base, Polygon, Arbitrum, Ethereum, HyperEVM, SKALE Base |
 
 ```typescript
 function chooseSigningMethod(paymentRequirements: PaymentRequirements): string {
@@ -348,16 +349,18 @@ function chooseSigningMethod(paymentRequirements: PaymentRequirements): string {
     return 'solana';
   }
 
-  // EVM chains — check assetTransferMethod
+  // EVM chains — the Permit2 + EIP-2612 path is opt-in per chain
   if (paymentRequirements.extra?.assetTransferMethod === 'permit2') {
-    return 'permit2';  // Arbitrum, Polygon, Ethereum, Monad, HyperEVM
+    return 'permit2';
   }
 
-  return 'eip3009';  // Base (default)
+  return 'eip3009';
 }
 ```
 
-### 2a. EVM (Base) — EIP-3009 TransferWithAuthorization
+The signing method is independent from the `target_chain` you picked. Whether the merchant receives on Base, Ethereum, Polygon, or Solana, the payer-side signing path is whatever `payment_requirements` tells you.
+
+### 2a. EIP-3009 path — `TransferWithAuthorization`
 
 **TypeScript Example (ethers):**
 
@@ -377,7 +380,7 @@ interface PaymentRequirements {
   extra?: {
     name?: string;
     version?: string;
-    assetTransferMethod?: 'permit2';  // present for non-Base EVM chains
+    assetTransferMethod?: 'permit2';  // present on chains that require Permit2 + EIP-2612
     feePayer?: string;                // Solana: fee payer public key
     decimals?: number;                // Solana: token decimals
   };
@@ -481,9 +484,9 @@ function buildEVMsettleProof(
 }
 ```
 
-### 2b. EVM (Non-Base) — Permit2 + EIP-2612 Gas Sponsoring
+### 2b. Permit2 path — `PermitWitnessTransferFrom` + EIP-2612 Gas Sponsoring
 
-For non-Base EVM chains (Arbitrum, Polygon, Ethereum, Monad, HyperEVM), the backend returns `payment_requirements.extra.assetTransferMethod: "permit2"`. This flow requires **two signatures**:
+When `payment_requirements.extra.assetTransferMethod === "permit2"` the payer chain requires the Permit2 flow (currently BSC, Monad, MegaETH; the exact set is whatever the backend flags). This flow requires **two signatures**:
 
 1. **Permit2 PermitWitnessTransferFrom** — authorizes the X402 proxy to transfer USDC via Permit2
 2. **EIP-2612 Permit** — approves the canonical Permit2 contract to spend your USDC (gas sponsoring: the backend submits the tx, so the payer pays no gas)
@@ -668,7 +671,7 @@ async function buildPermit2SettleProof(
 
 **Key differences from EIP-3009 (Section 2a):**
 
-| | EIP-3009 (Base) | Permit2 (Non-Base EVM) |
+| | EIP-3009 path | Permit2 path |
 |---|---|---|
 | Signatures required | 1 | 2 (Permit2 + EIP-2612) |
 | Payload field | `payload.signature` + `payload.authorization` | `payload.signature` + `payload.permit2Authorization` + `extensions.eip2612GasSponsoring` |
@@ -940,10 +943,10 @@ async function completeX402PaymentFlow(
   const pr = intent.paymentRequirements;
 
   if (pr.extra?.assetTransferMethod === 'permit2') {
-    // Non-Base EVM chains (Arbitrum, Polygon, Ethereum, Monad, HyperEVM)
+    // Permit2 + EIP-2612 path (BSC, Monad, MegaETH — whatever the backend flags)
     settleProof = await buildPermit2SettleProof(pr, payerAddress, privateKey, rpcUrl);
   } else {
-    // Base (EIP-3009 TransferWithAuthorization)
+    // EIP-3009 TransferWithAuthorization path (Base, Polygon, Arbitrum, Ethereum, HyperEVM, SKALE Base)
     settleProof = buildEVMsettleProof(pr, payerAddress, privateKey);
   }
 
@@ -959,7 +962,7 @@ async function completeX402PaymentFlow(
   let attempts = 0;
 
   while (
-    currentIntent.status !== 'BASE_SETTLED' &&
+    currentIntent.status !== 'TARGET_SETTLED' &&
     currentIntent.status !== 'PARTIAL_SETTLEMENT' &&
     currentIntent.status !== 'EXPIRED' &&
     currentIntent.status !== 'VERIFICATION_FAILED' &&
@@ -978,14 +981,14 @@ async function completeX402PaymentFlow(
   }
 
   // Final status check
-  if (currentIntent.status === 'BASE_SETTLED') {
+  if (currentIntent.status === 'TARGET_SETTLED') {
     console.log('✅ Payment complete!');
-    console.log(`Transaction hash: ${currentIntent.basePayment?.txHash}`);
+    console.log(`Transaction hash: ${currentIntent.targetPayment?.txHash}`);
     return {
       success: true,
       intentId: currentIntent.intentId,
       status: currentIntent.status,
-      txHash: currentIntent.basePayment?.txHash,
+      txHash: currentIntent.targetPayment?.txHash,
     };
   } else {
     console.error(`❌ Payment failed: ${currentIntent.status}`);
@@ -997,7 +1000,7 @@ async function completeX402PaymentFlow(
   }
 }
 
-// Usage
+// Usage — payer pays on Base, merchant receives on Base (same-chain).
 completeX402PaymentFlow(
   '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
   '10.50',
@@ -1005,6 +1008,33 @@ completeX402PaymentFlow(
 ).then(result => {
   console.log('Final result:', result);
 });
+```
+
+#### Secondary example — EVM payer, Solana merchant (email recipient)
+
+The same flow handles a payer on Base paying a merchant identified by email who should receive on Solana. Two things to notice:
+
+- `targetChain: "solana"` selects the SVM direct settlement mode. The payer still signs EIP-3009 on Base (payer-side signing is unchanged).
+- Because the target chain is Solana, Privy resolves the email to the merchant's **Solana** wallet, not their EVM wallet. The same email would resolve to an EVM wallet if you'd passed an EVM target.
+
+```typescript
+// 1. Create intent with email + Solana target
+const intent = await client.createIntent({
+  email: 'merchant@example.com',   // Privy resolves to Solana wallet because target_chain=solana
+  amount: '10.50',
+  payerChain: 'base',
+  targetChain: 'solana',
+});
+
+// 2. Sign locally as usual — signing follows payer_chain (Base → EIP-3009).
+const settleProof = buildEVMsettleProof(
+  intent.paymentRequirements,
+  payerAddress,
+  privateKey,
+);
+
+// 3. Submit and poll until TARGET_SETTLED.
+await client.submitProof(intent.intentId, settleProof);
 ```
 
 ### Go Complete Example
@@ -1082,7 +1112,7 @@ func completeX402PaymentFlow(
     currentIntent := proofResult
 
     for attempts < maxAttempts {
-        if currentIntent.Status == pay.StatusBaseSettled ||
+        if currentIntent.Status == pay.StatusTargetSettled ||
            currentIntent.Status == pay.StatusPartialSettlement ||
            currentIntent.Status == pay.StatusExpired ||
            currentIntent.Status == pay.StatusVerificationFailed {
@@ -1103,9 +1133,9 @@ func completeX402PaymentFlow(
     }
 
     // Final status check
-    if currentIntent.Status == pay.StatusBaseSettled {
+    if currentIntent.Status == pay.StatusTargetSettled {
         log.Println("✅ Payment complete!")
-        log.Printf("Transaction hash: %s", currentIntent.BasePayment.TxHash)
+        log.Printf("Transaction hash: %s", currentIntent.TargetPayment.TxHash)
         return nil
     } else {
         return fmt.Errorf("payment failed: %s", currentIntent.Status)
@@ -1117,7 +1147,7 @@ func completeX402PaymentFlow(
 
 ## Payment Flow and Status
 
-After you submit `settle_proof`, the backend verifies it and settles on the source chain via the X402 facilitator, then executes the Base payment. Poll `getIntent(intentId)` until a terminal status.
+After you submit `settle_proof`, the backend verifies it and settles on the payer chain via the X402 facilitator, then executes the transfer on `target_chain`. Poll `getIntent(intentId)` until a terminal status.
 
 **Status values:**
 
@@ -1126,8 +1156,8 @@ After you submit `settle_proof`, the backend verifies it and settles on the sour
 | `AWAITING_PAYMENT` | Intent created; no proof yet |
 | `PENDING` | Proof submitted; verification/settlement in progress |
 | `SOURCE_SETTLED` | Source chain settled |
-| `BASE_SETTLING` | Base payment in progress |
-| `BASE_SETTLED` | Done; merchant received USDC on Base |
+| `TARGET_SETTLING` | Target-chain payment in progress |
+| `TARGET_SETTLED` | Done; merchant received USDC on the target chain |
 | `PARTIAL_SETTLEMENT` | Partial amount settled; remainder not fulfilled |
 | `VERIFICATION_FAILED` | Proof invalid or settlement failed |
 | `EXPIRED` | Intent timed out (e.g. 10 min) |
@@ -1141,9 +1171,9 @@ stateDiagram-v2
     AWAITING_PAYMENT --> EXPIRED: timeout
     PENDING --> SOURCE_SETTLED: verify + settle
     PENDING --> VERIFICATION_FAILED: invalid
-    SOURCE_SETTLED --> BASE_SETTLING: Base transfer
-    BASE_SETTLING --> BASE_SETTLED: done
-    BASE_SETTLING --> PARTIAL_SETTLEMENT: partial
+    SOURCE_SETTLED --> TARGET_SETTLING: target transfer
+    TARGET_SETTLING --> TARGET_SETTLED: done
+    TARGET_SETTLING --> PARTIAL_SETTLEMENT: target not completed
 ```
 
 ---
@@ -1202,8 +1232,8 @@ async function handlePaymentWithRetry(
 ## Security and Notes
 
 - **Private keys** are generated and used only locally; never send them to the API or SDK.
-- **Merchants** always receive **USDC on Base**. Payers can pay from Solana, Base, Arbitrum, Polygon, Ethereum, Monad, or HyperEVM.
-- **Email** is resolved to a Base wallet via Privy at intent creation only.
+- **Payer and target chains are independent.** The payer can pay from any chain in `GET /api/chains`; the merchant receives on whichever `target_chain` you pass (defaults to `"base"` if omitted). The signing method (EIP-3009 / Permit2 / Solana) depends on the payer chain, not the target.
+- **Email → wallet resolution is per target chain.** When the merchant is identified by email, Privy resolves the email to a wallet **on the target chain**: passing `targetChain: "solana"` returns a Solana address; passing an EVM target returns the merchant's EVM wallet. The email itself does not change; AgentPay picks the right wallet family for the chosen target.
 - **SDK Benefits**: The SDK handles HTTP requests, error handling, and response parsing automatically.
 - If your AI is the **receiver**, you can present your receiving addresses (or QR codes) to your human owner so they can pay you via this SDK.
 
@@ -1216,12 +1246,12 @@ async function handlePaymentWithRetry(
 - [ ] Create intent: `client.createIntent()` (email or recipient, amount, payer_chain)
 - [ ] Check `payment_requirements.extra.assetTransferMethod` to choose signing method
 - [ ] Sign X402 using **API-returned payment_requirements**:
-  - Base: EIP-3009 TransferWithAuthorization (1 signature)
-  - Non-Base EVM: Permit2 + EIP-2612 (2 signatures, needs on-chain nonce read)
+  - EVM payer, EIP-3009 path: TransferWithAuthorization (1 signature)
+  - EVM payer, Permit2 path: Permit2 + EIP-2612 (2 signatures, needs on-chain nonce read)
   - Solana: 3-instruction VersionedTransaction v0
 - [ ] Build X402 v2 payload and set **settle_proof** = Base64(JSON.stringify(payload))
 - [ ] Submit: `client.submitProof(intentId, settleProof)`
-- [ ] Poll `client.getIntent(intentId)` until `BASE_SETTLED` or `EXPIRED`
+- [ ] Poll `client.getIntent(intentId)` until `TARGET_SETTLED` (success) or a terminal failure (`EXPIRED`, `VERIFICATION_FAILED`, `PARTIAL_SETTLEMENT`)
 - [ ] Handle errors with retry logic for transient failures
 
 ---
