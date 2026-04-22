@@ -9,52 +9,56 @@ The Go SDK features a unified `Client` that automatically routes requests based 
 * **Public Mode**: Targets `/api` endpoints for public intent creation.
 
 ### Multi-Chain Support
-All payments settle on **Base**, while the payer can pay from multiple source chains via `payer_chain`.
+A payment intent declares a payer chain and a target chain. `PayerChain` is required; `TargetChain` is optional and defaults to `"base"`. The merchant receives USDC on the target chain.
 
 Use chain constants from the SDK instead of hardcoded strings:
 
-| Chain | Constant | USDC Decimals | Status |
+| Chain | Constant | USDC Decimals | Notes |
 | :--- | :--- | :--- | :--- |
-| Solana | `pay.ChainSolanaMainnet` (`"solana-mainnet-beta"`) | 6 | Available |
-| Base | `pay.ChainBase` (`"base"`) | 6 | Available |
-| BSC | `pay.ChainBSC` (`"bsc"`) | **18** | Available |
-| Polygon | `pay.ChainPolygon` (`"polygon"`) | 6 | Available |
-| Arbitrum | `pay.ChainArbitrum` (`"arbitrum"`) | 6 | Available |
-| Ethereum | `pay.ChainEthereum` (`"ethereum"`) | 6 | Available |
-| Monad | `pay.ChainMonad` (`"monad"`) | 6 | Available |
-| HyperEVM | `pay.ChainHyperEVM` (`"hyperevm"`) | 6 | Available |
+| Solana | `pay.ChainSolanaMainnet` (`"solana-mainnet-beta"`) | 6 | — |
+| Base | `pay.ChainBase` (`"base"`) | 6 | — |
+| BSC | `pay.ChainBSC` (`"bsc"`) | **18** | Binance-Peg USDC |
+| Polygon | `pay.ChainPolygon` (`"polygon"`) | 6 | — |
+| Arbitrum | `pay.ChainArbitrum` (`"arbitrum"`) | 6 | — |
+| Ethereum | `pay.ChainEthereum` (`"ethereum"`) | 6 | — |
+| Monad | `pay.ChainMonad` (`"monad"`) | 6 | — |
+| HyperEVM | `pay.ChainHyperEVM` (`"hyperevm"`) | 6 | — |
+| SKALE Base | `pay.ChainSkaleBase` (`"skale-base"`) | 6 | Deployment-gated; check `GET /api/chains` |
+| MegaETH | `pay.ChainMegaETH` (`"megaeth"`) | **18** | Deployment-gated; check `GET /api/chains` |
 
 ```go
 resp, err := client.CreateIntent(ctx, &pay.CreateIntentRequest{
-    Email:      "merchant@example.com",
-    Amount:     "100.50",
-    PayerChain: pay.ChainBase, // use constants instead of bare strings
+    Email:       "merchant@example.com",
+    Amount:      "100.50",
+    PayerChain:  pay.ChainBase,
+    TargetChain: pay.ChainEthereum, // optional; defaults to "base"
 })
 ```
 
-> **BSC note**: USDC on BSC uses 18 decimals. Always read `resp.Extra.Decimals` from the intent response rather than hardcoding `6`. See [Chain-Specific Notes](../api/chains.md#chain-specific-notes) for details.
+> **BSC / MegaETH decimals**: BSC USDC and MegaETH's native USDm use 18 decimals. Always read `resp.Extra.Decimals` from the intent response rather than hardcoding `6`. See [Chain-Specific Notes](../api/chains.md#chain-specific-caveats) for details.
 
 ### Intent Status Constants
 
 Use status constants instead of raw strings when checking intent status:
 
-| Constant | Value |
-| :--- | :--- |
-| `pay.StatusAwaitingPayment` | `"AWAITING_PAYMENT"` |
-| `pay.StatusPending` | `"PENDING"` |
-| `pay.StatusVerificationFailed` | `"VERIFICATION_FAILED"` |
-| `pay.StatusSourceSettled` | `"SOURCE_SETTLED"` |
-| `pay.StatusBaseSettling` | `"BASE_SETTLING"` |
-| `pay.StatusBaseSettled` | `"BASE_SETTLED"` |
-| `pay.StatusPartialSettlement` | `"PARTIAL_SETTLEMENT"` |
-| `pay.StatusExpired` | `"EXPIRED"` |
+| Constant | Value | Terminal |
+| :--- | :--- | :--- |
+| `pay.StatusAwaitingPayment` | `"AWAITING_PAYMENT"` | No |
+| `pay.StatusPending` | `"PENDING"` | No |
+| `pay.StatusSourceSettled` | `"SOURCE_SETTLED"` | No |
+| `pay.StatusTargetSettling` | `"TARGET_SETTLING"` | No |
+| `pay.StatusTargetSettled` | `"TARGET_SETTLED"` | Yes |
+| `pay.StatusVerificationFailed` | `"VERIFICATION_FAILED"` | Yes |
+| `pay.StatusPartialSettlement` | `"PARTIAL_SETTLEMENT"` | Yes |
+| `pay.StatusExpired` | `"EXPIRED"` | Yes |
 
 ```go
 intent, err := client.GetIntent(ctx, intentID)
 switch intent.Status {
-case pay.StatusBaseSettled:
-    // Payment complete
-case pay.StatusExpired, pay.StatusVerificationFailed:
+case pay.StatusTargetSettled:
+    // Payment complete — use intent.TargetPayment for receipt
+    log.Printf("paid: tx=%s url=%s", intent.TargetPayment.TxHash, intent.TargetPayment.ExplorerURL)
+case pay.StatusExpired, pay.StatusVerificationFailed, pay.StatusPartialSettlement:
     // Terminal failure
 }
 ```
