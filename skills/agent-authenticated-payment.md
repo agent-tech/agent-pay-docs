@@ -2,7 +2,7 @@
 name: agent-authenticated-payment
 version: 1.0.0
 description: Full automation for AI agents (e.g., OpenClaw) to authenticate with email, create API keys programmatically, and execute automated payments using AgentTech SDK with authenticated mode. Backend automatically signs payments - no private key management required.
-metadata: {"category":"payment","blockchains":["solana","base"],"protocol":"x402","sdk":"AgentTech","mode":"authenticated","automation":"full"}
+metadata: {"category":"payment","blockchains":["solana","base","bsc","polygon","arbitrum","ethereum","monad","hyperevm"],"protocol":"x402","sdk":"AgentPay","mode":"authenticated","automation":"full"}
 ---
 
 # Agent Authenticated Payment — Backend-Signed Payment Workflow
@@ -64,12 +64,12 @@ This skill enables AI agents (like OpenClaw) to complete the **entire AgentTech 
       },
       "status": {
         "type": "string",
-        "enum": ["BASE_SETTLED", "EXPIRED", "VERIFICATION_FAILED"],
+        "enum": ["TARGET_SETTLED", "EXPIRED", "VERIFICATION_FAILED", "PARTIAL_SETTLEMENT"],
         "description": "Final status of the payment"
       },
       "transaction_hash": {
         "type": "string",
-        "description": "Transaction hash on Base chain (available when status is BASE_SETTLED)"
+        "description": "Transaction hash on the target chain (available when status is TARGET_SETTLED)"
       }
     },
     "required": ["api_key", "intent_id", "status"]
@@ -96,22 +96,24 @@ async function completeAutomatedPayment(
   email: string,
   recipient: string,
   amount: string,
-  payerChain: 'base' | 'solana'
+  payerChain: string,
+  targetChain?: string,
 ) {
   // Step 1: Authenticate and create API key
   const { apiKey, secretKey, agentId } = await setupAgentAccount(email);
-  
+
   // Step 2: Initialize authenticated SDK client
   const client = new PayClient({
     baseUrl: 'https://api-pay.agent.tech',
     auth: { apiKey, secretKey },
   });
 
-  // Step 3: Create intent
+  // Step 3: Create intent (targetChain optional; defaults to "base")
   const intent = await client.createIntent({
     recipient,
     amount,
     payerChain,
+    targetChain,
   });
 
   console.log(`Intent created: ${intent.intentId}`);
@@ -123,7 +125,7 @@ async function completeAutomatedPayment(
   // Step 5: Poll until completion
   let finalIntent = result;
   while (
-    finalIntent.status !== 'BASE_SETTLED' &&
+    finalIntent.status !== 'TARGET_SETTLED' &&
     finalIntent.status !== 'EXPIRED' &&
     finalIntent.status !== 'PARTIAL_SETTLEMENT' &&
     finalIntent.status !== 'VERIFICATION_FAILED'
@@ -133,14 +135,14 @@ async function completeAutomatedPayment(
     console.log(`Status: ${finalIntent.status}`);
   }
 
-  if (finalIntent.status === 'BASE_SETTLED') {
-    console.log(`Payment complete! Transaction: ${finalIntent.basePayment.txHash}`);
+  if (finalIntent.status === 'TARGET_SETTLED') {
+    console.log(`Payment complete! Transaction: ${finalIntent.targetPayment.txHash}`);
     return {
       success: true,
       api_key: apiKey,
       agent_id: agentId,
       intent_id: finalIntent.intentId,
-      transaction_hash: finalIntent.basePayment.txHash,
+      transaction_hash: finalIntent.targetPayment.txHash,
     };
   } else {
     throw new Error(`Payment failed: ${finalIntent.status}`);
@@ -785,8 +787,8 @@ const result = await client.executeIntent(intent.intentId);
 
 console.log(`Payment executed. Status: ${result.status}`);
 
-if (result.status === 'BASE_SETTLED') {
-  console.log(`Transaction hash: ${result.basePayment.txHash}`);
+if (result.status === 'TARGET_SETTLED') {
+  console.log(`Transaction hash: ${result.targetPayment.txHash}`);
 }
 ```
 
@@ -800,8 +802,8 @@ if err != nil {
 
 log.Printf("Payment executed. Status: %s", exec.Status)
 
-if exec.Status == pay.StatusBaseSettled {
-    log.Printf("Transaction hash: %s", exec.BasePayment.TxHash)
+if exec.Status == pay.StatusTargetSettled {
+    log.Printf("Transaction hash: %s", exec.TargetPayment.TxHash)
 }
 ```
 
@@ -855,7 +857,7 @@ async function completeAutomatedPaymentFlow(
   let attempts = 0;
 
   while (
-    currentIntent.status !== 'BASE_SETTLED' &&
+    currentIntent.status !== 'TARGET_SETTLED' &&
     currentIntent.status !== 'EXPIRED' &&
     currentIntent.status !== 'PARTIAL_SETTLEMENT' &&
     currentIntent.status !== 'VERIFICATION_FAILED' &&
@@ -874,16 +876,16 @@ async function completeAutomatedPaymentFlow(
   }
 
   // Final status check
-  if (currentIntent.status === 'BASE_SETTLED') {
+  if (currentIntent.status === 'TARGET_SETTLED') {
     console.log('✅ Payment complete!');
-    console.log(`Transaction hash: ${currentIntent.basePayment?.txHash}`);
+    console.log(`Transaction hash: ${currentIntent.targetPayment?.txHash}`);
     return {
       success: true,
       api_key: apiKey,
       agent_id: agentId,
       intent_id: currentIntent.intentId,
       status: currentIntent.status,
-      transaction_hash: currentIntent.basePayment?.txHash,
+      transaction_hash: currentIntent.targetPayment?.txHash,
     };
   } else {
     console.error(`❌ Payment failed: ${currentIntent.status}`);
@@ -975,7 +977,7 @@ func completeAutomatedPaymentFlow(
     currentIntent := execResult
 
     for attempts < maxAttempts {
-        if currentIntent.Status == pay.StatusBaseSettled ||
+        if currentIntent.Status == pay.StatusTargetSettled ||
            currentIntent.Status == pay.StatusExpired ||
            currentIntent.Status == pay.StatusPartialSettlement ||
            currentIntent.Status == pay.StatusVerificationFailed {
@@ -996,9 +998,9 @@ func completeAutomatedPaymentFlow(
     }
 
     // Final status check
-    if currentIntent.Status == pay.StatusBaseSettled {
+    if currentIntent.Status == pay.StatusTargetSettled {
         log.Println("✅ Payment complete!")
-        log.Printf("Transaction hash: %s", currentIntent.BasePayment.TxHash)
+        log.Printf("Transaction hash: %s", currentIntent.TargetPayment.TxHash)
         return nil
     } else {
         return fmt.Errorf("payment failed: %s", currentIntent.Status)
@@ -1014,7 +1016,7 @@ With authenticated mode, the payment flow is simplified:
 
 1. **Create Intent** → `AWAITING_PAYMENT`
 2. **Execute Intent** → Backend automatically signs and processes payment
-3. **Status Progression**: `PENDING` → `SOURCE_SETTLED` → `BASE_SETTLING` → `BASE_SETTLED`
+3. **Status Progression**: `PENDING` → `SOURCE_SETTLED` → `TARGET_SETTLING` → `TARGET_SETTLED`
 
 **Status values:**
 
@@ -1023,8 +1025,8 @@ With authenticated mode, the payment flow is simplified:
 | `AWAITING_PAYMENT` | Intent created; ready for execution |
 | `PENDING` | Execution initiated; processing |
 | `SOURCE_SETTLED` | Payment confirmed on the source chain |
-| `BASE_SETTLING` | Final settlement is being processed on the Base chain |
-| `BASE_SETTLED` | Done; merchant received USDC on Base (terminal state) |
+| `TARGET_SETTLING` | Settlement is being processed on the target chain |
+| `TARGET_SETTLED` | Done; merchant received USDC on the target chain (terminal state) |
 | `PARTIAL_SETTLEMENT` | Partial amount settled; remainder not fulfilled (terminal state) |
 | `VERIFICATION_FAILED` | Payment verification failed (terminal state) |
 | `EXPIRED` | Intent timed out (e.g. 10 min) (terminal state) |
@@ -1036,9 +1038,9 @@ stateDiagram-v2
     AWAITING_PAYMENT --> EXPIRED: timeout
     PENDING --> SOURCE_SETTLED: verify + settle
     PENDING --> VERIFICATION_FAILED: invalid
-    SOURCE_SETTLED --> BASE_SETTLING: Base transfer
-    BASE_SETTLING --> BASE_SETTLED: done
-    BASE_SETTLING --> PARTIAL_SETTLEMENT: partial
+    SOURCE_SETTLED --> TARGET_SETTLING: target transfer
+    TARGET_SETTLING --> TARGET_SETTLED: done
+    TARGET_SETTLING --> PARTIAL_SETTLEMENT: target not completed
 ```
 
 ---
@@ -1113,7 +1115,7 @@ async function handlePaymentWithRetry(
 - [ ] Initialize authenticated SDK client: `new PayClient()` with API credentials
 - [ ] Create intent: `client.createIntent()` (recipient, amount, payer_chain)
 - [ ] Execute payment: `client.executeIntent(intentId)` (backend signs automatically)
-- [ ] Poll `client.getIntent(intentId)` until `BASE_SETTLED` or terminal status
+- [ ] Poll `client.getIntent(intentId)` until `TARGET_SETTLED` or terminal status
 - [ ] Handle errors with retry logic for transient failures
 - [ ] Store API credentials securely for future use
 

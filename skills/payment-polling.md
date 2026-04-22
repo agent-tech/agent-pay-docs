@@ -6,6 +6,8 @@
 - **Use Cases**: Wait for payment completion, monitor payment progress, handle async payment flows
 - **Authentication**: Optional (works with or without authentication)
 
+> Polling is identical across any `payer_chain` / `target_chain` combination. The terminal success state is always `TARGET_SETTLED` — not a chain-specific name.
+
 ## Polling Strategies
 
 ### 1. Basic Fixed Interval Polling
@@ -16,12 +18,12 @@ Simple polling with fixed intervals. Suitable for short-duration operations.
 async function pollStatus(intentId: string, intervalMs: number = 3000, maxAttempts: number = 60) {
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const intent = await client.getIntent(intentId);
-    
+
     // Terminal states - stop polling
-    if (intent.status === 'BASE_SETTLED') {
+    if (intent.status === 'TARGET_SETTLED') {
       return { success: true, intent };
     }
-    
+
     if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED' || intent.status === 'PARTIAL_SETTLEMENT') {
       return { success: false, intent, reason: intent.status };
     }
@@ -29,7 +31,7 @@ async function pollStatus(intentId: string, intervalMs: number = 3000, maxAttemp
     // Wait before next poll
     await new Promise(resolve => setTimeout(resolve, intervalMs));
   }
-  
+
   throw new Error('Polling timeout - maximum attempts reached');
 }
 ```
@@ -44,20 +46,20 @@ async function pollWithExponentialBackoff(intentId: string) {
   const maxDelay = 30000; // Maximum 30 seconds
   const maxDuration = 600000; // Maximum 10 minutes (intent expiration)
   const startTime = Date.now();
-  
+
   while (true) {
     // Check timeout
     if (Date.now() - startTime > maxDuration) {
       throw new Error('Polling timeout - exceeded maximum duration');
     }
-    
+
     const intent = await client.getIntent(intentId);
-    
+
     // Terminal states - stop polling
-    if (intent.status === 'BASE_SETTLED') {
+    if (intent.status === 'TARGET_SETTLED') {
       return { success: true, intent };
     }
-    
+
     if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED' || intent.status === 'PARTIAL_SETTLEMENT') {
       return { success: false, intent, reason: intent.status };
     }
@@ -76,15 +78,15 @@ Adjusts polling interval based on status progression.
 ```typescript
 async function adaptivePoll(intentId: string) {
   let delay = 2000; // Initial delay: 2 seconds
-  
+
   while (true) {
     const intent = await client.getIntent(intentId);
-    
+
     // Terminal states
-    if (intent.status === 'BASE_SETTLED') {
+    if (intent.status === 'TARGET_SETTLED') {
       return { success: true, intent };
     }
-    
+
     if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED' || intent.status === 'PARTIAL_SETTLEMENT') {
       return { success: false, intent, reason: intent.status };
     }
@@ -98,11 +100,11 @@ async function adaptivePoll(intentId: string) {
       case 'SOURCE_SETTLED':
         delay = 3000; // Poll every 3 seconds during processing
         break;
-      case 'BASE_SETTLING':
+      case 'TARGET_SETTLING':
         delay = 2000; // Poll every 2 seconds during final settlement
         break;
     }
-    
+
     await new Promise(resolve => setTimeout(resolve, delay));
   }
 }
@@ -131,7 +133,7 @@ func pollStatus(ctx context.Context, client *pay.Client, intentID string, maxAtt
 
         // Terminal states
         switch intent.Status {
-        case pay.StatusBaseSettled:
+        case pay.StatusTargetSettled:
             return intent, nil
         case pay.StatusExpired, pay.StatusVerificationFailed, pay.StatusPartialSettlement:
             return intent, fmt.Errorf("payment failed: %s", intent.Status)
@@ -167,7 +169,7 @@ func pollWithBackoff(ctx context.Context, client *pay.Client, intentID string) (
 
         // Terminal states
         switch intent.Status {
-        case pay.StatusBaseSettled:
+        case pay.StatusTargetSettled:
             return intent, nil
         case pay.StatusExpired, pay.StatusVerificationFailed, pay.StatusPartialSettlement:
             return intent, fmt.Errorf("payment failed: %s", intent.Status)
@@ -191,15 +193,15 @@ func pollWithBackoff(ctx context.Context, client *pay.Client, intentID string) (
 async function pollWithRateLimitHandling(intentId: string) {
   let delay = 2000;
   const maxDelay = 30000;
-  
+
   while (true) {
     try {
       const intent = await client.getIntent(intentId);
-      
-      if (intent.status === 'BASE_SETTLED') {
+
+      if (intent.status === 'TARGET_SETTLED') {
         return { success: true, intent };
       }
-      
+
       if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED' || intent.status === 'PARTIAL_SETTLEMENT') {
         return { success: false, intent };
       }
@@ -227,11 +229,11 @@ async function pollWithRateLimitHandling(intentId: string) {
 ```typescript
 async function pollWithRetry(intentId: string, maxRetries: number = 3) {
   let delay = 2000;
-  
+
   while (true) {
     let retries = 0;
     let intent;
-    
+
     // Retry logic for network errors
     while (retries < maxRetries) {
       try {
@@ -246,12 +248,12 @@ async function pollWithRetry(intentId: string, maxRetries: number = 3) {
         await new Promise(resolve => setTimeout(resolve, 1000 * retries));
       }
     }
-    
+
     // Check terminal states
-    if (intent.status === 'BASE_SETTLED') {
+    if (intent.status === 'TARGET_SETTLED') {
       return { success: true, intent };
     }
-    
+
     if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED' || intent.status === 'PARTIAL_SETTLEMENT') {
       return { success: false, intent };
     }
@@ -326,11 +328,11 @@ async function waitForPaymentCompletion(intentId: string): Promise<{
       const intent = await client.getIntent(intentId);
 
       // Terminal states
-      if (intent.status === 'BASE_SETTLED') {
+      if (intent.status === 'TARGET_SETTLED') {
         return {
           success: true,
           intent,
-          transactionHash: intent.basePayment?.txHash,
+          transactionHash: intent.targetPayment?.txHash,
         };
       }
 
@@ -343,7 +345,7 @@ async function waitForPaymentCompletion(intentId: string): Promise<{
 
       // Reset delay on success
       delay = 2000;
-      
+
     } catch (error) {
       if (error instanceof PayApiError) {
         if (error.statusCode === 429) {
