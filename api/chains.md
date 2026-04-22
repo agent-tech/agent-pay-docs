@@ -1,62 +1,98 @@
 # ⛓ Supported Chains
 
-AgentTech supports multiple source chains, with all payments ultimately settling on **Base**.
+AgentPay supports paying from one chain and settling on another. A payment intent declares two chains:
 
-## Supported Chains
+- `payer_chain` — where the payer sends USDC.
+- `target_chain` — where the merchant receives USDC. Optional; defaults to `base`.
 
-| Chain | Identifier | Go Constant | TS Constant | USDC Decimals | Status |
+The set of target chains available to your integration is served by `GET /api/chains`. If a chain appears in that response, you can use it as a `target_chain`. Any chain supported as a payer can also be used as a target, with two exceptions noted below.
+
+## Payer chains
+
+| Chain | Identifier | Go Constant | TS Constant | USDC Decimals | Notes |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Solana | `"solana-mainnet-beta"` | `pay.ChainSolanaMainnet` | `Chain.SolanaMainnet` | 6 | Available |
-| Base | `"base"` | `pay.ChainBase` | `Chain.Base` | 6 | Available |
-| BSC | `"bsc"` | `pay.ChainBSC` | `Chain.BSC` | **18** | Available |
-| Polygon | `"polygon"` | `pay.ChainPolygon` | `Chain.Polygon` | 6 | Available |
-| Arbitrum | `"arbitrum"` | `pay.ChainArbitrum` | `Chain.Arbitrum` | 6 | Available |
-| Ethereum | `"ethereum"` | `pay.ChainEthereum` | `Chain.Ethereum` | 6 | Available |
-| Monad | `"monad"` | `pay.ChainMonad` | `Chain.Monad` | 6 | Available |
-| HyperEVM | `"hyperevm"` | `pay.ChainHyperEVM` | `Chain.HyperEvm` | 6 | Available |
+| Solana | `solana` | `pay.ChainSolanaMainnet` | `Chain.SolanaMainnet` | 6 | — |
+| Base | `base` | `pay.ChainBase` | `Chain.Base` | 6 | — |
+| BSC | `bsc` | `pay.ChainBSC` | `Chain.BSC` | **18** | Binance-Peg USDC; Permit2 + EIP-2612 signing. See [BSC Signing](bsc-signing.md). |
+| Polygon | `polygon` | `pay.ChainPolygon` | `Chain.Polygon` | 6 | — |
+| Arbitrum | `arbitrum` | `pay.ChainArbitrum` | `Chain.Arbitrum` | 6 | — |
+| Ethereum | `ethereum` | `pay.ChainEthereum` | `Chain.Ethereum` | 6 | — |
+| Monad | `monad` | `pay.ChainMonad` | `Chain.Monad` | 6 | Permit2 + EIP-2612 signing. |
+| HyperEVM | `hyperevm` | `pay.ChainHyperEVM` | `Chain.HyperEvm` | 6 | — |
+| SKALE Base | `skale-base` | `pay.ChainSkaleBase` | `Chain.SkaleBase` | 6 | EIP-712 domain name is `"Bridged USDC (SKALE Bridge)"` (not `"USD Coin"`). |
+| MegaETH | `megaeth` | `pay.ChainMegaETH` | `Chain.MegaEth` | **18** | Native USDm (MegaUSD), EIP-712 domain `name="MegaUSD"`, `version="1"`; Permit2 + EIP-2612 signing. |
 
-## Settlement Chain
+## Target chains
 
-**All payments settle on Base** regardless of the source chain. The `payerChain` field in `CreateIntentRequest` specifies where the payer initiates the payment, but the final USDC transfer always occurs on Base.
+Every payer chain is also a valid target, with these caveats:
 
-## Chain Identifiers
+- `skale-base` and `megaeth` are target-eligible but only when your deployment exposes them. They are always listed in the payer set; they appear in the target set only when `GET /api/chains` reports them. Treat that endpoint as authoritative.
+- Target chains are validated at intent creation. If you pass an unsupported value, the API returns `400` with an error that lists the currently accepted target chains.
 
-Use the chain constants from each SDK instead of hardcoded strings.
-
-| Chain | Identifier | USDC Decimals | Status |
-| :--- | :--- | :--- | :--- |
-| Solana | `"solana-mainnet-beta"` | 6 | Available |
-| Base | `"base"` | 6 | Available |
-| BSC | `"bsc"` | **18** | Available |
-| Polygon | `"polygon"` | 6 | Available |
-| Arbitrum | `"arbitrum"` | 6 | Available |
-| Ethereum | `"ethereum"` | 6 | Available |
-| Monad | `"monad"` | 6 | Available |
-| HyperEVM | `"hyperevm"` | 6 | Available |
-
-## Chain-Specific Notes
-
-### BSC (BNB Smart Chain)
-
-> **Important**: USDC on BSC uses **18 decimals**, unlike the standard 6 decimals used on most other chains.
-
-Two things to be aware of when paying from BSC:
-
-1. **Amount scaling**: Do not hardcode 6 decimals for USDC amounts. Always use `extra.decimals` from the backend response to determine the correct decimal precision for the source chain.
-2. **Permit2 pre-approval**: BSC requires a one-time Permit2 contract approval before the first payment. This is specific to BSC — other EVM chains do not require this step.
-
-```go
-// Always use extra.decimals from the intent response, not hardcoded values
-decimals := resp.Extra.Decimals // e.g. 18 for BSC, 6 for Base/Polygon
-amount := new(big.Int).Mul(
-    amountFloat,
-    new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(decimals)), nil),
-)
 ```
+GET /api/chains
+```
+
+Response:
+
+```json
+{
+  "chains": ["arbitrum", "base", "bsc", "ethereum", "hyperevm", "monad", "polygon", "solana"]
+}
+```
+
+The list is stable per deployment and changes only when operators add or remove chain support.
+
+## Payer × target matrix
+
+Any payer chain can pair with any target chain exposed by your deployment, including same-chain routes (e.g. `base → base`). The most common combinations look like this:
+
+| Payer → Target | CCTP burn/mint | Direct EVM transfer | Solana (SVM) transfer |
+| :--- | :---: | :---: | :---: |
+| `solana → base` | ✓ | | |
+| `solana → ethereum` | ✓ | | |
+| `base → ethereum` | | ✓ | |
+| `polygon → arbitrum` | | ✓ | |
+| `bsc → base` | | ✓ | |
+| `base → solana` | | | ✓ |
+| `base → base` (same chain) | | ✓ | |
+
+Callers do not pick the settlement mode; AgentPay chooses between CCTP burn/mint, direct EVM transfer, and SVM transfer based on the (payer, target) pair. See [Multi-Chain Settlement](../docs/concepts/multi-chain-settlement.md) for the mechanics.
+
+## Chain-specific caveats
+
+These are the details you need at signing and display time.
+
+### USDC decimals
+
+Always read `extra.decimals` from the `payment_requirements` object on the `CreateIntent` response. Do not hardcode `6`.
+
+| Chain | Decimals | Source |
+| :--- | :---: | :--- |
+| Solana, Base, Polygon, Arbitrum, Ethereum, Monad, HyperEVM, SKALE Base | 6 | Circle USDC / Bridged USDC |
+| BSC | 18 | Binance-Peg USDC |
+| MegaETH | 18 | Native USDm (MegaUSD) |
+
+### EIP-712 domain names
+
+When signing EIP-3009 `TransferWithAuthorization` or Permit2, use the `extra.name` and `extra.version` values from the intent response. The defaults are `"USD Coin"` / `"2"`, but two chains are exceptions:
+
+- **SKALE Base**: `name = "Bridged USDC (SKALE Bridge)"`, `version = "2"`.
+- **MegaETH**: `name = "MegaUSD"`, `version = "1"`.
+
+Hardcoding the default `"USD Coin"` on either chain makes every signature fail verification.
+
+### Signing flavor
+
+- EIP-3009 `TransferWithAuthorization`: Base, Polygon, Arbitrum, Ethereum, HyperEVM, SKALE Base.
+- Permit2 `PermitWitnessTransferFrom` + EIP-2612 `Permit` (gas-sponsored by AgentPay): BSC, Monad, MegaETH.
+- Solana partial-signed VersionedTransaction v0: Solana.
+
+The `payment_requirements.extra.assetTransferMethod` field is set to `"permit2"` when Permit2 is required; otherwise it is absent (EIP-3009 path) or uses the Solana payload shape.
 
 ## Usage
 
-When creating an intent, specify the source chain using SDK constants:
+Specify chains with SDK constants, not hardcoded strings. `targetChain` is optional.
 
 ```typescript
 import { Chain } from '@cross402/usdc';
@@ -65,13 +101,15 @@ const intent = await client.createIntent({
   email: "merchant@example.com",
   amount: "100.50",
   payerChain: Chain.Base,
+  targetChain: Chain.Ethereum,
 });
 ```
 
 ```go
 resp, err := client.CreateIntent(ctx, &pay.CreateIntentRequest{
-    Email:      "merchant@example.com",
-    Amount:     "100.50",
-    PayerChain: pay.ChainBase,
+    Email:       "merchant@example.com",
+    Amount:      "100.50",
+    PayerChain:  pay.ChainBase,
+    TargetChain: pay.ChainEthereum,
 })
 ```
