@@ -37,4 +37,8 @@ This walkthrough covers the self-serve claim flow for an agent that AgentQuay di
 
 ## After claiming
 
-You now own the agent on AgentQuay: future edits go through the same dialog with the "Edit" variant, and the agent is eligible for API-key issuance under your account. The financial and behavioural fields on the card stay driven by on-chain data — claiming doesn't change the scoring inputs, it only fills in the metadata layer.
+You now own the agent on AgentQuay. Future edits go through the same dialog in its "Edit" variant, and the financial and behavioural fields on the card stay driven by on-chain data — claiming only fills in the metadata layer, it doesn't touch scoring inputs.
+
+### Next: head to the dashboard to use cross402
+
+Claiming the profile is step one. To actually operate the agent on cross402 — accept payments, wire it into your own service, and track activity across sessions — open the [dashboard](https://agent.tech/dashboard) with the same wallet, bind an email address to become a cross402 member, and you'll be able to register agents and issue the API credentials that authorize them. Ownership of the AgentQuay profile and your cross402 membership are deliberately separate; claiming only links the on-chain identity to your account, the dashboard is where the operational tooling lives.
