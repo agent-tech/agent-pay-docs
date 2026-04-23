@@ -1,6 +1,6 @@
 # Multi-Chain Settlement
 
-AgentPay decouples where a payer sends USDC from where the merchant receives it. This page explains that model from the caller's perspective: what the two chain fields mean, how AgentPay chooses between settlement paths, and what the caller observes as status transitions.
+AgentPay decouples where a payer sends USDC from where the merchant receives it. This page explains that model from the caller's perspective: what the two chain fields mean, how the x402 protocol handles both legs, and what the caller observes as status transitions.
 
 ## Two chains per intent
 
@@ -11,39 +11,30 @@ Every `CreateIntent` request carries:
 
 The merchant address is validated against `target_chain`. If `target_chain` is an EVM chain, `recipient` must be a 20-byte hex address; if it is `solana`, `recipient` must be a Solana public key. For email recipients, AgentPay resolves the email to a wallet on the target chain via Privy — so the same email returns a Solana address when `target_chain` is `solana`, and an EVM address when `target_chain` is an EVM chain.
 
-Any chain exposed by `GET /api/chains` may be used as either `payer_chain` or `target_chain`, including same-chain combinations (`base → base`, `polygon → polygon`, etc.).
+Any chain exposed by `GET /api/chains` may be used as either `payer_chain` or `target_chain`, including same-chain combinations (`base → base`, `polygon → polygon`, etc.). That set is currently **Base, Ethereum, HyperEVM, Polygon, Solana**; Arbitrum, BSC, Monad, SKALE Base, and MegaETH are 🚧 coming soon — see [Supported Chains](../../api/chains.md) for per-chain status.
 
-## Settlement modes
+## How settlement works
 
-AgentPay selects one of three settlement modes per intent. The caller never chooses — the mode follows from the `(payer_chain, target_chain)` pair and the chain registry.
+Both sides of an intent — payer-side collection and target-side merchant payout — run through the **x402 protocol**. Each side produces a signed x402 payload that AgentPay forwards to the shared x402 facilitator, which executes the payment on-chain.
 
-### 1. CCTP burn/mint
+- **Payer side** — the payer's client signs an x402 payload authorizing USDC to move from the payer's wallet to AgentPay.
+- **Target side** — once the source leg settles, AgentPay's proxy wallet signs its own x402 payload authorizing USDC to move from that proxy wallet to the merchant address on `target_chain`.
 
-Used when the source-to-target route is a Circle Cross-Chain Transfer Protocol pair. Typical examples:
+The facilitator is the same component on both sides; the only thing that changes per chain is the **signing flavor**, which depends on what the chain's USDC contract supports:
 
-- `solana → base`
-- `solana → ethereum`
-- EVM-to-EVM routes where CCTP is the cheapest path
+### Signing flavors
 
-AgentPay burns USDC on the source chain and mints it on the target chain through Circle's attestation infrastructure.
+- **EIP-3009 `TransferWithAuthorization`** — used on Circle-native USDC chains (Base, Ethereum, Polygon, Arbitrum). A single signed authorization is sufficient; the facilitator relays it on-chain.
+- **Permit2 + optional EIP-2612** — used on chains with non-standard USDC (BSC, Monad, MegaETH). The payload combines a Permit2 `PermitWitnessTransferFrom` signature with, when needed, a gasless EIP-2612 `Permit` that grants Permit2 the USDC allowance. AgentPay sponsors the on-chain submission.
+- **Solana VersionedTransaction (v0)** — used when the chain is Solana. The payer or proxy wallet partially signs a VersionedTransaction carrying an SPL `TransferChecked` instruction; the facilitator co-signs as fee payer before submission.
 
-### 2. Direct EVM transfer
+Callers do not select the flavor. The SDK (or a compliant x402 client) produces the correct payload from the `payment_requirements` block returned on `CreateIntent`. From the caller's viewpoint the contract is unchanged: `POST createIntent`, submit the signed payload, poll status.
 
-Used for same-chain routes and for EVM-to-EVM routes that don't need a bridge. An agent-controlled wallet on the target chain sends USDC directly to the merchant.
-
-- `base → ethereum`
-- `polygon → arbitrum`
-- `base → base` (same-chain is a legitimate combination)
-
-On BSC, Monad, and MegaETH — which require Permit2 + EIP-2612 signing at the payer side — the target-side transfer is still a plain USDC transfer.
-
-### 3. Solana (SVM) direct
-
-Used whenever `target_chain` is `solana`. An agent-controlled Solana wallet transfers USDC (SPL token) to the merchant's associated token account.
+Arbitrum, BSC, Monad, SKALE Base, and MegaETH are 🚧 [coming soon](../../api/chains.md); their signing-flavor rows are documented here for integration preparation.
 
 ## What the caller observes
 
-The status progression is the same regardless of settlement mode:
+The status progression is the same regardless of which chains are paired:
 
 ```
 AWAITING_PAYMENT

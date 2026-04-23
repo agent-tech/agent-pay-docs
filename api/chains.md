@@ -5,29 +5,34 @@ AgentPay supports paying from one chain and settling on another. A payment inten
 - `payer_chain` — where the payer sends USDC.
 - `target_chain` — where the merchant receives USDC. Optional; defaults to `base`.
 
-The set of target chains available to your integration is served by `GET /api/chains`. If a chain appears in that response, you can use it as a `target_chain`. Any chain supported as a payer can also be used as a target, with two exceptions noted below.
+The set of target chains available to your integration is served by `GET /api/chains`. If a chain appears in that response, you can use it as a `target_chain`. Any chain supported as a payer can also be used as a target, subject to the status of each chain (some are currently live; others are documented for roadmap visibility but not yet callable — see the **Status** column below).
+
+## Status legend
+
+- **Live** — callable. You can pass the identifier as `payer_chain` or `target_chain` right now and the call will succeed (assuming the usual validation).
+- **🚧 Coming soon** — the identifier, SDK constant, decimals, and signing flavor are documented so you can prepare integration code, but the chain is not yet enabled. `CreateIntent` calls with a coming-soon chain return `400 invalid payer_chain` / `400 invalid target_chain`. Treat `GET /api/chains` as authoritative for what's callable right now.
 
 ## Payer chains
 
-| Chain | Identifier | Go Constant | TS Constant | USDC Decimals | Notes |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| Solana | `solana` | `pay.ChainSolanaMainnet` | `Chain.SolanaMainnet` | 6 | — |
-| Base | `base` | `pay.ChainBase` | `Chain.Base` | 6 | — |
-| BSC | `bsc` | `pay.ChainBSC` | `Chain.BSC` | **18** | Binance-Peg USDC; Permit2 + EIP-2612 signing. See [BSC Signing](bsc-signing.md). |
-| Polygon | `polygon` | `pay.ChainPolygon` | `Chain.Polygon` | 6 | — |
-| Arbitrum | `arbitrum` | `pay.ChainArbitrum` | `Chain.Arbitrum` | 6 | — |
-| Ethereum | `ethereum` | `pay.ChainEthereum` | `Chain.Ethereum` | 6 | — |
-| Monad | `monad` | `pay.ChainMonad` | `Chain.Monad` | 6 | Permit2 + EIP-2612 signing. |
-| HyperEVM | `hyperevm` | `pay.ChainHyperEVM` | `Chain.HyperEvm` | 6 | — |
-| SKALE Base | `skale-base` | `pay.ChainSkaleBase` | `Chain.SkaleBase` | 6 | EIP-712 domain name is `"Bridged USDC (SKALE Bridge)"` (not `"USD Coin"`). |
-| MegaETH | `megaeth` | `pay.ChainMegaETH` | `Chain.MegaEth` | **18** | Native USDm (MegaUSD), EIP-712 domain `name="MegaUSD"`, `version="1"`; Permit2 + EIP-2612 signing. |
+| Chain | Identifier | Go Constant | TS Constant | USDC Decimals | Status | Notes |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| Solana | `solana` | `pay.ChainSolanaMainnet` | `Chain.SolanaMainnet` | 6 | Live | — |
+| Base | `base` | `pay.ChainBase` | `Chain.Base` | 6 | Live | — |
+| Ethereum | `ethereum` | `pay.ChainEthereum` | `Chain.Ethereum` | 6 | Live | — |
+| Polygon | `polygon` | `pay.ChainPolygon` | `Chain.Polygon` | 6 | Live | — |
+| HyperEVM | `hyperevm` | `pay.ChainHyperEVM` | `Chain.HyperEvm` | 6 | Live | — |
+| Arbitrum | `arbitrum` | `pay.ChainArbitrum` | `Chain.Arbitrum` | 6 | 🚧 Coming soon | — |
+| BSC | `bsc` | `pay.ChainBSC` | `Chain.BSC` | **18** | 🚧 Coming soon | Binance-Peg USDC; Permit2 + EIP-2612 signing. See [BSC Signing](bsc-signing.md). |
+| Monad | `monad` | `pay.ChainMonad` | `Chain.Monad` | 6 | 🚧 Coming soon | Permit2 + EIP-2612 signing. |
+| SKALE Base | `skale-base` | `pay.ChainSkaleBase` | `Chain.SkaleBase` | 6 | 🚧 Coming soon | EIP-712 domain name is `"Bridged USDC (SKALE Bridge)"` (not `"USD Coin"`). |
+| MegaETH | `megaeth` | `pay.ChainMegaETH` | `Chain.MegaEth` | **18** | 🚧 Coming soon | Native USDm (MegaUSD), EIP-712 domain `name="MegaUSD"`, `version="1"`; Permit2 + EIP-2612 signing. |
 
 ## Target chains
 
-Every payer chain is also a valid target, with these caveats:
+Every **Live** payer chain is also a valid target. Coming-soon chains will become valid targets when they go live. Two caveats apply:
 
-- `skale-base` and `megaeth` are target-eligible but only when your deployment exposes them. They are always listed in the payer set; they appear in the target set only when `GET /api/chains` reports them. Treat that endpoint as authoritative.
-- Target chains are validated at intent creation. If you pass an unsupported value, the API returns `400` with an error that lists the currently accepted target chains.
+- `GET /api/chains` is authoritative. It lists the chains currently accepted as a `target_chain`; coming-soon chains are omitted until enabled.
+- Target chains are validated at intent creation. If you pass an unsupported value (including a coming-soon chain), the API returns `400` with an error that lists the currently accepted target chains.
 
 ```
 GET /api/chains
@@ -37,27 +42,29 @@ Response:
 
 ```json
 {
-  "chains": ["arbitrum", "base", "bsc", "ethereum", "hyperevm", "monad", "polygon", "solana"]
+  "chains": ["base", "ethereum", "hyperevm", "polygon", "solana"]
 }
 ```
 
-The list is stable per deployment and changes only when operators add or remove chain support.
+The list is stable per deployment and expands only as chains move from coming-soon to live.
 
 ## Payer × target matrix
 
-Any payer chain can pair with any target chain exposed by your deployment, including same-chain routes (e.g. `base → base`). The most common combinations look like this:
+Any payer chain can pair with any target chain exposed by your deployment, including same-chain routes (e.g. `base → base`). The table below covers common combinations; rows flagged `🚧 Coming soon` are documented for roadmap visibility and will return `400` until the chain goes live. The **Payer sig** and **Target sig** columns show the x402 signing flavor used on each leg — the SDK picks these automatically from `payment_requirements`.
 
-| Payer → Target | CCTP burn/mint | Direct EVM transfer | Solana (SVM) transfer |
-| :--- | :---: | :---: | :---: |
-| `solana → base` | ✓ | | |
-| `solana → ethereum` | ✓ | | |
-| `base → ethereum` | | ✓ | |
-| `polygon → arbitrum` | | ✓ | |
-| `bsc → base` | | ✓ | |
-| `base → solana` | | | ✓ |
-| `base → base` (same chain) | | ✓ | |
+| Payer → Target | Payer sig | Target sig | Status |
+| :--- | :--- | :--- | :--- |
+| `solana → base` | Solana VT v0 | EIP-3009 | Live |
+| `solana → ethereum` | Solana VT v0 | EIP-3009 | Live |
+| `base → ethereum` | EIP-3009 | EIP-3009 | Live |
+| `base → polygon` | EIP-3009 | EIP-3009 | Live |
+| `polygon → base` | EIP-3009 | EIP-3009 | Live |
+| `base → solana` | EIP-3009 | Solana VT v0 | Live |
+| `base → base` (same chain) | EIP-3009 | EIP-3009 | Live |
+| `polygon → arbitrum` | EIP-3009 | EIP-3009 | 🚧 Coming soon |
+| `bsc → base` | Permit2 + EIP-2612 | EIP-3009 | 🚧 Coming soon |
 
-Callers do not pick the settlement mode; AgentPay chooses between CCTP burn/mint, direct EVM transfer, and SVM transfer based on the (payer, target) pair. See [Multi-Chain Settlement](../docs/concepts/multi-chain-settlement.md) for the mechanics.
+Callers do not choose the signing flavor; the SDK derives it from `payment_requirements` and the `(payer, target)` pair. Both legs run through the x402 protocol. See [Multi-Chain Settlement](../docs/concepts/multi-chain-settlement.md) for the mechanics.
 
 ## Chain-specific caveats
 
@@ -67,11 +74,12 @@ These are the details you need at signing and display time.
 
 Always read `extra.decimals` from the `payment_requirements` object on the `CreateIntent` response. Do not hardcode `6`.
 
-| Chain | Decimals | Source |
-| :--- | :---: | :--- |
-| Solana, Base, Polygon, Arbitrum, Ethereum, Monad, HyperEVM, SKALE Base | 6 | Circle USDC / Bridged USDC |
-| BSC | 18 | Binance-Peg USDC |
-| MegaETH | 18 | Native USDm (MegaUSD) |
+| Chain | Decimals | Source | Status |
+| :--- | :---: | :--- | :--- |
+| Solana, Base, Ethereum, Polygon, HyperEVM | 6 | Circle USDC / Bridged USDC | Live |
+| Arbitrum, Monad, SKALE Base | 6 | Circle USDC / Bridged USDC | 🚧 Coming soon |
+| BSC | 18 | Binance-Peg USDC | 🚧 Coming soon |
+| MegaETH | 18 | Native USDm (MegaUSD) | 🚧 Coming soon |
 
 ### EIP-712 domain names
 
@@ -84,9 +92,9 @@ Hardcoding the default `"USD Coin"` on either chain makes every signature fail v
 
 ### Signing flavor
 
-- EIP-3009 `TransferWithAuthorization`: Base, Polygon, Arbitrum, Ethereum, HyperEVM, SKALE Base.
-- Permit2 `PermitWitnessTransferFrom` + EIP-2612 `Permit` (gas-sponsored by AgentPay): BSC, Monad, MegaETH.
-- Solana partial-signed VersionedTransaction v0: Solana.
+- EIP-3009 `TransferWithAuthorization`: Base, Ethereum, Polygon, HyperEVM (Live); Arbitrum, SKALE Base (🚧 Coming soon).
+- Permit2 `PermitWitnessTransferFrom` + EIP-2612 `Permit` (gas-sponsored by AgentPay): BSC, Monad, MegaETH (all 🚧 Coming soon).
+- Solana partial-signed VersionedTransaction v0: Solana (Live).
 
 The `payment_requirements.extra.assetTransferMethod` field is set to `"permit2"` when Permit2 is required; otherwise it is absent (EIP-3009 path) or uses the Solana payload shape.
 

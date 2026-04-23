@@ -16,10 +16,12 @@ All intent responses include a `FeeBreakdown` structure that details the cost co
 
 ## Understanding Fees
 
-* **Source Chain Fee**: The gas/transaction cost required on the payer's chain (for example Solana priority fee, or BSC gas).
-* **Target Chain Fee**: The gas cost for the USDC transfer on the target chain. This varies meaningfully between targets — Ethereum is typically the most expensive, while Polygon, Arbitrum, or Base are much cheaper. Budget accordingly if you let users pick their target chain.
+* **Source Chain Fee**: The gas/transaction cost required on the payer's chain (for example a Solana priority fee or Base gas).
+* **Target Chain Fee**: The gas cost for the USDC transfer on the target chain. This varies meaningfully between targets — Ethereum is typically the most expensive, while Base and Polygon are much cheaper. Budget accordingly if you let users pick their target chain.
 * **Platform Fee**: AgentPay's service fee for processing the cross-chain settlement.
 * **Total Fee**: The sum of all fees, deducted from the payer's sending amount before the merchant receives the net amount.
+
+> Fee rows for 🚧 coming-soon chains (Arbitrum, BSC, Monad, SKALE Base, MegaETH — see [Supported Chains](chains.md)) are not returned by `CreateIntent`; attempts to create an intent on those chains fail with `400` before a fee is computed.
 
 ## Example Response — base → Ethereum
 

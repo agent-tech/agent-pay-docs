@@ -2,7 +2,7 @@
 name: agent-authenticated-payment
 version: 1.0.0
 description: Full automation for AI agents (e.g., OpenClaw) to authenticate with email, create API keys programmatically, and execute automated payments using AgentTech SDK with authenticated mode. Backend automatically signs payments - no private key management required.
-metadata: {"category":"payment","blockchains":["solana","base","bsc","polygon","arbitrum","ethereum","monad","hyperevm"],"protocol":"x402","sdk":"AgentPay","mode":"authenticated","automation":"full"}
+metadata: {"category":"payment","blockchains":["solana","base","ethereum","polygon","hyperevm"],"blockchains_coming_soon":["arbitrum","bsc","monad","skale-base","megaeth"],"protocol":"x402","sdk":"AgentPay","mode":"authenticated","automation":"full"}
 ---
 
 # Agent Authenticated Payment — Backend-Signed Payment Workflow

@@ -55,10 +55,12 @@ Set appropriate timeouts based on your use case:
 
 USDC uses different decimal precision on different chains. Do **not** hardcode `6` decimals. The backend response includes an `extra.decimals` field that reflects the actual decimal precision for the source chain.
 
-| Chain | USDC Decimals |
-| :--- | :--- |
-| Base, Solana, Polygon, Arbitrum, Ethereum | 6 |
-| **BSC** | **18** |
+| Chain | USDC Decimals | Status |
+| :--- | :--- | :--- |
+| Base, Solana, Ethereum, Polygon, HyperEVM | 6 | Live |
+| Arbitrum, Monad, SKALE Base | 6 | 🚧 Coming soon |
+| **BSC** | **18** | 🚧 Coming soon |
+| **MegaETH** | **18** | 🚧 Coming soon |
 
 ```go
 // CORRECT: use extra.decimals from the response
@@ -66,13 +68,15 @@ decimals := int64(resp.Extra.Decimals)
 multiplier := new(big.Int).Exp(big.NewInt(10), big.NewInt(decimals), nil)
 chainAmount := new(big.Int).Mul(parsedAmount, multiplier)
 
-// WRONG: hardcoding 6 decimals breaks BSC payments
+// WRONG: hardcoding 6 decimals breaks 18-decimal chains such as BSC / MegaETH
 chainAmount := new(big.Int).Mul(parsedAmount, big.NewInt(1_000_000))
 ```
 
 ### BSC: Permit2 Pre-Approval
 
-BSC requires a one-time Permit2 contract approval before the first USDC transfer. This step is **BSC-only** — other chains (Polygon, Arbitrum, Ethereum) do not use Permit2 and do not require this step.
+> 🚧 BSC is [coming soon](../api/chains.md) — the snippet below is documented for integration preparation. `CreateIntent` with `payer_chain: "bsc"` returns `400` until BSC is enabled.
+
+BSC requires a one-time Permit2 contract approval before the first USDC transfer. This step is **BSC-only** — other chains (Base, Ethereum, Polygon) do not use Permit2 and do not require this step.
 
 Call the pre-approval once per wallet before initiating any BSC payment:
 

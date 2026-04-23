@@ -1,6 +1,6 @@
 {
-  "version": "4.4.0",
-  "created": "2026-03-27T00:27:12Z",
+  "version": "4.3.0",
+  "created": "2026-04-23T10:01:08Z",
   "files": [
     {
       "path": ".nojekyll"
@@ -10,6 +10,9 @@
     },
     {
       "path": "api/auth/index.html"
+    },
+    {
+      "path": "api/bsc-signing/index.html"
     },
     {
       "path": "api/chains/index.html"
@@ -35,6 +38,12 @@
     },
     {
       "path": "CNAME"
+    },
+    {
+      "path": "docs/concepts/multi-chain-settlement/index.html"
+    },
+    {
+      "path": "docs/migration/v2-any-to-any/index.html"
     },
     {
       "path": "index.html"
@@ -109,7 +118,8 @@
       "path": "skills/agent-authenticated-payment/index.html"
     },
     {
-      "path": "skills/agent-automated-setup-payment/index.html"
+      "path": "skills/agent-automated-setup-payment/index.html",
+      "old": true
     },
     {
       "path": "skills/agent-public-payment/index.html"
@@ -131,6 +141,12 @@
     },
     {
       "path": "skills/submit-proof/index.html"
+    },
+    {
+      "path": "static/agent-logo.png"
+    },
+    {
+      "path": "static/agent-tech-logo.svg"
     },
     {
       "path": "static/image_logo.png"

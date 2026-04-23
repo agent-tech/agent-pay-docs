@@ -5,41 +5,35 @@ AgentPay is a programmable USDC payment layer that routes value from one chain t
 ## Payment Flow
 
 ```
- payer_chain                             target_chain
-──────────────                          ──────────────
-    payer                                   merchant
-      │                                         ▲
-      │  1. X402 authorization                  │
-      │     (EIP-3009 / Permit2 /               │
-      │      Solana partial sign)               │
-      ▼                                         │
-  ┌─────────────────┐     2. verify + settle    │
-  │ AgentPay source │───────────────────────────┤
-  │    receiver     │                           │
-  └─────────────────┘                           │
-                                    3. route    │
-                                  TargetPayment │
-                                    Router      │
-                                        │       │
-                            ┌───────────┼───────┴──────────┐
-                            ▼           ▼                  ▼
-                      ┌──────────┐ ┌──────────┐     ┌──────────────┐
-                      │  CCTP    │ │ Direct   │     │ Solana (SVM) │
-                      │ burn/mint│ │ EVM xfer │     │ direct       │
-                      └──────────┘ └──────────┘     └──────────────┘
+ payer_chain                                      target_chain
+──────────────                                   ──────────────
+    payer                                            merchant
+      │                                                 ▲
+      │  1. payer-side x402 payload                     │
+      │     (EIP-3009 / Permit2+2612 /                  │
+      │      Solana partial sign)                       │
+      ▼                                                 │
+  ┌──────────────────┐    2. facilitator executes       │
+  │    AgentPay      │────── on-chain, funds land ──────┤
+  │ (x402 facilitator│    in AgentPay proxy wallet      │
+  │   + orchestrator)│                                  │
+  └──────────────────┘                                  │
+           │                                            │
+           │  3. target-side x402 payload               │
+           │     signed by proxy wallet                 │
+           │     (flavor per target chain)              │
+           ▼                                            │
+     facilitator executes ───────────────────── payout ─┘
 ```
 
 ### Step by step
 
-1. **Create intent** — The caller supplies `payer_chain`, `target_chain`, and amount. AgentPay builds the X402 payment requirements and returns an `intent_id`.
-2. **Payer pays on source chain** — The payer signs an X402 authorization (EIP-3009 on most EVM chains, Permit2 + EIP-2612 on BSC / Monad / MegaETH, a partially signed VersionedTransaction v0 on Solana) and either the payer or an agent wallet submits it. Status moves through `PENDING → SOURCE_SETTLED`.
-3. **Route to target chain** — AgentPay selects a settlement mode based on the `(payer_chain, target_chain)` pair:
-    - **CCTP burn/mint** when the source-to-target route is a Circle CCTP pair (e.g. `solana → base`, `solana → ethereum`).
-    - **Direct EVM transfer** when both payer and target are EVM chains that don't need a bridge (e.g. `base → ethereum`, `polygon → arbitrum`, or same-chain routes like `base → base`). An agent-controlled wallet on the target chain sends USDC to the merchant.
-    - **Solana (SVM) direct** when the target is `solana`. An agent-controlled Solana wallet transfers USDC to the merchant's SPL token account.
+1. **Create intent** — The caller supplies `payer_chain`, `target_chain`, and amount. AgentPay builds the x402 `payment_requirements` and returns an `intent_id`.
+2. **Payer pays on source chain** — The payer signs an x402 payload (EIP-3009 on most EVM chains, Permit2 + EIP-2612 on BSC / Monad / MegaETH, a partially signed VersionedTransaction v0 on Solana). AgentPay forwards the signed payload to the x402 facilitator, which submits the transaction on the payer chain. Status moves through `PENDING → SOURCE_SETTLED`.
+3. **Pay out on target chain** — AgentPay's proxy wallet signs a second x402 payload that moves USDC to the merchant address on `target_chain`. The signing flavor is chosen from the target chain's USDC contract capabilities (EIP-3009, Permit2+2612, or Solana VersionedTransaction). The same x402 facilitator submits it on-chain.
 4. **Finalize** — Status moves `SOURCE_SETTLED → TARGET_SETTLING → TARGET_SETTLED`. The `target_payment` block on `GetIntent` carries the final tx hash and explorer URL.
 
-The caller never chooses the settlement mode. That selection happens server-side from the `(payer_chain, target_chain)` pair and the chain registry.
+Both legs use the same x402 protocol and the same facilitator. The caller does not pick a signing flavor — the SDK produces the right payload from `payment_requirements`.
 
 ## Failure and Rollback
 
