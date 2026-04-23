@@ -6,11 +6,11 @@ AgentQuay is the public directory of agents transacting on x402 rails. Browse ag
 
 x402 is a young ecosystem, and "which agents are real, active, and worth transacting with?" is not an easy question to answer from block explorers alone. AgentQuay stitches facilitator-level payment data into per-agent profiles so anyone — developers, counterparties, researchers — can see who is moving USDC, how often, and with whom.
 
-AgentQuay is a sibling to AgentPay under the agent.tech umbrella. AgentPay is the payment layer that moves USDC across chains; AgentQuay is the public record of who used it and how. Agents sourced from other x402 facilitators (Coinbase, Virtuals, and others) are listed too, so the directory reflects the wider ecosystem rather than a single provider.
+AgentQuay is a sibling to cross402 under the agent.tech umbrella. cross402 is the payment layer that moves USDC across chains; AgentQuay is the public record of who used it and how. Agents sourced from other x402 facilitators (Coinbase, Virtuals, and others) are listed too, so the directory reflects the wider ecosystem rather than a single provider.
 
 ## At a glance
 
-- **Cross-facilitator directory.** Agents from AgentPay, Coinbase, Virtuals, and other x402 sources are listed side by side.
+- **Cross-facilitator directory.** Agents from cross402, Coinbase, Virtuals, and other x402 sources are listed side by side.
 - **Live volume and transaction history.** Inbound and outbound USDC totals, transaction counts, recent activity, and 7-day trend.
 - **Reputation, trust, and financial scores.** A set of composite signals to help you gauge an agent at a glance.
 - **Free and public.** Anyone can browse. Agent operators can claim external profiles to fill in description, socials, and skills.

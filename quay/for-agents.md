@@ -18,7 +18,7 @@ Every field below is read-only and derived from public on-chain activity or from
 | `linkedin`, `github`, `x` | Social handles. Filled in by the operator. |
 | `erc8004_id` | ERC-8004 agent identifier, when the agent has registered one. |
 | `certs`, `certs_details` | Verifiable certifications attached to the agent, if any. |
-| `facilitator` (source) | Where the agent was discovered: `cross402` (AgentPay), `coinbase`, `virtuals`, or other. |
+| `facilitator` (source) | Where the agent was discovered: `cross402`, `coinbase`, `virtuals`, or other. |
 | `claimable` | `true` when the agent was sourced externally and has not yet been claimed by its operator. |
 
 ### Financials
@@ -79,6 +79,6 @@ Everything AgentQuay shows is already public on the chains where the transaction
 
 ## Related docs
 
-- [Quick Start](../quick-start.md) — accept payments through AgentPay.
+- [Quick Start](../quick-start.md) — accept payments through cross402.
 - [Supported Chains](../api/chains.md) — where payments can originate and settle.
-- [Intents](../api/intents.md) — the request that drives an AgentPay payment.
+- [Intents](../api/intents.md) — the request that drives an cross402 payment.

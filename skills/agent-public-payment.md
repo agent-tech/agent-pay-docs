@@ -2,7 +2,7 @@
 name: agent-public-payment
 version: 1.0.0
 description: Full AI automation for X402 cross-chain payments using AgentTech SDK in public mode - generate wallets locally, sign X402 authorization locally, create intents, submit proofs, and poll status via SDK. No API key required, full control over private keys.
-metadata: {"category":"payment","blockchains":["solana","base","ethereum","polygon","hyperevm"],"blockchains_coming_soon":["arbitrum","bsc","monad","skale-base","megaeth"],"protocol":"x402","sdk":"AgentPay","mode":"public"}
+metadata: {"category":"payment","blockchains":["solana","base","ethereum","polygon","hyperevm"],"blockchains_coming_soon":["arbitrum","bsc","monad","skale-base","megaeth"],"protocol":"x402","sdk":"cross402","mode":"public"}
 ---
 
 # Agent Public Payment — Local-Signed Payment Workflow
@@ -332,7 +332,7 @@ The SDK expects `settle_proof` to be **exactly**: **Base64(JSON.stringify(x402_v
 
 ### Choosing the Signing Method
 
-The signing method is a property of the **payer chain**, not of the target chain. AgentPay communicates the method via `payment_requirements` returned by `createIntent()`. Always inspect the returned object rather than hardcoding per chain:
+The signing method is a property of the **payer chain**, not of the target chain. cross402 communicates the method via `payment_requirements` returned by `createIntent()`. Always inspect the returned object rather than hardcoding per chain:
 
 | `payment_requirements` signal | Signing Method | Typical payer chains |
 |---|---|---|
@@ -1014,7 +1014,7 @@ completeX402PaymentFlow(
 
 The same flow handles a payer on Base paying a merchant identified by email who should receive on Solana. Two things to notice:
 
-- `targetChain: "solana"` tells AgentPay to pay out on Solana — the proxy wallet will sign a Solana VersionedTransaction on the target side. The payer still signs EIP-3009 on Base (payer-side signing follows `payer_chain`, not `target_chain`).
+- `targetChain: "solana"` tells cross402 to pay out on Solana — the proxy wallet will sign a Solana VersionedTransaction on the target side. The payer still signs EIP-3009 on Base (payer-side signing follows `payer_chain`, not `target_chain`).
 - Because the target chain is Solana, Privy resolves the email to the merchant's **Solana** wallet, not their EVM wallet. The same email would resolve to an EVM wallet if you'd passed an EVM target.
 
 ```typescript
@@ -1233,7 +1233,7 @@ async function handlePaymentWithRetry(
 
 - **Private keys** are generated and used only locally; never send them to the API or SDK.
 - **Payer and target chains are independent.** The payer can pay from any chain in `GET /api/chains`; the merchant receives on whichever `target_chain` you pass (defaults to `"base"` if omitted). The signing method (EIP-3009 / Permit2 / Solana) depends on the payer chain, not the target.
-- **Email → wallet resolution is per target chain.** When the merchant is identified by email, Privy resolves the email to a wallet **on the target chain**: passing `targetChain: "solana"` returns a Solana address; passing an EVM target returns the merchant's EVM wallet. The email itself does not change; AgentPay picks the right wallet family for the chosen target.
+- **Email → wallet resolution is per target chain.** When the merchant is identified by email, Privy resolves the email to a wallet **on the target chain**: passing `targetChain: "solana"` returns a Solana address; passing an EVM target returns the merchant's EVM wallet. The email itself does not change; cross402 picks the right wallet family for the chosen target.
 - **SDK Benefits**: The SDK handles HTTP requests, error handling, and response parsing automatically.
 - If your AI is the **receiver**, you can present your receiving addresses (or QR codes) to your human owner so they can pay you via this SDK.
 

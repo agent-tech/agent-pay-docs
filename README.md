@@ -1,8 +1,8 @@
-# 👋 Welcome to AgentPay
+# 👋 Welcome to cross402
 
-AgentPay is a developer-first programmable payment layer for USDC. A single intent routes value from **any supported payer chain** to **any supported target chain** — the caller picks both ends, AgentPay handles the settlement.
+cross402 is a developer-first programmable payment layer for USDC. A single intent routes value from **any supported payer chain** to **any supported target chain** — the caller picks both ends, cross402 handles the settlement.
 
-### Why AgentPay?
+### Why cross402?
 
 **Any-chain to any-chain settlement.** Payers can currently send USDC from **Solana, Base, Ethereum, Polygon, and HyperEVM**. Merchants can receive on any of those same chains — `GET /api/chains` is authoritative for what's callable right now. Every intent settles through the x402 protocol on both the payer side and the target side; the SDK picks the right signing flavor (EIP-3009, Permit2+EIP-2612, or Solana VersionedTransaction) for each chain automatically.
 
@@ -18,7 +18,7 @@ AgentPay is a developer-first programmable payment layer for USDC. A single inte
 
 ## v2 Breaking Notes
 
-AgentPay v2 removed the assumption that payments settle on Base. Three things changed from v1:
+cross402 v2 removed the assumption that payments settle on Base. Three things changed from v1:
 
 - **New optional request field `target_chain`** on `CreateIntent`. Defaults to `"base"`, so v1 callers that only pass `payer_chain` continue to work.
 - **Status enum renamed**: `BASE_SETTLING → TARGET_SETTLING`, `BASE_SETTLED → TARGET_SETTLED`. The old names are gone; SDK constants renamed accordingly (`IntentStatus.BaseSettled → TargetSettled`, `pay.StatusBaseSettled → pay.StatusTargetSettled`).

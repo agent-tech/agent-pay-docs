@@ -1,6 +1,6 @@
 # 🚦 Intent Statuses
 
-Understand the lifecycle of an AgentPay Intent.
+Understand the lifecycle of an cross402 Intent.
 
 ## Lifecycle Flow
 
