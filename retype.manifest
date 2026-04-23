@@ -1,6 +1,6 @@
 {
   "version": "4.3.0",
-  "created": "2026-04-23T10:01:08Z",
+  "created": "2026-04-23T15:07:53Z",
   "files": [
     {
       "path": ".nojekyll"
@@ -53,6 +53,15 @@
     },
     {
       "path": "package.json"
+    },
+    {
+      "path": "quay/for-agents/index.html"
+    },
+    {
+      "path": "quay/for-users/index.html"
+    },
+    {
+      "path": "quay/index.html"
     },
     {
       "path": "quick-start/index.html"
