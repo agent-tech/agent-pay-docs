@@ -11,7 +11,7 @@ Every `CreateIntent` request carries:
 
 The merchant address is validated against `target_chain`. If `target_chain` is an EVM chain, `recipient` must be a 20-byte hex address; if it is `solana`, `recipient` must be a Solana public key. For email recipients, AgentPay resolves the email to a wallet on the target chain via Privy — so the same email returns a Solana address when `target_chain` is `solana`, and an EVM address when `target_chain` is an EVM chain.
 
-Any chain exposed by `GET /api/chains` may be used as either `payer_chain` or `target_chain`, including same-chain combinations (`base → base`, `polygon → polygon`, etc.). Today that set is **Base, Ethereum, HyperEVM, Polygon, Solana**; Arbitrum, BSC, Monad, SKALE Base, and MegaETH are 🚧 coming soon — see [Supported Chains](../../api/chains.md) for per-chain status.
+Any chain exposed by `GET /api/chains` may be used as either `payer_chain` or `target_chain`, including same-chain combinations (`base → base`, `polygon → polygon`, etc.). That set is currently **Base, Ethereum, HyperEVM, Polygon, Solana**; Arbitrum, BSC, Monad, SKALE Base, and MegaETH are 🚧 coming soon — see [Supported Chains](../../api/chains.md) for per-chain status.
 
 ## How settlement works
 

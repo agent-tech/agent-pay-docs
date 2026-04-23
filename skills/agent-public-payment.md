@@ -946,7 +946,7 @@ async function completeX402PaymentFlow(
     // Permit2 + EIP-2612 path (designated for BSC, Monad, MegaETH — all coming soon; the backend flags the exact set)
     settleProof = await buildPermit2SettleProof(pr, payerAddress, privateKey, rpcUrl);
   } else {
-    // EIP-3009 TransferWithAuthorization path (live today on Base, Ethereum, Polygon, HyperEVM; Arbitrum and SKALE Base coming soon)
+    // EIP-3009 TransferWithAuthorization path (currently live on Base, Ethereum, Polygon, HyperEVM; Arbitrum and SKALE Base coming soon)
     settleProof = buildEVMsettleProof(pr, payerAddress, privateKey);
   }
 

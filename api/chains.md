@@ -5,12 +5,12 @@ AgentPay supports paying from one chain and settling on another. A payment inten
 - `payer_chain` — where the payer sends USDC.
 - `target_chain` — where the merchant receives USDC. Optional; defaults to `base`.
 
-The set of target chains available to your integration is served by `GET /api/chains`. If a chain appears in that response, you can use it as a `target_chain`. Any chain supported as a payer can also be used as a target, subject to the status of each chain (some are live today; others are documented for roadmap visibility but not yet callable — see the **Status** column below).
+The set of target chains available to your integration is served by `GET /api/chains`. If a chain appears in that response, you can use it as a `target_chain`. Any chain supported as a payer can also be used as a target, subject to the status of each chain (some are currently live; others are documented for roadmap visibility but not yet callable — see the **Status** column below).
 
 ## Status legend
 
-- **Live** — callable today. You can pass the identifier as `payer_chain` or `target_chain` right now and the call will succeed (assuming the usual validation).
-- **🚧 Coming soon** — the identifier, SDK constant, decimals, and signing flavor are documented so you can prepare integration code, but the chain is not yet enabled. `CreateIntent` calls with a coming-soon chain return `400 invalid payer_chain` / `400 invalid target_chain` today. Treat `GET /api/chains` as authoritative for what's callable right now.
+- **Live** — callable. You can pass the identifier as `payer_chain` or `target_chain` right now and the call will succeed (assuming the usual validation).
+- **🚧 Coming soon** — the identifier, SDK constant, decimals, and signing flavor are documented so you can prepare integration code, but the chain is not yet enabled. `CreateIntent` calls with a coming-soon chain return `400 invalid payer_chain` / `400 invalid target_chain`. Treat `GET /api/chains` as authoritative for what's callable right now.
 
 ## Payer chains
 
@@ -38,7 +38,7 @@ Every **Live** payer chain is also a valid target. Coming-soon chains will becom
 GET /api/chains
 ```
 
-Response (today):
+Response:
 
 ```json
 {

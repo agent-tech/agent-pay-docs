@@ -21,7 +21,7 @@ All intent responses include a `FeeBreakdown` structure that details the cost co
 * **Platform Fee**: AgentPay's service fee for processing the cross-chain settlement.
 * **Total Fee**: The sum of all fees, deducted from the payer's sending amount before the merchant receives the net amount.
 
-> Fee rows for 🚧 coming-soon chains (Arbitrum, BSC, Monad, SKALE Base, MegaETH — see [Supported Chains](chains.md)) are not returned by `CreateIntent` today; attempts to create an intent on those chains fail with `400` before a fee is computed.
+> Fee rows for 🚧 coming-soon chains (Arbitrum, BSC, Monad, SKALE Base, MegaETH — see [Supported Chains](chains.md)) are not returned by `CreateIntent`; attempts to create an intent on those chains fail with `400` before a fee is computed.
 
 ## Example Response — base → Ethereum
 

@@ -11,7 +11,7 @@ The Go SDK features a unified `Client` that automatically routes requests based 
 ### Multi-Chain Support
 A payment intent declares a payer chain and a target chain. `PayerChain` is required; `TargetChain` is optional and defaults to `"base"`. The merchant receives USDC on the target chain.
 
-Use chain constants from the SDK instead of hardcoded strings. The **Status** column indicates which chains can be called today; coming-soon constants exist in the SDK so you can compile against them, but `CreateIntent` will reject them with `400` until they go live.
+Use chain constants from the SDK instead of hardcoded strings. The **Status** column indicates which chains can be called; coming-soon constants exist in the SDK so you can compile against them, but `CreateIntent` will reject them with `400` until they go live.
 
 | Chain | Constant | USDC Decimals | Status | Notes |
 | :--- | :--- | :--- | :--- | :--- |
