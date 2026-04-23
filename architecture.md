@@ -35,7 +35,7 @@ AgentPay is a programmable USDC payment layer that routes value from one chain t
 2. **Payer pays on source chain** — The payer signs an X402 authorization (EIP-3009 on most EVM chains, Permit2 + EIP-2612 on BSC / Monad / MegaETH, a partially signed VersionedTransaction v0 on Solana) and either the payer or an agent wallet submits it. Status moves through `PENDING → SOURCE_SETTLED`.
 3. **Route to target chain** — AgentPay selects a settlement mode based on the `(payer_chain, target_chain)` pair:
     - **CCTP burn/mint** when the source-to-target route is a Circle CCTP pair (e.g. `solana → base`, `solana → ethereum`).
-    - **Direct EVM transfer** when both payer and target are EVM chains that don't need a bridge (e.g. `base → ethereum`, `polygon → arbitrum`, or same-chain routes like `base → base`). An agent-controlled wallet on the target chain sends USDC to the merchant.
+    - **Direct EVM transfer** when both payer and target are EVM chains that don't need a bridge (e.g. `base → ethereum`, `polygon → base`, or same-chain routes like `base → base`). An agent-controlled wallet on the target chain sends USDC to the merchant.
     - **Solana (SVM) direct** when the target is `solana`. An agent-controlled Solana wallet transfers USDC to the merchant's SPL token account.
 4. **Finalize** — Status moves `SOURCE_SETTLED → TARGET_SETTLING → TARGET_SETTLED`. The `target_payment` block on `GetIntent` carries the final tx hash and explorer URL.
 

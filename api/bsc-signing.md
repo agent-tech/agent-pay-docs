@@ -1,10 +1,12 @@
 # BSC Signing
 
-BSC (BNB Smart Chain) uses a different signing mechanism from other EVM chains. Instead of EIP-3009 `transferWithAuthorization` (used on Base, Arbitrum, etc.), BSC USDC uses **Permit2** — a two-step approval and permit-transfer flow.
+> 🚧 **BSC is coming soon.** The identifier (`bsc`), SDK constants, 18-decimal caveat, and the Permit2 + EIP-2612 flow documented on this page are provided so you can prepare integration code. `CreateIntent` with `payer_chain: "bsc"` or `target_chain: "bsc"` currently returns `400`; this page will apply directly once BSC is enabled. Treat `GET /api/chains` as authoritative. See [Supported Chains](chains.md) for the current status of every chain.
+
+BSC (BNB Smart Chain) uses a different signing mechanism from other EVM chains. Instead of EIP-3009 `transferWithAuthorization` (used on Base, Ethereum, etc.), BSC USDC uses **Permit2** — a two-step approval and permit-transfer flow.
 
 This page explains why BSC is different and how to implement it correctly.
 
-> BSC is also a valid `target_chain`. Merchants can receive USDC on BSC by passing `targetChain: "bsc"` on `CreateIntent`. The 18-decimal / Permit2 caveats on this page apply to the payer side. On the target side, AgentPay performs a standard USDC transfer to the merchant from an agent-controlled BSC wallet. See the payer × target matrix in [Supported Chains](chains.md).
+> BSC is also intended as a valid `target_chain` once enabled. Merchants will be able to receive USDC on BSC by passing `targetChain: "bsc"` on `CreateIntent`. The 18-decimal / Permit2 caveats on this page apply to the payer side. On the target side, AgentPay performs a standard USDC transfer to the merchant from an agent-controlled BSC wallet. See the payer × target matrix in [Supported Chains](chains.md).
 
 ---
 

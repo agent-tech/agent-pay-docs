@@ -11,7 +11,7 @@ Every `CreateIntent` request carries:
 
 The merchant address is validated against `target_chain`. If `target_chain` is an EVM chain, `recipient` must be a 20-byte hex address; if it is `solana`, `recipient` must be a Solana public key. For email recipients, AgentPay resolves the email to a wallet on the target chain via Privy — so the same email returns a Solana address when `target_chain` is `solana`, and an EVM address when `target_chain` is an EVM chain.
 
-Any chain exposed by `GET /api/chains` may be used as either `payer_chain` or `target_chain`, including same-chain combinations (`base → base`, `polygon → polygon`, etc.).
+Any chain exposed by `GET /api/chains` may be used as either `payer_chain` or `target_chain`, including same-chain combinations (`base → base`, `polygon → polygon`, etc.). Today that set is **Base, Ethereum, HyperEVM, Polygon, Solana**; Arbitrum, BSC, Monad, SKALE Base, and MegaETH are 🚧 coming soon — see [Supported Chains](../../api/chains.md) for per-chain status.
 
 ## Settlement modes
 
@@ -32,10 +32,10 @@ AgentPay burns USDC on the source chain and mints it on the target chain through
 Used for same-chain routes and for EVM-to-EVM routes that don't need a bridge. An agent-controlled wallet on the target chain sends USDC directly to the merchant.
 
 - `base → ethereum`
-- `polygon → arbitrum`
+- `polygon → base`
 - `base → base` (same-chain is a legitimate combination)
 
-On BSC, Monad, and MegaETH — which require Permit2 + EIP-2612 signing at the payer side — the target-side transfer is still a plain USDC transfer.
+On BSC, Monad, and MegaETH — which require Permit2 + EIP-2612 signing at the payer side — the target-side transfer is still a plain USDC transfer. These three chains are 🚧 [coming soon](../../api/chains.md); the signing flavor documentation is provided for integration preparation.
 
 ### 3. Solana (SVM) direct
 
