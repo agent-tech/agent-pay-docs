@@ -7,7 +7,7 @@ metadata: {"category":"payment","blockchains":["solana","base","ethereum","polyg
 
 # Agent Public Payment — Local-Signed Payment Workflow
 
-This skill enables AI agents to complete cross-chain USDC payments **end-to-end without a browser or human**: generate wallets locally, create a payment intent via the SDK, sign the X402 authorization with your local key, submit the proof, and poll until settled. The payer chain and the target (merchant) chain can differ — AgentPay picks the settlement mode from the `(payer_chain, target_chain)` pair.
+This skill enables AI agents to complete cross-chain USDC payments **end-to-end without a browser or human**: generate wallets locally, create a payment intent via the SDK, sign the x402 payload with your local key, submit the proof, and poll until settled. The payer chain and the target (merchant) chain can differ — both legs settle through the x402 protocol; the SDK derives the correct signing flavor for each chain from `payment_requirements`.
 
 **Use Case:** Choose this mode when you need **full control over private keys** and want to sign transactions locally. No API key required - perfect for agents that need direct control over signing and wallet management. Private keys never leave your machine.
 
@@ -1014,7 +1014,7 @@ completeX402PaymentFlow(
 
 The same flow handles a payer on Base paying a merchant identified by email who should receive on Solana. Two things to notice:
 
-- `targetChain: "solana"` selects the SVM direct settlement mode. The payer still signs EIP-3009 on Base (payer-side signing is unchanged).
+- `targetChain: "solana"` tells AgentPay to pay out on Solana — the proxy wallet will sign a Solana VersionedTransaction on the target side. The payer still signs EIP-3009 on Base (payer-side signing follows `payer_chain`, not `target_chain`).
 - Because the target chain is Solana, Privy resolves the email to the merchant's **Solana** wallet, not their EVM wallet. The same email would resolve to an EVM wallet if you'd passed an EVM target.
 
 ```typescript

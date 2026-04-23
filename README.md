@@ -4,7 +4,7 @@ AgentPay is a developer-first programmable payment layer for USDC. A single inte
 
 ### Why AgentPay?
 
-**Any-chain to any-chain settlement.** Payers can send USDC from **Solana, Base, Ethereum, Polygon, and HyperEVM** today. Merchants can receive on any of those same chains — `GET /api/chains` is authoritative for what's callable right now. AgentPay picks the right settlement mode (CCTP burn/mint, direct EVM transfer, or Solana SPL transfer) from the `(payer_chain, target_chain)` pair.
+**Any-chain to any-chain settlement.** Payers can send USDC from **Solana, Base, Ethereum, Polygon, and HyperEVM** today. Merchants can receive on any of those same chains — `GET /api/chains` is authoritative for what's callable right now. Every intent settles through the x402 protocol on both the payer side and the target side; the SDK picks the right signing flavor (EIP-3009, Permit2+EIP-2612, or Solana VersionedTransaction) for each chain automatically.
 
 > **Roadmap:** Arbitrum, BSC, Monad, SKALE Base, and MegaETH are documented in [Supported Chains](api/chains.md) for integration preparation; they are 🚧 *coming soon* and will return `400` until enabled.
 

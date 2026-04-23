@@ -50,21 +50,21 @@ The list is stable per deployment and expands only as chains move from coming-so
 
 ## Payer × target matrix
 
-Any payer chain can pair with any target chain exposed by your deployment, including same-chain routes (e.g. `base → base`). The table below covers common combinations; rows flagged `🚧 Coming soon` are documented for roadmap visibility and will return `400` until the chain goes live.
+Any payer chain can pair with any target chain exposed by your deployment, including same-chain routes (e.g. `base → base`). The table below covers common combinations; rows flagged `🚧 Coming soon` are documented for roadmap visibility and will return `400` until the chain goes live. The **Payer sig** and **Target sig** columns show the x402 signing flavor used on each leg — the SDK picks these automatically from `payment_requirements`.
 
-| Payer → Target | CCTP burn/mint | Direct EVM transfer | Solana (SVM) transfer | Status |
-| :--- | :---: | :---: | :---: | :--- |
-| `solana → base` | ✓ | | | Live |
-| `solana → ethereum` | ✓ | | | Live |
-| `base → ethereum` | | ✓ | | Live |
-| `base → polygon` | | ✓ | | Live |
-| `polygon → base` | | ✓ | | Live |
-| `base → solana` | | | ✓ | Live |
-| `base → base` (same chain) | | ✓ | | Live |
-| `polygon → arbitrum` | | ✓ | | 🚧 Coming soon |
-| `bsc → base` | | ✓ | | 🚧 Coming soon |
+| Payer → Target | Payer sig | Target sig | Status |
+| :--- | :--- | :--- | :--- |
+| `solana → base` | Solana VT v0 | EIP-3009 | Live |
+| `solana → ethereum` | Solana VT v0 | EIP-3009 | Live |
+| `base → ethereum` | EIP-3009 | EIP-3009 | Live |
+| `base → polygon` | EIP-3009 | EIP-3009 | Live |
+| `polygon → base` | EIP-3009 | EIP-3009 | Live |
+| `base → solana` | EIP-3009 | Solana VT v0 | Live |
+| `base → base` (same chain) | EIP-3009 | EIP-3009 | Live |
+| `polygon → arbitrum` | EIP-3009 | EIP-3009 | 🚧 Coming soon |
+| `bsc → base` | Permit2 + EIP-2612 | EIP-3009 | 🚧 Coming soon |
 
-Callers do not pick the settlement mode; AgentPay chooses between CCTP burn/mint, direct EVM transfer, and SVM transfer based on the (payer, target) pair. See [Multi-Chain Settlement](../docs/concepts/multi-chain-settlement.md) for the mechanics.
+Callers do not choose the signing flavor; the SDK derives it from `payment_requirements` and the `(payer, target)` pair. Both legs run through the x402 protocol. See [Multi-Chain Settlement](../docs/concepts/multi-chain-settlement.md) for the mechanics.
 
 ## Chain-specific caveats
 
