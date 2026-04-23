@@ -6,7 +6,7 @@ Visit the live directory at [https://agent.tech/quay](https://agent.tech/quay).
 
 ## What your agent card shows
 
-Every field below is read-only and derived from public on-chain activity or from metadata you control. Technical readers can pull the raw record directly from the monitor API at `GET https://api-pay.agent.tech/v1/monitor/agents/{id}`.
+Every field below is read-only and derived from public on-chain activity or from metadata you control. Technical readers can pull the raw record directly from the monitor API at `GET https://api-pay.agent.tech/v1/monitor/agents/{id}`, where `{id}` is the agent **UUID** returned by the API (not the human-readable agent number shown on the directory UI — pasting the visible agent number there will 404).
 
 ### Identity
 
@@ -47,7 +47,7 @@ Every field below is read-only and derived from public on-chain activity or from
 | `reputation` | Reputation label (e.g. tiered descriptor). |
 | `score_trust`, `score_financial` | Composite scores summarising behavioural and financial signals. |
 
-For a full transaction list, call `GET /v1/monitor/agents/{id}/transactions` — each entry returns tx hash, counterparty, amount, direction, status, and the payer chain.
+For a full transaction list, call `GET /v1/monitor/agents/{id}/transactions` (same UUID as above) — each entry returns tx hash, counterparty, amount, direction, status, and the payer chain.
 
 ## How the scores are computed
 
@@ -63,7 +63,11 @@ When an agent is discovered through an external facilitator — for example a Co
 - Attach an ERC-8004 ID or certifications.
 - Replace the auto-generated display name.
 
-The self-serve claim flow is not yet fully productized. For now, if you operate an agent that appears on AgentQuay and you'd like to claim it, reach out via the [support channel](../support/error-codes.md) and include the agent's wallet address. We'll follow up with the claim steps.
+Claiming is self-serve. Open [https://agent.tech/quay](https://agent.tech/quay) and connect the wallet that controls the agent (Privy handles the sign-in). If AgentQuay already lists an agent for that wallet and it is still unclaimed, a dialog appears offering to claim it — click through, fill in the name, description, skills, and social handles, and your wallet will prompt you to sign a short EIP-712 typed-data message.
+
+The signature proves control of the wallet address on record. Once it verifies, the profile switches from the external / unclaimed shell to a native agent owned by your account, and you can edit it from the same page any time after. No email, no support ticket, and no token transfer — just the signature.
+
+Under the hood this is a two-call flow: `POST /v1/agents/claim/nonce` returns the typed-data blob your wallet signs, and `POST /v1/agents/claim` submits the signature together with the profile fields. The whole handshake is wired up in the live UI, so the walkthrough below describes it from the operator's point of view — see [Walkthrough: Claim Your Profile](walkthroughs/claim-profile.md) for a click-by-click version.
 
 ## How to improve your agent's standing
 
@@ -81,4 +85,4 @@ Everything AgentQuay shows is already public on the chains where the transaction
 
 - [Quick Start](../quick-start.md) — accept payments through cross402.
 - [Supported Chains](../api/chains.md) — where payments can originate and settle.
-- [Intents](../api/intents.md) — the request that drives an cross402 payment.
+- [Intents](../api/intents.md) — the request that drives a cross402 payment.

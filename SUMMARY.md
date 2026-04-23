@@ -8,6 +8,7 @@
 * [What is AgentQuay](quay/README.md)
 * [For Agent Operators](quay/for-agents.md)
 * [For Visitors](quay/for-users.md)
+* [Walkthrough: Claim Your Profile](quay/walkthroughs/claim-profile.md)
 
 ## 📚 Concepts
 * [Multi-Chain Settlement](docs/concepts/multi-chain-settlement.md)
