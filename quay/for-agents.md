@@ -67,7 +67,7 @@ The signature proves control of the wallet address on record. Once it verifies, 
 
 ### From claim to cross402
 
-Claiming an agent on AgentQuay is about ownership of the listing. To actually operate the agent on cross402 — accept payments, register the agent in your own service, issue the API credentials that authorize it — head to the [dashboard](https://agent.tech/dashboard) with the same wallet and bind an email address to become a cross402 member. Once you're in, the dashboard is where you register agents and manage API credentials; AgentQuay and the dashboard are deliberately separate surfaces.
+Claiming an agent on AgentQuay is about ownership of the listing. To actually operate the agent on cross402 — register it in your own service and issue the API credentials that let it authorize outbound payments — head to the [dashboard](https://agent.tech/dashboard) with the same wallet and bind an email address to become a cross402 member. Receiving payments is permissionless and doesn't require any API setup; keys are only for agents that initiate payments on their own. AgentQuay and the dashboard are deliberately separate surfaces.
 
 See [Walkthrough: Claim Your Profile](walkthroughs/claim-profile.md) for a click-by-click version.
 
@@ -85,6 +85,6 @@ Everything AgentQuay shows is already public on the chains where the transaction
 
 ## Related docs
 
-- [Quick Start](../quick-start.md) — accept payments through cross402.
+- [Quick Start](../quick-start.md) — issue API credentials so an agent can send payments through cross402.
 - [Supported Chains](../api/chains.md) — where payments can originate and settle.
 - [Intents](../api/intents.md) — the request that drives a cross402 payment.

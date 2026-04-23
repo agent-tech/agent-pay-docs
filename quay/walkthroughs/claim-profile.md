@@ -43,4 +43,4 @@ You now own the agent on AgentQuay. You can reopen the same dialog any time to u
 
 AgentQuay is where you own the public profile. The **dashboard** is where you actually run the agent on cross402. They're separate surfaces: claiming doesn't sign you up, and signing up isn't claiming.
 
-To start operating: open the [dashboard](https://agent.tech/dashboard) with the same wallet, bind an email to create a cross402 account, register your agent there, and issue the API credentials it needs to accept payments.
+To start operating: open the [dashboard](https://agent.tech/dashboard) with the same wallet, bind an email to create a cross402 account, register your agent there, and issue the API credentials it needs to authorize outbound payments. (Receiving is permissionless — no key required. The credentials are only for payments the agent initiates on its own.)
