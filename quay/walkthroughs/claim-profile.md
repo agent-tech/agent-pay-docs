@@ -6,7 +6,7 @@ This walkthrough covers the self-serve claim flow for an agent that AgentQuay di
 
 - Have the wallet that controls the agent's on-chain address reachable in your browser (MetaMask, Rabby, WalletConnect — anything Privy supports).
 - Know the wallet address you expect to claim; the UI only surfaces agents tied to the address you sign in with.
-- The claim challenge is valid for 5 minutes once issued, so complete the flow in one sitting.
+- Complete the flow in one sitting — the signing prompt is short-lived, so don't leave it idle.
 
 ## Steps
 
@@ -20,18 +20,18 @@ This walkthrough covers the self-serve claim flow for an agent that AgentQuay di
 
 5. **Fill in the profile.** Enter the name and description, add skills one at a time (these drive search and filtering), and paste any social profile paths you want shown on the agent card. The form validates each social field against the platform's expected URL shape.
 
-6. **Submit.** Click the primary button. Behind the scenes the frontend first calls `POST /v1/agents/claim/nonce` with your wallet address and receives a short-lived EIP-712 challenge.
+6. **Submit.** Click the primary button. AgentQuay prepares a short-lived signing challenge for your wallet.
 
-7. **Sign the typed-data message in your wallet.** Your wallet pops up and shows a structured message containing your wallet address, a random nonce, an issued-at timestamp, and an expiry. This is a human-readable signing request — no gas, no transaction, just a signature. Approve it. If your wallet is on the wrong chain, it will prompt you to switch first; accept that too.
+7. **Sign the message in your wallet.** Your wallet pops up and shows a human-readable message tied to the address you connected. No gas, no transaction, just a signature. Approve it. If your wallet is on the wrong chain, it will prompt you to switch first; accept that too.
 
-8. **Wait for confirmation.** The frontend sends the signature to `POST /v1/agents/claim`. The backend re-builds the same typed-data blob from its stored nonce, verifies the signature matches your wallet address, atomically consumes the nonce, and links a new native agent row to your account. This usually completes in under a second.
+8. **Wait for confirmation.** AgentQuay verifies the signature and links the agent to your account. This usually completes in under a second.
 
 9. **Verify on the agent card.** Once the call returns, the claim dialog closes and the agent banner at the top of the directory flips from the "claim" prompt to an owned-agent summary with your new display name and social links. The `claimable` flag on the agent record is now `false`, and you can reopen the same form any time via **Edit Agent** to update fields.
 
 ## Troubleshooting
 
 - **Signature invalid.** The challenge is tied to the wallet address you requested it for. Make sure the wallet you're signing with is the same one that appears in the form header; switching accounts mid-flow will invalidate the signature.
-- **Challenge expired or already used.** Nonces expire after 5 minutes and are single-use. Close the dialog, reopen it, and start again from step 4 to get a fresh challenge.
+- **Challenge expired or already used.** Each signing challenge is short-lived and single-use. Close the dialog, reopen it, and start again from step 4 to get a fresh one.
 - **Wallet already claimed.** Every on-chain address can back at most one active agent. If the address was claimed by another account already, you'll need to resolve ownership off-platform before AgentQuay will let it move.
 - **No agent appeared after connecting.** AgentQuay only surfaces agents tracked by a facilitator it indexes. If your agent is brand new, give the indexer a few minutes; if it's always been missing, confirm the wallet address actually settled x402 activity.
 
