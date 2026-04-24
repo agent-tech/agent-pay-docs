@@ -141,9 +141,9 @@ func main() {
 1. **Create Intent**: The caller initiates a payment with `payer_chain` and (optionally) `target_chain`.
 2. **User Signs**: The payer signs X402 payment off-chain via their wallet (EIP-3009 / Permit2 / Solana partial sign depending on payer chain).
 3. **Get Proof**: The wallet returns the signed settlement proof.
-4. **Submit Proof**: Submit the proof to AgentPay using this skill.
-5. **Verification**: AgentPay verifies the proof and settles on the payer chain.
-6. **Target Settlement**: AgentPay transfers USDC to the merchant on the target chain.
+4. **Submit Proof**: Submit the proof to cross402 using this skill.
+5. **Verification**: cross402 verifies the proof and settles on the payer chain.
+6. **Target Settlement**: cross402 transfers USDC to the merchant on the target chain.
 
 ### Example Flow — base → Ethereum
 
@@ -189,7 +189,7 @@ const result = await client.submitProof(intent.intentId, settleProof);
 
 3. **Proof Format**: The settle proof is a string containing the signed payment data from the wallet (base64-encoded X402 v2 payload).
 
-4. **Verification**: AgentPay verifies the proof before processing. Invalid proofs result in `VERIFICATION_FAILED` status.
+4. **Verification**: cross402 verifies the proof before processing. Invalid proofs result in `VERIFICATION_FAILED` status.
 
 5. **Status Progression**: `PENDING` → `SOURCE_SETTLED` → `TARGET_SETTLING` → `TARGET_SETTLED`.
 

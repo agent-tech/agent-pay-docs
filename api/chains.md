@@ -1,6 +1,6 @@
 # ⛓ Supported Chains
 
-AgentPay supports paying from one chain and settling on another. A payment intent declares two chains:
+cross402 supports paying from one chain and settling on another. A payment intent declares two chains:
 
 - `payer_chain` — where the payer sends USDC.
 - `target_chain` — where the merchant receives USDC. Optional; defaults to `base`.
@@ -93,7 +93,7 @@ Hardcoding the default `"USD Coin"` on either chain makes every signature fail v
 ### Signing flavor
 
 - EIP-3009 `TransferWithAuthorization`: Base, Ethereum, Polygon, HyperEVM (Live); Arbitrum, SKALE Base (🚧 Coming soon).
-- Permit2 `PermitWitnessTransferFrom` + EIP-2612 `Permit` (gas-sponsored by AgentPay): BSC, Monad, MegaETH (all 🚧 Coming soon).
+- Permit2 `PermitWitnessTransferFrom` + EIP-2612 `Permit` (gas-sponsored by cross402): BSC, Monad, MegaETH (all 🚧 Coming soon).
 - Solana partial-signed VersionedTransaction v0: Solana (Live).
 
 The `payment_requirements.extra.assetTransferMethod` field is set to `"permit2"` when Permit2 is required; otherwise it is absent (EIP-3009 path) or uses the Solana payload shape.

@@ -1,10 +1,10 @@
 # v2 Migration: Any-Chain → Any-Chain
 
-AgentPay v2 makes the target chain a first-class intent field. Payments are no longer assumed to settle on Base; callers pick both the payer chain and the target chain. Three externally visible things changed.
+cross402 v2 makes the target chain a first-class intent field. Payments are no longer assumed to settle on Base; callers pick both the payer chain and the target chain. Three externally visible things changed.
 
 ## 1. `CreateIntent` request
 
-A new optional `target_chain` field selects the settlement chain. If you omit it, AgentPay defaults to `base`, so existing callers that only passed `payer_chain` continue to work unchanged.
+A new optional `target_chain` field selects the settlement chain. If you omit it, cross402 defaults to `base`, so existing callers that only passed `payer_chain` continue to work unchanged.
 
 **Before (v1)**
 
@@ -41,7 +41,7 @@ The `BASE_*` statuses were renamed to `TARGET_*`. The old names are gone — thi
 
 Other statuses are unchanged: `AWAITING_PAYMENT`, `PENDING`, `SOURCE_SETTLED`, `VERIFICATION_FAILED`, `PARTIAL_SETTLEMENT`, `EXPIRED`.
 
-A new internal transition — `TARGET_SETTLING → SOURCE_SETTLED` — can occur when target-chain settlement cannot be dispatched; AgentPay rolls back and retries. See [Statuses](../../api/statuses.md).
+A new internal transition — `TARGET_SETTLING → SOURCE_SETTLED` — can occur when target-chain settlement cannot be dispatched; cross402 rolls back and retries. See [Statuses](../../api/statuses.md).
 
 ## 3. Response field rename
 
