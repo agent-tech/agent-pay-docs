@@ -33,10 +33,43 @@ await client.executeIntent(intentId);
 const intent = await client.getIntent(intentId);
 if (intent.status === IntentStatus.TargetSettled) {
   console.log("paid on", intent.targetPayment?.txHash);
+  console.log("owned by agent", intent.agentId);
 }
 ```
 
 `targetChain` is optional; omit it to settle on Base. See the full chain list and per-chain caveats in [Supported Chains](../api/chains.md).
+
+`agentId` is exposed on every v2 intent response (`createIntent`, `executeIntent`, `getIntent`) and identifies the owning agent. It is intentionally absent on `PublicPayClient` responses (the `/api` flow has no owner). On `getIntent`, the v2 endpoint also enforces ownership: a `PayClient` configured with another agent's API key receives `404 payment intent not found`, not the intent.
+
+The settlement quote (`sendingAmount`, `receivingAmount`, `estimatedFee`, `feeBreakdown`) is always present on `createIntent` / `executeIntent` responses but **optional** on `GetIntentResponse` — the backend only fills these in once the intent leaves its initial state. Always null-check them when polling.
+
+### Discovering enabled chains
+
+Both clients expose `listSupportedChains()` (backed by `GET /api/chains`):
+
+```ts
+const { chains, targetChains } = await client.listSupportedChains();
+// chains       — valid as payerChain
+// targetChains — valid as targetChain
+```
+
+### Agent identity (v2)
+
+`PayClient` exposes the v2 agent surface backed by `GET /v2/me` and `GET /v2/intents/list`:
+
+```ts
+// Identity of the agent owning the API key in use.
+const me = await client.getMe();
+console.log(`agent ${me.agentId} (${me.name}) wallet=${me.walletAddress}`);
+
+// Paginated list of intents owned by the calling agent (most recent first).
+// page is 1-indexed; pageSize ∈ [1,100]. Both default server-side (1, 20)
+// when omitted; out-of-range values throw PayValidationError.
+const page = await client.listIntents({ page: 1, pageSize: 20 });
+for (const it of page.intents) {
+  console.log(`${it.intentId} ${it.status} ${it.payerChain}→${it.targetChain}`);
+}
+```
 
 ## PublicPayClient (Client-Side)
 

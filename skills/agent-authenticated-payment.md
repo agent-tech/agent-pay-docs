@@ -710,7 +710,9 @@ async function setupAgentAccount(
 
 ## Step 3: Initialize Authenticated SDK Client
 
-After obtaining API key and secret key, initialize the authenticated SDK client:
+After obtaining API key and secret key, initialize the authenticated SDK client.
+
+> **Verify the credentials first.** Call `client.getMe()` (JS/TS) or `client.GetMe(ctx)` (Go) — both back onto `GET /v2/me` — before creating intents. The handler is cheap (no DB hit), confirms the key is wired up correctly, and returns the agent's funded EVM/Solana wallet addresses so you can pre-flight balances. Treat any 401 from `/v2/me` as a hard configuration error rather than retrying.
 
 ### TypeScript/JavaScript
 

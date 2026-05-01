@@ -29,6 +29,10 @@
         "type": "string",
         "description": "The intent ID"
       },
+      "agent_id": {
+        "type": "string",
+        "description": "UUID of the owning agent. Present only on /v2 responses (intents created with API-key auth); absent on the public /api flow."
+      },
       "status": {
         "type": "string",
         "enum": ["AWAITING_PAYMENT", "PENDING", "SOURCE_SETTLED", "TARGET_SETTLING", "TARGET_SETTLED", "VERIFICATION_FAILED", "EXPIRED", "PARTIAL_SETTLEMENT"],
@@ -93,8 +97,10 @@
 ```json
 {
   "intent_id": "int_abc123xyz",
+  "agent_id": "8b2e9c4a-3f7a-4d1b-9e2c-5a6b7c8d9e0f",
   "status": "TARGET_SETTLED",
   "payer_chain": "base",
+  "target_chain": "ethereum",
   "merchant_recipient": "0x742d35Cc...",
   "target_payment": {
     "tx_hash": "0x1234...abcd",
@@ -242,7 +248,7 @@ AWAITING_PAYMENT
 | HTTP Status | Error Type | Description | Solution |
 |-------------|------------|-------------|----------|
 | 400 | ValidationError | Empty intent ID | Provide a valid intent ID |
-| 404 | RequestError | Intent not found | Verify intent ID exists |
+| 404 | RequestError | Intent not found, **or** intent owned by another agent (v2 ownership check returns 404, not 403, so the endpoint cannot be used to enumerate other agents' intent IDs) | Verify the intent ID and that it was created under the same API key |
 | 429 | RequestError | Rate limited | Implement exponential backoff, retry after delay |
 | 503 | RequestError | Service unavailable | Retry after delay |
 
@@ -261,6 +267,10 @@ AWAITING_PAYMENT
 4. **Transaction Receipt**: When status is `TARGET_SETTLED`, save `target_payment.tx_hash` for record-keeping.
 
 5. **Rate Limiting**: Be mindful of rate limits. Use exponential backoff for retries.
+
+6. **v2 ownership**: `GET /v2/intents` returns the intent only if its owning `agent_id` matches the API key's agent. Mismatches and intents created via the `/api` flow both return `404 payment intent not found`. Use the same API key that created the intent, or fall back to the public `GET /api/intents` endpoint.
+
+7. **Optional quote fields on `getIntent`**: `sending_amount`, `receiving_amount`, `estimated_fee`, and `fee_breakdown` are populated by the backend after the intent leaves its initial state. Treat them as optional when polling — they are guaranteed only on `createIntent` / `executeIntent` responses.
 
 ## Best Practices
 

@@ -89,8 +89,10 @@
 ```json
 {
   "intent_id": "int_abc123xyz",
+  "agent_id": "8b2e9c4a-3f7a-4d1b-9e2c-5a6b7c8d9e0f",
   "status": "AWAITING_PAYMENT",
   "payer_chain": "base",
+  "target_chain": "ethereum",
   "expires_at": "2024-01-01T12:10:00Z",
   "fee_breakdown": {
     "source_chain": "base",
@@ -103,6 +105,8 @@
   }
 }
 ```
+
+`agent_id` is returned only on the authenticated `/v2` flow (it identifies the agent that owns the intent). The unauthenticated `/api` flow leaves it unset.
 
 ### Error Response
 

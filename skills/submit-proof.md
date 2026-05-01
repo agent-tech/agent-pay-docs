@@ -183,7 +183,7 @@ const result = await client.submitProof(intent.intentId, settleProof);
 
 ## Important Notes
 
-1. **No Authentication Required**: This is a public endpoint, safe for client-side use.
+1. **No Authentication Required**: This is a public endpoint, safe for client-side use. There is no `/v2` equivalent — `submitProof` belongs to the `/api` flow only. The Go SDK rejects `SubmitProof` with `ErrSubmitProofNotAllowed` when the client is configured with `WithBearerAuth`; the JS SDK does not expose `submitProof` on `PayClient`. If you've been driving payments via the authenticated flow, use `executeIntent` instead.
 
 2. **X402 Payment**: The settle proof must come from a valid X402 payment signed by the user's wallet.
 

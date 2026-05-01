@@ -71,6 +71,24 @@ The SDK automatically selects the API prefix based on authentication:
 * **With auth** (`WithBearerAuth`) → `/v2` prefix — create intent → execute (backend signs)
 * **Without auth** → `/api` prefix — create intent → payer signs → submit settle_proof
 
+## Verifying Credentials (`GET /v2/me`)
+
+Once you have an API key, call `GET /v2/me` (auth required) to confirm it works and to discover the agent's funded wallet addresses without hitting the dashboard:
+
+```typescript
+const me = await client.getMe(); // JS/TS SDK
+// me.agentId, me.agentNumber, me.name, me.status,
+// me.walletAddress (EVM), me.solanaWalletAddress
+```
+
+```go
+me, err := client.GetMe(ctx) // Go SDK
+// me.AgentID, me.AgentNumber, me.Name, me.Status,
+// me.WalletAddress (EVM), me.SolanaWalletAddress
+```
+
+The handler reads from middleware context (no DB hit), so it is cheap to call as a startup health-check. Treat any 401 as a hard configuration error — never retry.
+
 ## Security Best Practices
 
 !!! danger "Never expose your API key or secret key"

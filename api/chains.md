@@ -24,8 +24,8 @@ The set of target chains available to your integration is served by `GET /api/ch
 | Arbitrum | `arbitrum` | `pay.ChainArbitrum` | `Chain.Arbitrum` | 6 | 🚧 Coming soon | — |
 | BSC | `bsc` | `pay.ChainBSC` | `Chain.BSC` | **18** | 🚧 Coming soon | Binance-Peg USDC; Permit2 + EIP-2612 signing. See [BSC Signing](bsc-signing.md). |
 | Monad | `monad` | `pay.ChainMonad` | `Chain.Monad` | 6 | 🚧 Coming soon | Permit2 + EIP-2612 signing. |
-| SKALE Base | `skale-base` | `pay.ChainSkaleBase` | `Chain.SkaleBase` | 6 | 🚧 Coming soon | EIP-712 domain name is `"Bridged USDC (SKALE Bridge)"` (not `"USD Coin"`). |
-| MegaETH | `megaeth` | `pay.ChainMegaETH` | `Chain.MegaEth` | **18** | 🚧 Coming soon | Native USDm (MegaUSD), EIP-712 domain `name="MegaUSD"`, `version="1"`; Permit2 + EIP-2612 signing. |
+| SKALE Base | `skale-base` | `pay.ChainSKALEBase` | `Chain.SkaleBase` | 6 | 🚧 Coming soon | Payer-only. EIP-712 domain name is `"Bridged USDC (SKALE Bridge)"` (not `"USD Coin"`). Testnet: `skale-base-sepolia` (JS: `Chain.SkaleBaseSepolia`; Go has no testnet constant yet). |
+| MegaETH | `megaeth` | `pay.ChainMegaETH` | `Chain.MegaEth` | **18** | 🚧 Coming soon | Payer-only. Native USDm (MegaUSD), EIP-712 domain `name="MegaUSD"`, `version="1"`; Permit2 + EIP-2612 signing. |
 
 ## Target chains
 
@@ -42,11 +42,12 @@ Response:
 
 ```json
 {
-  "chains": ["base", "ethereum", "hyperevm", "polygon", "solana"]
+  "chains": ["base", "ethereum", "hyperevm", "polygon", "solana", "skale-base", "megaeth"],
+  "target_chains": ["base", "ethereum", "hyperevm", "polygon", "solana"]
 }
 ```
 
-The list is stable per deployment and expands only as chains move from coming-soon to live.
+The two lists are independent — `chains` enumerates valid `payer_chain` values and `target_chains` enumerates valid `target_chain` values. Payer-only chains (e.g. `skale-base`, `megaeth`) appear in `chains` but not in `target_chains`. The lists are stable per deployment and expand only as chains move from coming-soon to live.
 
 ## Payer × target matrix
 
