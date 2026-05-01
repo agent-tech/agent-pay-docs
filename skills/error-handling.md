@@ -91,10 +91,11 @@ if errors.As(err, &unexpErr) {
 
 | Status Code | Meaning | Retryable | Action |
 |-------------|---------|-----------|--------|
-| `400` | Bad request — invalid parameters, amount out of range, or malformed input | No | Fix request parameters |
+| `400` | Bad request — invalid parameters, amount out of range, malformed input, or out-of-range pagination | No | Fix request parameters |
 | `401` | Unauthorized — missing or invalid credentials | No | Check API key and secret key |
-| `403` | Forbidden — insufficient permissions | No | Check API key permissions |
-| `404` | Not found — intent does not exist | No | Verify intent ID |
+| `402` | Payment required — agent wallet has insufficient USDC for `ExecuteIntent` | No | Top up the agent wallet |
+| `403` | Forbidden — reserved for future use. v2 ownership rejections return `404`, not `403` | No | Verify API key permissions; for ownership errors check `404` |
+| `404` | Not found — intent does not exist **or** is owned by a different agent (uniform response prevents existence-leak probing) | No | Verify intent ID *and* that it was created under the same API key |
 | `429` | Rate limited — too many requests (60 req/min/IP typical) | Yes | Implement exponential backoff |
 | `503` | Service unavailable — temporary backend issue or facilitator timeout | Yes | Retry after delay |
 

@@ -173,8 +173,7 @@ func main() {
 | 400 | RequestError | Intent expired or invalid status | Create a new intent |
 | 401 | RequestError | Unauthorized - missing or invalid credentials | Provide valid API key and secret key |
 | 402 | RequestError | Insufficient agent balance on payer chain | Top up the agent wallet for that chain |
-| 403 | RequestError | Intent not owned by this agent | Verify the intent was created under the same API key |
-| 404 | RequestError | Intent not found | Verify intent ID exists |
+| 404 | RequestError | Intent not found, **or** intent owned by another agent. The v2 endpoint collapses both rejections to the same `404 payment intent not found` body so callers cannot probe foreign intent IDs by observing a 403/404 split | Verify the intent ID exists *and* was created under the same API key |
 | 429 | RequestError | Rate limited | Implement exponential backoff, retry after delay |
 | 503 | RequestError | Insufficient proxy balance / service unavailable | Retry after delay |
 

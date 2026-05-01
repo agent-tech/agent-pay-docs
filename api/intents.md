@@ -50,6 +50,8 @@ Executes an intent using the Agent wallet. The backend signs and transfers USDC 
 
 **Requires authentication** (Bearer token).
 
+`POST /v2/intents/{intent_id}/execute` enforces the **same ownership policy as `GET /v2/intents`**: looking up an intent owned by another agent — or one created via the unauthenticated `/api` flow — returns `404 payment intent not found`, not 403. This is intentional: collapsing both rejection paths to the same response prevents authenticated callers from probing for valid intent IDs across other agents by observing the 403/404 split. `403` is reserved for future use; today it never appears for ownership rejections.
+
 ### Example
 
 ```typescript
@@ -153,8 +155,10 @@ Lists intents owned by the calling agent, most recent first.
 
 | Parameter | Required | Description |
 | :--- | :--- | :--- |
-| `page` | No | 1-indexed page number. Defaults to `1`. |
-| `page_size` | No | Items per page. Defaults to `20`; clamped to `[1, 100]`. |
+| `page` | No | 1-indexed page number. Defaults to `1`. Server caps at `1,000,000`. Out-of-range or non-numeric values return `400`. |
+| `page_size` | No | Items per page. Defaults to `20`. Values in `[1, 100]` are honored; values above `100` are clamped to `100` (so a client asking for "the largest page" gets the maximum, not the default). Negative or non-numeric values return `400`. |
+
+> The server returns `400` for malformed `page` / `page_size` rather than silently falling back to defaults. SDK callers that previously relied on the silent fallback should pass valid integers (or omit the parameter to use the default).
 
 ### Example Response
 

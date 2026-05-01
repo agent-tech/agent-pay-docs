@@ -67,12 +67,13 @@ if errors.Is(err, pay.ErrEmptyIntentID) {
 
 | Status Code | Meaning |
 | :--- | :--- |
-| `400` | Bad request — invalid parameters, amount out of range, or malformed input |
+| `400` | Bad request — invalid parameters, amount out of range, malformed input, or out-of-range pagination (`page`, `page_size`) |
 | `401` | Unauthorized — missing or invalid credentials |
-| `403` | Forbidden — insufficient permissions for this operation |
-| `404` | Not found — intent does not exist |
+| `402` | Payment required — agent wallet has insufficient USDC to satisfy `ExecuteIntent` |
+| `403` | Forbidden — reserved for future use. v2 ownership rejections return `404`, not `403` (see below) |
+| `404` | Not found — intent does not exist **or** is owned by a different agent. v2 ownership checks return the same `404 payment intent not found` body for both cases, so the endpoint cannot be used to enumerate intent IDs across agents |
 | `429` | Rate limited — too many requests (60 req/min/IP typical) |
-| `503` | Service unavailable — temporary backend issue |
+| `503` | Service unavailable — temporary backend issue (e.g. proxy wallet temporarily out of funds) |
 
 ## Rate Limiting
 

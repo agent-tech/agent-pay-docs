@@ -1055,8 +1055,8 @@ stateDiagram-v2
 |-------------|------------|-------------|----------|
 | 400 | ValidationError | Invalid input, invalid payer_chain, invalid email/recipient/amount | Fix request parameters |
 | 401 | RequestError | Unauthorized - invalid or missing API credentials | Verify API key and secret key |
-| 403 | RequestError | Forbidden - insufficient permissions | Check agent permissions |
-| 404 | RequestError | Payment intent not found | Verify intent ID exists |
+| 402 | RequestError | Insufficient agent balance on payer chain | Top up the agent wallet for that chain |
+| 404 | RequestError | Intent not found, **or** intent owned by another agent. The v2 endpoints collapse both rejections to the same `404 payment intent not found` body so callers cannot probe foreign intent IDs by observing a 403/404 split | Verify intent ID *and* that it was created under the same API key |
 | 429 | RequestError | Rate limited | Implement exponential backoff, retry after delay |
 | 503 | RequestError | Service unavailable | Retry after delay |
 
