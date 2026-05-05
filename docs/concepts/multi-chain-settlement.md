@@ -11,7 +11,7 @@ Every `CreateIntent` request carries:
 
 The merchant address is validated against `target_chain`. If `target_chain` is an EVM chain, `recipient` must be a 20-byte hex address; if it is `solana`, `recipient` must be a Solana public key. For email recipients, cross402 resolves the email to a wallet on the target chain via Privy — so the same email returns a Solana address when `target_chain` is `solana`, and an EVM address when `target_chain` is an EVM chain.
 
-Any chain exposed by `GET /api/chains` may be used as either `payer_chain` or `target_chain`, including same-chain combinations (`base → base`, `polygon → polygon`, etc.). That set is currently **Base, Ethereum, HyperEVM, Polygon, Solana**; Arbitrum, BSC, Monad, SKALE Base, and MegaETH are 🚧 coming soon — see [Supported Chains](../../api/chains.md) for per-chain status.
+Any chain exposed by `GET /api/chains` may be used as either `payer_chain` or `target_chain`, including same-chain combinations (`base → base`, `polygon → polygon`, etc.). See [Supported Chains](../../api/chains.md) for the full set and per-chain caveats.
 
 ## How settlement works
 
@@ -29,8 +29,6 @@ The facilitator is the same component on both sides; the only thing that changes
 - **Solana VersionedTransaction (v0)** — used when the chain is Solana. The payer or proxy wallet partially signs a VersionedTransaction carrying an SPL `TransferChecked` instruction; the facilitator co-signs as fee payer before submission.
 
 Callers do not select the flavor. The SDK (or a compliant x402 client) produces the correct payload from the `payment_requirements` block returned on `CreateIntent`. From the caller's viewpoint the contract is unchanged: `POST createIntent`, submit the signed payload, poll status.
-
-Arbitrum, BSC, Monad, SKALE Base, and MegaETH are 🚧 [coming soon](../../api/chains.md); their signing-flavor rows are documented here for integration preparation.
 
 ## What the caller observes
 

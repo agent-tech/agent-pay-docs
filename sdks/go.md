@@ -11,7 +11,7 @@ The Go SDK features a unified `Client` that automatically routes requests based 
 ### Multi-Chain Support
 A payment intent declares a payer chain and a target chain. `PayerChain` is required; `TargetChain` is optional and defaults to `"base"`. The merchant receives USDC on the target chain.
 
-Use chain constants from the SDK instead of hardcoded strings. The **Status** column indicates which chains can be called; coming-soon constants exist in the SDK so you can compile against them, but `CreateIntent` will reject them with `400` until they go live.
+Use chain constants from the SDK instead of hardcoded strings.
 
 | Chain | Constant | USDC Decimals | Status | Notes |
 | :--- | :--- | :--- | :--- | :--- |
@@ -20,11 +20,11 @@ Use chain constants from the SDK instead of hardcoded strings. The **Status** co
 | Ethereum | `pay.ChainEthereum` (`"ethereum"`) | 6 | Live | — |
 | Polygon | `pay.ChainPolygon` (`"polygon"`) | 6 | Live | — |
 | HyperEVM | `pay.ChainHyperEVM` (`"hyperevm"`) | 6 | Live | — |
-| Arbitrum | `pay.ChainArbitrum` (`"arbitrum"`) | 6 | 🚧 Coming soon | — |
-| BSC | `pay.ChainBSC` (`"bsc"`) | **18** | 🚧 Coming soon | Binance-Peg USDC |
-| Monad | `pay.ChainMonad` (`"monad"`) | 6 | 🚧 Coming soon | — |
-| SKALE Base | `pay.ChainSkaleBase` (`"skale-base"`) | 6 | 🚧 Coming soon | EIP-712 domain name `"Bridged USDC (SKALE Bridge)"` |
-| MegaETH | `pay.ChainMegaETH` (`"megaeth"`) | **18** | 🚧 Coming soon | Native USDm (MegaUSD) |
+| Arbitrum | `pay.ChainArbitrum` (`"arbitrum"`) | 6 | Live | — |
+| BSC | `pay.ChainBSC` (`"bsc"`) | **18** | Live | Binance-Peg USDC |
+| Monad | `pay.ChainMonad` (`"monad"`) | 6 | Live | — |
+| SKALE Base | `pay.ChainSkaleBase` (`"skale-base"`) | 6 | Live | EIP-712 domain name `"Bridged USDC (SKALE Bridge)"` |
+| MegaETH | `pay.ChainMegaETH` (`"megaeth"`) | **18** | Live | Native USDm (MegaUSD) |
 
 ```go
 resp, err := client.CreateIntent(ctx, &pay.CreateIntentRequest{

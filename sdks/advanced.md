@@ -58,9 +58,9 @@ USDC uses different decimal precision on different chains. Do **not** hardcode `
 | Chain | USDC Decimals | Status |
 | :--- | :--- | :--- |
 | Base, Solana, Ethereum, Polygon, HyperEVM | 6 | Live |
-| Arbitrum, Monad, SKALE Base | 6 | 🚧 Coming soon |
-| **BSC** | **18** | 🚧 Coming soon |
-| **MegaETH** | **18** | 🚧 Coming soon |
+| Arbitrum, Monad, SKALE Base | 6 | Live |
+| **BSC** | **18** | Live |
+| **MegaETH** | **18** | Live |
 
 ```go
 // CORRECT: use extra.decimals from the response
@@ -73,8 +73,6 @@ chainAmount := new(big.Int).Mul(parsedAmount, big.NewInt(1_000_000))
 ```
 
 ### BSC: Permit2 Pre-Approval
-
-> 🚧 BSC is [coming soon](../api/chains.md) — the snippet below is documented for integration preparation. `CreateIntent` with `payer_chain: "bsc"` returns `400` until BSC is enabled.
 
 BSC requires a one-time Permit2 contract approval before the first USDC transfer. This step is **BSC-only** — other chains (Base, Ethereum, Polygon) do not use Permit2 and do not require this step.
 
