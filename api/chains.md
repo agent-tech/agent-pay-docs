@@ -23,8 +23,8 @@ The set of target chains available to your integration is served by `GET /api/ch
 | Arbitrum | `arbitrum` | `pay.ChainArbitrum` | `Chain.Arbitrum` | 6 | Live | — |
 | BSC | `bsc` | `pay.ChainBSC` | `Chain.BSC` | **18** | Live | Binance-Peg USDC; Permit2 + EIP-2612 signing. See [BSC Signing](bsc-signing.md). |
 | Monad | `monad` | `pay.ChainMonad` | `Chain.Monad` | 6 | Live | Permit2 + EIP-2612 signing. |
-| SKALE Base | `skale-base` | `pay.ChainSKALEBase` | `Chain.SkaleBase` | 6 | Live | Payer-only. EIP-712 domain name is `"Bridged USDC (SKALE Bridge)"` (not `"USD Coin"`). |
-| MegaETH | `megaeth` | `pay.ChainMegaETH` | `Chain.MegaEth` | **18** | Live | Payer-only. Native USDm (MegaUSD), EIP-712 domain `name="MegaUSD"`, `version="1"`; Permit2 + EIP-2612 signing. |
+| SKALE Base | `skale-base` | `pay.ChainSKALEBase` | `Chain.SkaleBase` | 6 | Live | Payer-only. Token is **USDC.e** (Bridged USDC). EIP-712 domain name is `"Bridged USDC (SKALE Bridge)"` (not `"USD Coin"`). |
+| MegaETH | `megaeth` | `pay.ChainMegaETH` | `Chain.MegaEth` | **18** | Live | Payer-only. Token is **USDm** (MegaUSD, native). EIP-712 domain `name="MegaUSD"`, `version="1"`; Permit2 + EIP-2612 signing. |
 
 ## Target chains
 
@@ -69,16 +69,22 @@ Callers do not choose the signing flavor; the SDK derives it from `payment_requi
 
 These are the details you need at signing and display time.
 
-### USDC decimals
+### USDC decimals + token contracts
 
-Always read `extra.decimals` from the `payment_requirements` object on the `CreateIntent` response. Do not hardcode `6`.
+Always read `extra.decimals` from the `payment_requirements` object on the `CreateIntent` response. Do not hardcode `6`. Mainnet token addresses are pinned by the backend per chain — copy from the table below or `GET /api/chains` (which echoes the same values).
 
-| Chain | Decimals | Source | Status |
-| :--- | :---: | :--- | :--- |
-| Solana, Base, Ethereum, Polygon, HyperEVM | 6 | Circle USDC / Bridged USDC | Live |
-| Arbitrum, Monad, SKALE Base | 6 | Circle USDC / Bridged USDC | Live |
-| BSC | 18 | Binance-Peg USDC | Live |
-| MegaETH | 18 | Native USDm (MegaUSD) | Live |
+| Chain | Decimals | Token | Mainnet Address | Status |
+| :--- | :---: | :--- | :--- | :--- |
+| Solana | 6 | USDC | `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` | Live |
+| Base | 6 | USDC | `0x833589fcd6edb6e08f4c7c32d4f71b54bda02913` | Live |
+| Ethereum | 6 | USDC | `0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48` | Live |
+| Polygon | 6 | USDC | `0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359` | Live |
+| HyperEVM | 6 | USDC | `0xb88339CB7199b77E23DB6E890353E22632Ba630f` | Live |
+| Arbitrum | 6 | USDC | `0xaf88d065e77c8cC2239327C5EDb3A432268e5831` | Live |
+| Monad | 6 | USDC | `0x754704Bc059F8C67012fEd69BC8A327a5aafb603` | Live |
+| **SKALE Base** | 6 | **USDC.e** (Bridged USDC) | `0x85889c8c714505E0c94b30fcfcF64fE3Ac8FCb20` | Live (payer-only) |
+| BSC | 18 | Binance-Peg USDC | `0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d` | Live |
+| **MegaETH** | 18 | **USDm** (MegaUSD, native) | `0xFAfDdbb3FC7688494971a79cc65DCa3EF82079E7` | Live (payer-only) |
 
 ### EIP-712 domain names
 
