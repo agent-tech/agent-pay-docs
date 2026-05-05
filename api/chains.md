@@ -23,8 +23,8 @@ The set of target chains available to your integration is served by `GET /api/ch
 | Arbitrum | `arbitrum` | `pay.ChainArbitrum` | `Chain.Arbitrum` | 6 | Live | — |
 | BSC | `bsc` | `pay.ChainBSC` | `Chain.BSC` | **18** | Live | Binance-Peg USDC; Permit2 + EIP-2612 signing. See [BSC Signing](bsc-signing.md). |
 | Monad | `monad` | `pay.ChainMonad` | `Chain.Monad` | 6 | Live | Permit2 + EIP-2612 signing. |
-| SKALE Base | `skale-base` | `pay.ChainSKALEBase` | `Chain.SkaleBase` | 6 | Live | Payer-only. EIP-712 domain name is `"Bridged USDC (SKALE Bridge)"` (not `"USD Coin"`). |
-| MegaETH | `megaeth` | `pay.ChainMegaETH` | `Chain.MegaEth` | **18** | Live | Payer-only. Native USDm (MegaUSD), EIP-712 domain `name="MegaUSD"`, `version="1"`; Permit2 + EIP-2612 signing. |
+| SKALE Base | `skale-base` | `pay.ChainSKALEBase` | `Chain.SkaleBase` | 6 | Live | Payer-only. Token is **USDC.e** (Bridged USDC). EIP-712 domain name is `"Bridged USDC (SKALE Bridge)"` (not `"USD Coin"`). |
+| MegaETH | `megaeth` | `pay.ChainMegaETH` | `Chain.MegaEth` | **18** | Live | Payer-only. Token is **USDm** (MegaUSD, native). EIP-712 domain `name="MegaUSD"`, `version="1"`; Permit2 + EIP-2612 signing. |
 
 ## Target chains
 
@@ -75,10 +75,11 @@ Always read `extra.decimals` from the `payment_requirements` object on the `Crea
 
 | Chain | Decimals | Source | Status |
 | :--- | :---: | :--- | :--- |
-| Solana, Base, Ethereum, Polygon, HyperEVM | 6 | Circle USDC / Bridged USDC | Live |
-| Arbitrum, Monad, SKALE Base | 6 | Circle USDC / Bridged USDC | Live |
+| Solana, Base, Ethereum, Polygon, HyperEVM | 6 | USDC | Live |
+| Arbitrum, Monad | 6 | USDC | Live |
+| **SKALE Base** | 6 | **USDC.e** (Bridged USDC) | Live (payer-only) |
 | BSC | 18 | Binance-Peg USDC | Live |
-| MegaETH | 18 | Native USDm (MegaUSD) | Live |
+| **MegaETH** | 18 | **USDm** (MegaUSD, native) | Live (payer-only) |
 
 ### EIP-712 domain names
 

@@ -23,8 +23,8 @@ Use chain constants from the SDK instead of hardcoded strings.
 | Arbitrum | `pay.ChainArbitrum` (`"arbitrum"`) | 6 | Live | — |
 | BSC | `pay.ChainBSC` (`"bsc"`) | **18** | Live | Binance-Peg USDC |
 | Monad | `pay.ChainMonad` (`"monad"`) | 6 | Live | — |
-| SKALE Base | `pay.ChainSKALEBase` (`"skale-base"`, payer-only) | 6 | Live | EIP-712 domain name `"Bridged USDC (SKALE Bridge)"`. |
-| MegaETH | `pay.ChainMegaETH` (`"megaeth"`, payer-only) | **18** | Live | Native USDm (MegaUSD) |
+| SKALE Base | `pay.ChainSKALEBase` (`"skale-base"`, payer-only) | 6 | Live | Token is **USDC.e** (Bridged USDC). EIP-712 domain name `"Bridged USDC (SKALE Bridge)"`. |
+| MegaETH | `pay.ChainMegaETH` (`"megaeth"`, payer-only) | **18** | Live | Token is **USDm** (MegaUSD, native). |
 
 ```go
 resp, err := client.CreateIntent(ctx, &pay.CreateIntentRequest{
