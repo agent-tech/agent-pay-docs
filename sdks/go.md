@@ -23,7 +23,7 @@ Use chain constants from the SDK instead of hardcoded strings.
 | Arbitrum | `pay.ChainArbitrum` (`"arbitrum"`) | 6 | Live | — |
 | BSC | `pay.ChainBSC` (`"bsc"`) | **18** | Live | Binance-Peg USDC |
 | Monad | `pay.ChainMonad` (`"monad"`) | 6 | Live | — |
-| SKALE Base | `pay.ChainSKALEBase` (`"skale-base"`, payer-only) | 6 | Live | EIP-712 domain name `"Bridged USDC (SKALE Bridge)"`. Testnet: `"skale-base-sepolia"` (JS SDK only — Go has the mainnet constant). |
+| SKALE Base | `pay.ChainSKALEBase` (`"skale-base"`, payer-only) | 6 | Live | EIP-712 domain name `"Bridged USDC (SKALE Bridge)"`. |
 | MegaETH | `pay.ChainMegaETH` (`"megaeth"`, payer-only) | **18** | Live | Native USDm (MegaUSD) |
 
 ```go

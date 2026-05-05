@@ -23,7 +23,7 @@ The set of target chains available to your integration is served by `GET /api/ch
 | Arbitrum | `arbitrum` | `pay.ChainArbitrum` | `Chain.Arbitrum` | 6 | Live | — |
 | BSC | `bsc` | `pay.ChainBSC` | `Chain.BSC` | **18** | Live | Binance-Peg USDC; Permit2 + EIP-2612 signing. See [BSC Signing](bsc-signing.md). |
 | Monad | `monad` | `pay.ChainMonad` | `Chain.Monad` | 6 | Live | Permit2 + EIP-2612 signing. |
-| SKALE Base | `skale-base` | `pay.ChainSKALEBase` | `Chain.SkaleBase` | 6 | Live | Payer-only. EIP-712 domain name is `"Bridged USDC (SKALE Bridge)"` (not `"USD Coin"`). Testnet: `skale-base-sepolia` (JS: `Chain.SkaleBaseSepolia`; Go has no testnet constant yet). |
+| SKALE Base | `skale-base` | `pay.ChainSKALEBase` | `Chain.SkaleBase` | 6 | Live | Payer-only. EIP-712 domain name is `"Bridged USDC (SKALE Bridge)"` (not `"USD Coin"`). |
 | MegaETH | `megaeth` | `pay.ChainMegaETH` | `Chain.MegaEth` | **18** | Live | Payer-only. Native USDm (MegaUSD), EIP-712 domain `name="MegaUSD"`, `version="1"`; Permit2 + EIP-2612 signing. |
 
 ## Target chains
