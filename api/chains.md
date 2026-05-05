@@ -5,12 +5,11 @@ cross402 supports paying from one chain and settling on another. A payment inten
 - `payer_chain` — where the payer sends USDC.
 - `target_chain` — where the merchant receives USDC. Optional; defaults to `base`.
 
-The set of target chains available to your integration is served by `GET /api/chains`. If a chain appears in that response, you can use it as a `target_chain`. Any chain supported as a payer can also be used as a target, subject to the status of each chain (some are currently live; others are documented for roadmap visibility but not yet callable — see the **Status** column below).
+The set of target chains available to your integration is served by `GET /api/chains`. If a chain appears in that response, you can use it as a `target_chain`. Any chain supported as a payer can also be used as a target.
 
 ## Status legend
 
-- **Live** — callable. You can pass the identifier as `payer_chain` or `target_chain` right now and the call will succeed (assuming the usual validation).
-- **🚧 Coming soon** — the identifier, SDK constant, decimals, and signing flavor are documented so you can prepare integration code, but the chain is not yet enabled. `CreateIntent` calls with a coming-soon chain return `400 invalid payer_chain` / `400 invalid target_chain`. Treat `GET /api/chains` as authoritative for what's callable right now.
+- **Live** — callable. You can pass the identifier as `payer_chain` or `target_chain` and the call will succeed (assuming the usual validation). Treat `GET /api/chains` as authoritative for the exact set exposed by your deployment.
 
 ## Payer chains
 
@@ -21,18 +20,17 @@ The set of target chains available to your integration is served by `GET /api/ch
 | Ethereum | `ethereum` | `pay.ChainEthereum` | `Chain.Ethereum` | 6 | Live | — |
 | Polygon | `polygon` | `pay.ChainPolygon` | `Chain.Polygon` | 6 | Live | — |
 | HyperEVM | `hyperevm` | `pay.ChainHyperEVM` | `Chain.HyperEvm` | 6 | Live | — |
-| Arbitrum | `arbitrum` | `pay.ChainArbitrum` | `Chain.Arbitrum` | 6 | 🚧 Coming soon | — |
-| BSC | `bsc` | `pay.ChainBSC` | `Chain.BSC` | **18** | 🚧 Coming soon | Binance-Peg USDC; Permit2 + EIP-2612 signing. See [BSC Signing](bsc-signing.md). |
-| Monad | `monad` | `pay.ChainMonad` | `Chain.Monad` | 6 | 🚧 Coming soon | Permit2 + EIP-2612 signing. |
-| SKALE Base | `skale-base` | `pay.ChainSKALEBase` | `Chain.SkaleBase` | 6 | 🚧 Coming soon | Payer-only. EIP-712 domain name is `"Bridged USDC (SKALE Bridge)"` (not `"USD Coin"`). Testnet: `skale-base-sepolia` (JS: `Chain.SkaleBaseSepolia`; Go has no testnet constant yet). |
-| MegaETH | `megaeth` | `pay.ChainMegaETH` | `Chain.MegaEth` | **18** | 🚧 Coming soon | Payer-only. Native USDm (MegaUSD), EIP-712 domain `name="MegaUSD"`, `version="1"`; Permit2 + EIP-2612 signing. |
+| Arbitrum | `arbitrum` | `pay.ChainArbitrum` | `Chain.Arbitrum` | 6 | Live | — |
+| BSC | `bsc` | `pay.ChainBSC` | `Chain.BSC` | **18** | Live | Binance-Peg USDC; Permit2 + EIP-2612 signing. See [BSC Signing](bsc-signing.md). |
+| Monad | `monad` | `pay.ChainMonad` | `Chain.Monad` | 6 | Live | Permit2 + EIP-2612 signing. |
+| SKALE Base | `skale-base` | `pay.ChainSKALEBase` | `Chain.SkaleBase` | 6 | Live | Payer-only. EIP-712 domain name is `"Bridged USDC (SKALE Bridge)"` (not `"USD Coin"`). Testnet: `skale-base-sepolia` (JS: `Chain.SkaleBaseSepolia`; Go has no testnet constant yet). |
+| MegaETH | `megaeth` | `pay.ChainMegaETH` | `Chain.MegaEth` | **18** | Live | Payer-only. Native USDm (MegaUSD), EIP-712 domain `name="MegaUSD"`, `version="1"`; Permit2 + EIP-2612 signing. |
 
 ## Target chains
 
-Every **Live** payer chain is also a valid target. Coming-soon chains will become valid targets when they go live. Two caveats apply:
+Every payer chain is also a valid target. One caveat applies:
 
-- `GET /api/chains` is authoritative. It lists the chains currently accepted as a `target_chain`; coming-soon chains are omitted until enabled.
-- Target chains are validated at intent creation. If you pass an unsupported value (including a coming-soon chain), the API returns `400` with an error that lists the currently accepted target chains.
+- `GET /api/chains` is authoritative. It lists the chains accepted as a `target_chain` for your deployment. Target chains are validated at intent creation; if you pass an unsupported value, the API returns `400` with an error that lists the currently accepted target chains.
 
 ```
 GET /api/chains
@@ -47,11 +45,11 @@ Response:
 }
 ```
 
-The two lists are independent — `chains` enumerates valid `payer_chain` values and `target_chains` enumerates valid `target_chain` values. Payer-only chains (e.g. `skale-base`, `megaeth`) appear in `chains` but not in `target_chains`. The lists are stable per deployment and expand only as chains move from coming-soon to live.
+The two lists are independent — `chains` enumerates valid `payer_chain` values and `target_chains` enumerates valid `target_chain` values. Payer-only chains (e.g. `skale-base`, `megaeth`) appear in `chains` but not in `target_chains`. The lists are stable per deployment.
 
 ## Payer × target matrix
 
-Any payer chain can pair with any target chain exposed by your deployment, including same-chain routes (e.g. `base → base`). The table below covers common combinations; rows flagged `🚧 Coming soon` are documented for roadmap visibility and will return `400` until the chain goes live. The **Payer sig** and **Target sig** columns show the x402 signing flavor used on each leg — the SDK picks these automatically from `payment_requirements`.
+Any payer chain can pair with any target chain exposed by your deployment, including same-chain routes (e.g. `base → base`). The table below covers common combinations. The **Payer sig** and **Target sig** columns show the x402 signing flavor used on each leg — the SDK picks these automatically from `payment_requirements`.
 
 | Payer → Target | Payer sig | Target sig | Status |
 | :--- | :--- | :--- | :--- |
@@ -62,8 +60,8 @@ Any payer chain can pair with any target chain exposed by your deployment, inclu
 | `polygon → base` | EIP-3009 | EIP-3009 | Live |
 | `base → solana` | EIP-3009 | Solana VT v0 | Live |
 | `base → base` (same chain) | EIP-3009 | EIP-3009 | Live |
-| `polygon → arbitrum` | EIP-3009 | EIP-3009 | 🚧 Coming soon |
-| `bsc → base` | Permit2 + EIP-2612 | EIP-3009 | 🚧 Coming soon |
+| `polygon → arbitrum` | EIP-3009 | EIP-3009 | Live |
+| `bsc → base` | Permit2 + EIP-2612 | EIP-3009 | Live |
 
 Callers do not choose the signing flavor; the SDK derives it from `payment_requirements` and the `(payer, target)` pair. Both legs run through the x402 protocol. See [Multi-Chain Settlement](../docs/concepts/multi-chain-settlement.md) for the mechanics.
 
@@ -78,9 +76,9 @@ Always read `extra.decimals` from the `payment_requirements` object on the `Crea
 | Chain | Decimals | Source | Status |
 | :--- | :---: | :--- | :--- |
 | Solana, Base, Ethereum, Polygon, HyperEVM | 6 | Circle USDC / Bridged USDC | Live |
-| Arbitrum, Monad, SKALE Base | 6 | Circle USDC / Bridged USDC | 🚧 Coming soon |
-| BSC | 18 | Binance-Peg USDC | 🚧 Coming soon |
-| MegaETH | 18 | Native USDm (MegaUSD) | 🚧 Coming soon |
+| Arbitrum, Monad, SKALE Base | 6 | Circle USDC / Bridged USDC | Live |
+| BSC | 18 | Binance-Peg USDC | Live |
+| MegaETH | 18 | Native USDm (MegaUSD) | Live |
 
 ### EIP-712 domain names
 
@@ -93,9 +91,9 @@ Hardcoding the default `"USD Coin"` on either chain makes every signature fail v
 
 ### Signing flavor
 
-- EIP-3009 `TransferWithAuthorization`: Base, Ethereum, Polygon, HyperEVM (Live); Arbitrum, SKALE Base (🚧 Coming soon).
-- Permit2 `PermitWitnessTransferFrom` + EIP-2612 `Permit` (gas-sponsored by cross402): BSC, Monad, MegaETH (all 🚧 Coming soon).
-- Solana partial-signed VersionedTransaction v0: Solana (Live).
+- EIP-3009 `TransferWithAuthorization`: Base, Ethereum, Polygon, HyperEVM, Arbitrum, SKALE Base.
+- Permit2 `PermitWitnessTransferFrom` + EIP-2612 `Permit` (gas-sponsored by cross402): BSC, Monad, MegaETH.
+- Solana partial-signed VersionedTransaction v0: Solana.
 
 The `payment_requirements.extra.assetTransferMethod` field is set to `"permit2"` when Permit2 is required; otherwise it is absent (EIP-3009 path) or uses the Solana payload shape.
 
