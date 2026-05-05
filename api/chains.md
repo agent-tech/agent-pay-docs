@@ -69,17 +69,22 @@ Callers do not choose the signing flavor; the SDK derives it from `payment_requi
 
 These are the details you need at signing and display time.
 
-### USDC decimals
+### USDC decimals + token contracts
 
-Always read `extra.decimals` from the `payment_requirements` object on the `CreateIntent` response. Do not hardcode `6`.
+Always read `extra.decimals` from the `payment_requirements` object on the `CreateIntent` response. Do not hardcode `6`. Mainnet token addresses are pinned by the backend per chain — copy from the table below or `GET /api/chains` (which echoes the same values).
 
-| Chain | Decimals | Source | Status |
-| :--- | :---: | :--- | :--- |
-| Solana, Base, Ethereum, Polygon, HyperEVM | 6 | USDC | Live |
-| Arbitrum, Monad | 6 | USDC | Live |
-| **SKALE Base** | 6 | **USDC.e** (Bridged USDC) | Live (payer-only) |
-| BSC | 18 | Binance-Peg USDC | Live |
-| **MegaETH** | 18 | **USDm** (MegaUSD, native) | Live (payer-only) |
+| Chain | Decimals | Token | Mainnet Address | Status |
+| :--- | :---: | :--- | :--- | :--- |
+| Solana | 6 | USDC | `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` | Live |
+| Base | 6 | USDC | `0x833589fcd6edb6e08f4c7c32d4f71b54bda02913` | Live |
+| Ethereum | 6 | USDC | `0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48` | Live |
+| Polygon | 6 | USDC | `0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359` | Live |
+| HyperEVM | 6 | USDC | `0xb88339CB7199b77E23DB6E890353E22632Ba630f` | Live |
+| Arbitrum | 6 | USDC | `0xaf88d065e77c8cC2239327C5EDb3A432268e5831` | Live |
+| Monad | 6 | USDC | `0x754704Bc059F8C67012fEd69BC8A327a5aafb603` | Live |
+| **SKALE Base** | 6 | **USDC.e** (Bridged USDC) | `0x85889c8c714505E0c94b30fcfcF64fE3Ac8FCb20` | Live (payer-only) |
+| BSC | 18 | Binance-Peg USDC | `0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d` | Live |
+| **MegaETH** | 18 | **USDm** (MegaUSD, native) | `0xFAfDdbb3FC7688494971a79cc65DCa3EF82079E7` | Live (payer-only) |
 
 ### EIP-712 domain names
 
