@@ -1,22 +1,25 @@
 input: .
 output: .retype
-
-url: https://docs.agent.tech # Use your website address here
-
-start:
-  # Uncomment the next line to try Retype Pro features
-  # pro: true
-
-favicon: /static/agent-logo.png
+url: https://docs.agent.tech
 
 branding:
-  title: AgentTech
-  label: Docs
-  logo: /static/agent-logo.png
-  logoDark: /static/agent-logo.png
+  title: agent.tech docs
+  logo: # 留空,后续可加品牌 logo
 
+links:
+  - text: agent.tech
+    link: https://agent.tech
+  - text: Dashboard
+    link: https://agent.tech/dashboard
+  - text: AgentQuay
+    link: https://agent.tech/quay
 
-
+# Top-level navigation order
+order:
+  - index.md
+  - introduction
+  - cross402
+  - agentquay
 
 footer:
-  copyright: "&copy; Copyright {{ year }}. All rights reserved."
+  copyright: "© Copyright Agent.tech."
