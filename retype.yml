@@ -2,9 +2,13 @@ input: .
 output: .retype
 url: https://docs.agent.tech
 
+favicon: /static/agent-logo.png
+
 branding:
-  title: agent.tech docs
-  logo: # 留空,后续可加品牌 logo
+  title: AgentTech
+  label: Docs
+  logo: /static/agent-logo.png
+  logoDark: /static/agent-logo.png
 
 links:
   - text: agent.tech
