@@ -4,8 +4,6 @@ order: 1
 
 # BSC Signing
 
-# BSC Signing
-
 > BSC is supported. See [Supported Chains](../../../introduction/supported-networks/) for the current set of live chains and per-chain caveats.
 
 BSC (BNB Smart Chain) uses a different signing mechanism from other EVM chains. Instead of EIP-3009 `transferWithAuthorization` (used on Base, Ethereum, etc.), BSC USDC uses **Permit2** — a two-step approval and permit-transfer flow.

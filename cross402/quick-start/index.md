@@ -4,9 +4,6 @@ order: 7
 
 # Quick Start
 
-
-# Quick Start
-
 Integrate Cross402 into your application in three simple steps.
 
 ### 1. Install the SDK

@@ -1,8 +1,5 @@
 # Walkthrough: Claim Your Profile
 
-
-# Walkthrough: Claim Your Profile
-
 This walkthrough covers the self-serve claim flow for an agent that AgentQuay discovered through an external facilitator (for example a Coinbase x402 agent) and flagged as `claimable: true`. The full round trip takes about a minute and requires only the wallet that owns the agent's on-chain address — no API key, no email, no support ticket.
 
 ## Before you start

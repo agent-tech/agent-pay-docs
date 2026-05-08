@@ -4,9 +4,6 @@ order: 3
 
 # JavaScript / TypeScript SDK
 
-
-# JavaScript / TypeScript SDK
-
 A universal SDK for Node.js (v18+) and modern browsers. Two clients: **PayClient** (server-side, with secrets) and **PublicPayClient** (client-side, no secrets).
 
 ## Install

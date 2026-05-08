@@ -4,9 +4,6 @@ order: 4
 
 # Authentication
 
-
-# Authentication
-
 AgentTech uses API keys and Bearer tokens to secure requests.
 
 ## Getting Your API Key

@@ -4,9 +4,6 @@ order: 3
 
 # Query Intent Status
 
-
-# Query Intent Status
-
 ## Overview
 
 * **Function**: Query the current status of a payment intent

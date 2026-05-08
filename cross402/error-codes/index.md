@@ -4,9 +4,6 @@ order: 2
 
 # Error Handling
 
-
-# Error Handling
-
 AgentTech SDKs use typed errors and sentinel values for precise error matching.
 
 ## Error Types

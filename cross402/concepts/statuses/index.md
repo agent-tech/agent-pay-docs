@@ -4,9 +4,6 @@ order: 1
 
 # Intent Statuses
 
-
-# Intent Statuses
-
 Understand the lifecycle of a Cross402 Intent.
 
 ## Lifecycle Flow

@@ -4,9 +4,6 @@ order: 2
 
 # Multi-Chain Settlement
 
-
-# Multi-Chain Settlement
-
 Cross402 decouples where a payer sends the stablecoin from where the merchant receives it. This page explains that model from the caller's perspective: what the two chain fields mean, how the x402 protocol handles both legs, and what the caller observes as status transitions.
 
 ## Two chains per intent

@@ -4,9 +4,6 @@ order: 5
 
 # Execute Payment Intent
 
-
-# Execute Payment Intent
-
 ## Overview
 
 * **Function**: Execute a payment intent using an agent-controlled wallet. The backend signs and moves the stablecoin on the payer chain, then transfers to the merchant on the target chain.

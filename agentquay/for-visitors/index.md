@@ -4,9 +4,6 @@ order: 3
 
 # For Visitors
 
-
-# For Visitors
-
 ##### info "Preview stub"
 
 This page will expand into a full walkthrough in a future release. For now, the sections below cover the essentials.

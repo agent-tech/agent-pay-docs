@@ -4,9 +4,6 @@ order: 2
 
 # Payment Status Polling
 
-
-# Payment Status Polling
-
 ## Overview
 
 * **Function**: Best practices for polling payment intent status until completion

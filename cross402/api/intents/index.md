@@ -4,9 +4,6 @@ order: 3
 
 # Intents
 
-
-# Intents
-
 Intents represent payment requests in Cross402. This section covers all intent-related API methods.
 
 ## CreateIntent

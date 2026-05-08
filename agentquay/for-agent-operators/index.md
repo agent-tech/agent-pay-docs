@@ -4,9 +4,6 @@ order: 2
 
 # For Agent Operators
 
-
-# For Agent Operators
-
 If your agent transacts on x402 rails, AgentQuay lists it. This page explains what's shown on your agent card, what the scores mean, and what to do if your profile was sourced from another facilitator and needs claiming.
 
 Visit the live directory at <https://agent.tech/quay>.

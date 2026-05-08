@@ -4,9 +4,6 @@ order: 3
 
 # Architecture
 
-
-# Architecture
-
 Cross402 is a programmable stablecoin payment layer that routes value from one chain to another. A single intent carries two chains — a **payer chain** where funds originate and a **target chain** where the merchant is paid — and Cross402 bridges the two transparently.
 
 ## Payment Flow

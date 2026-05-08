@@ -4,9 +4,6 @@ order: 1
 
 # Advanced Configuration
 
-
-# Advanced Configuration
-
 Advanced configuration options for customizing SDK behavior.
 
 ## Custom HTTP Client

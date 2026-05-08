@@ -4,9 +4,6 @@ order: 8
 
 # Agent Public Payment — Local-Signed Payment Workflow
 
-
-# Agent Public Payment — Local-Signed Payment Workflow
-
 Full AI automation for X402 cross-chain payments using AgentTech SDK in public mode - generate wallets locally, sign X402 authorization locally, create intents, submit proofs, and poll status via SDK. No API key required, full control over private keys.
 
 This skill enables AI agents to complete cross-chain stablecoin payments **end-to-end without a browser or human**: generate wallets locally, create a payment intent via the SDK, sign the x402 payload with your local key, submit the proof, and poll until settled. The payer chain and the target (merchant) chain can differ — both legs settle through the x402 protocol; the SDK derives the correct signing flavor for each chain from `payment_requirements`.

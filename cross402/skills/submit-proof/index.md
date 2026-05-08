@@ -4,9 +4,6 @@ order: 4
 
 # Submit Payment Proof
 
-
-# Submit Payment Proof
-
 ## Overview
 
 * **Function**: Submit a settlement proof after the payer completes X402 payment on the source chain

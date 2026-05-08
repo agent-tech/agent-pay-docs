@@ -4,9 +4,6 @@ order: 1
 
 # Supported Chains
 
-
-# Supported Chains
-
 Cross402 supports paying from one chain and settling on another. A payment intent declares two chains:
 
 * `payer_chain` — where the payer sends USDC.
