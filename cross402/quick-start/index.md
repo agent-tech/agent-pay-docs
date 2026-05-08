@@ -4,7 +4,6 @@ order: 7
 
 # Quick Start
 
-> Source: https://docs.agent.tech/quick-start/
 
 # Quick Start
 

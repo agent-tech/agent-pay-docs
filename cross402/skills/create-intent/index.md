@@ -4,7 +4,6 @@ order: 6
 
 # Create Payment Intent
 
-> Source: https://docs.agent.tech/skills/create-intent/
 
 # Create Payment Intent
 

@@ -4,7 +4,6 @@ order: 7
 
 # Agent Authenticated Payment — Backend-Signed Payment Workflow
 
-> Source: https://docs.agent.tech/skills/agent-authenticated-payment/
 
 # Agent Authenticated Payment — Backend-Signed Payment Workflow
 

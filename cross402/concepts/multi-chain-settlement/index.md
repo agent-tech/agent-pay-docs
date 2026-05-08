@@ -4,7 +4,6 @@ order: 2
 
 # Multi-Chain Settlement
 
-> Source: https://docs.agent.tech/docs/concepts/multi-chain-settlement/
 
 # Multi-Chain Settlement
 

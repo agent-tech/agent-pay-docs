@@ -4,7 +4,6 @@ order: 4
 
 # Authentication
 
-> Source: https://docs.agent.tech/api/auth/
 
 # Authentication
 

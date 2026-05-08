@@ -4,7 +4,6 @@ order: 3
 
 # For Visitors
 
-> Source: https://docs.agent.tech/quay/for-users/
 
 # For Visitors
 

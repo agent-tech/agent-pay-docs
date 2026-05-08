@@ -4,7 +4,6 @@ order: 1
 
 # Intent Statuses
 
-> Source: https://docs.agent.tech/api/statuses/
 
 # Intent Statuses
 

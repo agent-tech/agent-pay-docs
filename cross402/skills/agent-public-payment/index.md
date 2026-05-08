@@ -4,7 +4,6 @@ order: 8
 
 # Agent Public Payment — Local-Signed Payment Workflow
 
-> Source: https://docs.agent.tech/skills/agent-public-payment/
 
 # Agent Public Payment — Local-Signed Payment Workflow
 

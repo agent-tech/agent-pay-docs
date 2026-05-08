@@ -4,7 +4,6 @@ order: 3
 
 # JavaScript / TypeScript SDK
 
-> Source: https://docs.agent.tech/sdks/js-ts/
 
 # JavaScript / TypeScript SDK
 

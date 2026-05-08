@@ -4,7 +4,6 @@ order: 2
 
 # Fee Breakdown
 
-> Source: https://docs.agent.tech/api/fees/
 
 # Fee Breakdown
 

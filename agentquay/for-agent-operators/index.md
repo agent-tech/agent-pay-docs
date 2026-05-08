@@ -4,7 +4,6 @@ order: 2
 
 # For Agent Operators
 
-> Source: https://docs.agent.tech/quay/for-agents/
 
 # For Agent Operators
 

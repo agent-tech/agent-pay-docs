@@ -1,6 +1,5 @@
 # v2 Migration: Any-Chain → Any-Chain
 
-> Source: https://docs.agent.tech/docs/migration/v2-any-to-any/
 
 # v2 Migration: Any-Chain → Any-Chain
 

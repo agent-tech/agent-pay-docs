@@ -4,7 +4,6 @@ order: 4
 
 # Submit Payment Proof
 
-> Source: https://docs.agent.tech/skills/submit-proof/
 
 # Submit Payment Proof
 

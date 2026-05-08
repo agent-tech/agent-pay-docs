@@ -4,7 +4,6 @@ order: 3
 
 # Architecture
 
-> Source: https://docs.agent.tech/architecture/
 
 # Architecture
 

@@ -4,7 +4,6 @@ order: 5
 
 # Execute Payment Intent
 
-> Source: https://docs.agent.tech/skills/execute-intent/
 
 # Execute Payment Intent
 

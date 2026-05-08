@@ -1,6 +1,5 @@
 # Walkthrough: Claim Your Profile
 
-> Source: https://docs.agent.tech/quay/walkthroughs/claim-profile/
 
 # Walkthrough: Claim Your Profile
 

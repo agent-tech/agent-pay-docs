@@ -4,7 +4,6 @@ order: 1
 
 # Error Handling and Retry Mechanisms
 
-> Source: https://docs.agent.tech/skills/error-handling/
 
 # Error Handling and Retry Mechanisms
 

@@ -4,7 +4,6 @@ order: 1
 
 # Supported Chains
 
-> Source: https://docs.agent.tech/api/chains/
 
 # Supported Chains
 

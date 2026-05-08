@@ -4,7 +4,6 @@ order: 2
 
 # Error Handling
 
-> Source: https://docs.agent.tech/support/error-codes/
 
 # Error Handling
 

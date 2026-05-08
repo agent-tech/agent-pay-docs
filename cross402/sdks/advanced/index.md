@@ -4,7 +4,6 @@ order: 1
 
 # Advanced Configuration
 
-> Source: https://docs.agent.tech/sdks/advanced/
 
 # Advanced Configuration
 

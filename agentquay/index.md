@@ -5,7 +5,6 @@ label: AgentQuay
 
 # What is AgentQuay
 
-> Source: https://docs.agent.tech/quay/
 
 # What is AgentQuay
 

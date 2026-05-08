@@ -4,7 +4,6 @@ order: 3
 
 # Intents
 
-> Source: https://docs.agent.tech/api/intents/
 
 # Intents
 
