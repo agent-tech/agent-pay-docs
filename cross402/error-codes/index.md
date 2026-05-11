@@ -4,10 +4,6 @@ order: 2
 
 # Error Handling
 
-> Source: https://docs.agent.tech/support/error-codes/
-
-# Error Handling
-
 AgentTech SDKs use typed errors and sentinel values for precise error matching.
 
 ## Error Types

@@ -4,10 +4,6 @@ order: 1
 
 # BSC Signing
 
-> Source: https://docs.agent.tech/api/bsc-signing/
-
-# BSC Signing
-
 > BSC is supported. See [Supported Chains](../../../introduction/supported-networks/) for the current set of live chains and per-chain caveats.
 
 BSC (BNB Smart Chain) uses a different signing mechanism from other EVM chains. Instead of EIP-3009 `transferWithAuthorization` (used on Base, Ethereum, etc.), BSC USDC uses **Permit2** — a two-step approval and permit-transfer flow.
@@ -29,6 +25,8 @@ Permit2 is a canonical contract (`0x000000000022D473030F116dDEE9F6B43aC78BA3`) t
 ## Two-Step Flow
 
 ### Step 1: One-Time Permit2 Approval (on-chain)
+
+> **Note: 鏈上簽名需要 gas fee。** This step sends an on-chain transaction and requires BNB in the payer's wallet to cover the gas fee.
 
 Before the first BSC payment, the payer must grant Permit2 an unlimited (or sufficient) allowance on the USDC contract. This is a standard ERC-20 `approve` call and only needs to happen once per wallet.
 

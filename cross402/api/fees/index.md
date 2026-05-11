@@ -4,10 +4,6 @@ order: 2
 
 # Fee Breakdown
 
-> Source: https://docs.agent.tech/api/fees/
-
-# Fee Breakdown
-
 All intent responses include a `FeeBreakdown` structure that details the cost components of a payment. Fees are computed per `(payer_chain, target_chain)` pair — the same payer chain can produce different `target_chain_fee` values depending on the target.
 
 ## Fee Structure

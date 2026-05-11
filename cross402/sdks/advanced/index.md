@@ -4,10 +4,6 @@ order: 1
 
 # Advanced Configuration
 
-> Source: https://docs.agent.tech/sdks/advanced/
-
-# Advanced Configuration
-
 Advanced configuration options for customizing SDK behavior.
 
 ## Custom HTTP Client

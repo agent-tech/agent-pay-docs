@@ -1,9 +1,5 @@
 # v2 Migration: Any-Chain → Any-Chain
 
-> Source: https://docs.agent.tech/docs/migration/v2-any-to-any/
-
-# v2 Migration: Any-Chain → Any-Chain
-
 Cross402 v2 makes the target chain a first-class intent field. Payments are no longer assumed to settle on Base; callers pick both the payer chain and the target chain. Three externally visible things changed.
 
 ## 1. `CreateIntent` request

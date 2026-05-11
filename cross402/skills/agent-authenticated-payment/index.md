@@ -4,10 +4,6 @@ order: 7
 
 # Agent Authenticated Payment — Backend-Signed Payment Workflow
 
-> Source: https://docs.agent.tech/skills/agent-authenticated-payment/
-
-# Agent Authenticated Payment — Backend-Signed Payment Workflow
-
 Full automation for AI agents (e.g., OpenClaw) to authenticate with email, create API keys programmatically, and execute automated payments using AgentTech SDK with authenticated mode. Backend automatically signs payments - no private key management required.
 
 This skill enables AI agents (like OpenClaw) to complete the **entire AgentTech setup and payment workflow automatically**: authenticate with email, create API keys programmatically, initialize authenticated SDK client, create payment intents, and execute payments. No manual dashboard interaction required.

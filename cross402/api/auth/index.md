@@ -4,10 +4,6 @@ order: 4
 
 # Authentication
 
-> Source: https://docs.agent.tech/api/auth/
-
-# Authentication
-
 AgentTech uses API keys and Bearer tokens to secure requests.
 
 ## Getting Your API Key

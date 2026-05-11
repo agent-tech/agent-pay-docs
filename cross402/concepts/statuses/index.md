@@ -4,10 +4,6 @@ order: 1
 
 # Intent Statuses
 
-> Source: https://docs.agent.tech/api/statuses/
-
-# Intent Statuses
-
 Understand the lifecycle of a Cross402 Intent.
 
 ## Lifecycle Flow

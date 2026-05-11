@@ -4,10 +4,6 @@ order: 2
 
 # Go SDK
 
-> Source: https://docs.agent.tech/sdks/go/
-
-# Go SDK
-
 High-performance, zero-dependency SDK designed for backend services and microservice architectures.
 
 ### Smart Routing

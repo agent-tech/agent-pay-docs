@@ -4,10 +4,6 @@ order: 2
 
 # Payment Status Polling
 
-> Source: https://docs.agent.tech/skills/payment-polling/
-
-# Payment Status Polling
-
 ## Overview
 
 * **Function**: Best practices for polling payment intent status until completion

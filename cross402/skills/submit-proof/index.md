@@ -4,10 +4,6 @@ order: 4
 
 # Submit Payment Proof
 
-> Source: https://docs.agent.tech/skills/submit-proof/
-
-# Submit Payment Proof
-
 ## Overview
 
 * **Function**: Submit a settlement proof after the payer completes X402 payment on the source chain

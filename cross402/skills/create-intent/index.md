@@ -4,10 +4,6 @@ order: 6
 
 # Create Payment Intent
 
-> Source: https://docs.agent.tech/skills/create-intent/
-
-# Create Payment Intent
-
 ## Overview
 
 * **Function**: Create a new payment intent. Payer pays on `payer_chain`; merchant receives on `target_chain` (defaults to `base`).
