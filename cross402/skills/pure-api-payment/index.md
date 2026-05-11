@@ -4,10 +4,6 @@ order: 8
 
 # Pure API Payment — Agent-Ready HTTP Recipes
 
-> Source: https://docs.agent.tech/skills/pure-api-payment/
-
-# Pure API Payment — Agent-Ready HTTP Recipes
-
 Pattern library for AI agents that need to call AgentTech directly over HTTP — no SDK, no language runtime assumptions. Every recipe below is a complete request the agent can reproduce by string-substituting the placeholders.
 
 If you have access to the [JS/TS SDK](../../sdks/js-ts/) or [Go SDK](../../sdks/go/), use those instead — they bundle validation, typed errors, and Permit2 signing. Use this skill only when the SDK is not available (different language, shell-only runtime, sandboxed env without npm/go).

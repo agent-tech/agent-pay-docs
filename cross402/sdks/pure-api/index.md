@@ -4,10 +4,6 @@ order: 4
 
 # Pure API (no SDK)
 
-> Source: https://docs.agent.tech/sdks/pure-api/
-
-# Pure API (no SDK)
-
 Call AgentTech's payment API directly over HTTP. Use this chapter when you cannot install one of the official SDKs — different language runtime (Rust, Ruby, Elixir, shell scripts), browser environments where you control the fetch layer, or when you need fine-grained control over headers, timeouts, and retries.
 
 The wire protocol is identical to what the JS/TS and Go SDKs already speak. Anything you can do through `PayClient` you can do with `curl`.
