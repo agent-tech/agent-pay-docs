@@ -17,6 +17,9 @@ links:
     link: https://agent.tech/dashboard
   - text: AgentQuay
     link: https://agent.tech/quay
+  - text: Tutorial
+    link: https://docs.google.com/document/d/1nJNDnrB4ABJeyfd-wiR_MJIy2c9ZsDHB/edit?usp=sharing&ouid=100122726119810796504&rtpof=true&sd=true
+    target: blank
 
 # Top-level navigation order
 order:
