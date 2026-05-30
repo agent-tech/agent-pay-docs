@@ -4,10 +4,14 @@ order: 1
 
 # Supported Chains
 
-Cross402 supports paying from one chain and settling on another. A payment intent declares two chains:
+Cross402 supports paying from one chain and settling on another, optionally in a different stablecoin. A payment intent declares two chains and (optionally) two assets:
 
-* `payer_chain` — where the payer sends USDC.
-* `target_chain` — where the merchant receives USDC. Optional; defaults to `base`.
+* `payer_chain` — where the payer sends stablecoins.
+* `target_chain` — where the merchant receives stablecoins. Optional; defaults to `base`.
+* `payer_asset` — the token the payer signs against. Optional; defaults to `"usdc"`. One of `"usdc"` | `"usdt"` | `"usdt0"`.
+* `target_asset` — the token the merchant receives. Optional; defaults to `"usdc"`. Same allowed values.
+
+Clients that omit `payer_asset` / `target_asset` continue to behave exactly as before — both fields default to `"usdc"` with no change in wire format. See [Token × Chain matrix](#token--chain-matrix) for what's supported per chain.
 
 The set of target chains available to your integration is served by `GET /api/chains`. If a chain appears in that response, you can use it as a `target_chain`. Any chain supported as a payer can also be used as a target.
 
@@ -71,6 +75,25 @@ Any payer chain can pair with any target chain exposed by your deployment, inclu
 
 Callers do not choose the signing flavor; the SDK derives it from `payment_requirements` and the `(payer, target)` pair. Both legs run through the x402 protocol. See [Multi-Chain Settlement](../../cross402/concepts/multi-chain-settlement/) for the mechanics.
 
+## Token × Chain matrix
+
+Every chain ships at minimum with USDC. USDT0 (LayerZero's omni-Tether) is wired on the chains where it has a verified deployment; legacy native USDT is wired on Ethereum / BSC / Base / Polygon (gated behind a deployment flag). The matrix below is authoritative.
+
+| Chain | USDC | USDT0 | USDT (native) |
+| :--- | :--- | :--- | :--- |
+| Solana | ✅ Live | — | — |
+| Base | ✅ Live | — | 🚩 gated · `SchemeApprovalSponsorship` |
+| Ethereum | ✅ Live | — | 🚩 gated · `SchemeApprovalSponsorship` |
+| Polygon | ✅ Live (standard EIP-3009) | ✅ Live · **salted** EIP-712 domain | ✅ Live · alias of USDT0 (same contract) |
+| Arbitrum | ✅ Live | ✅ Live · domain `name="USD₮0"` (U+20AE TUGRIK), `version="1"` | ✅ alias of USDT0 (same contract, EIP-3009) |
+| Monad | ✅ Live | ✅ Live · domain `name="USDT0"`, `version="1"` | — |
+| HyperEVM | ✅ Live | ✅ Live · domain `name="USD₮0"`, `version="1"` | — |
+| MegaETH | Live (payer-only) (native USDm) | ✅ Live · domain `name="USDT0"`, `version="1"` | — |
+| BSC | Live (Binance-Peg) | — | 🚩 gated · `SchemeApprovalSponsorship` |
+| SKALE Base | Live (payer-only) | — | — |
+
+Legend: **✅ Live** = the (chain, asset) pair is callable today. **🚩 gated** = wired but gated behind the `USDT_ENABLED` deployment flag; calls return `400 invalid payer_asset` while the gate is off. **—** = not wired; `400 payer_asset not configured on chain` if requested.
+
 ## Chain-specific caveats
 
 These are the details you need at signing and display time.
@@ -92,22 +115,36 @@ Always read `extra.decimals` from the `payment_requirements` object on the `Crea
 | BSC | 18 | Binance-Peg USDC | `0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d` | Live |
 | **MegaETH** | 18 | **USDm** (MegaUSD, native) | `0xFAfDdbb3FC7688494971a79cc65DCa3EF82079E7` | Live (payer-only) |
 
-### EIP-712 domain names
+### EIP-712 domain values per asset
 
-When signing EIP-3009 `TransferWithAuthorization` or Permit2, use the `extra.name` and `extra.version` values from the intent response. The defaults are `"USD Coin"` / `"2"`, but two chains are exceptions:
+Always read `extra.name`, `extra.version`, and (where present) `extra.domainType` from `payment_requirements`. Never hardcode these — they vary per (chain, asset) deployment:
 
-* **SKALE Base**: `name = "Bridged USDC (SKALE Bridge)"`, `version = "2"`.
-* **MegaETH**: `name = "MegaUSD"`, `version = "1"`.
+* **USDC** — defaults `name = "USD Coin"`, `version = "2"`. Exceptions: SKALE Base uses `"Bridged USDC (SKALE Bridge)"`, MegaETH native USDm uses `"MegaUSD"` + `version = "1"`.
+* **USDT0** — `name` is `"USD₮0"` (Tugrik U+20AE) on Arbitrum / HyperEVM; plain ASCII `"USDT0"` on Monad / MegaETH / Polygon. `version = "1"` everywhere.
+* **USDT (native)** — only signature-bearing on Polygon (alias of USDT0, EIP-3009). Ethereum / BSC / Base USDT use `SchemeApprovalSponsorship` and do not sign EIP-712 at all.
 
-Hardcoding the default `"USD Coin"` on either chain makes every signature fail verification.
+Hardcoding `"USD Coin"` v2 on SKALE Base or MegaETH produces signatures the on-chain contract rejects.
 
-### Signing flavor
+### Per-asset transfer scheme
 
-* EIP-3009 `TransferWithAuthorization`: Base, Ethereum, Polygon, HyperEVM, Arbitrum, SKALE Base.
-* Permit2 `PermitWitnessTransferFrom` + EIP-2612 `Permit` (gas-sponsored by Cross402): BSC, Monad, MegaETH.
-* Solana partial-signed VersionedTransaction v0: Solana.
+`TransferScheme` is per-(chain, asset), not per-chain. The same chain can use different schemes for different assets:
 
-The `payment_requirements.extra.assetTransferMethod` field is set to `"permit2"` when Permit2 is required; otherwise it is absent (EIP-3009 path) or uses the Solana payload shape.
+* **EIP-3009 `TransferWithAuthorization`** — Circle USDC on Base / Ethereum / Polygon / HyperEVM / Arbitrum / SKALE Base; USDT0 on Arbitrum / Monad / HyperEVM / MegaETH / Polygon; Polygon USDT (alias of USDT0).
+* **Permit2 + EIP-2612** — USDC on BSC / Monad / MegaETH (their USDC tokens don't implement EIP-3009). Gas is sponsored by Cross402.
+* **`SchemeApprovalSponsorship`** — legacy native USDT on Ethereum / BSC / Base. The facilitator pays gas to submit `approve` + `transferFrom` on the payer's behalf; first payment from a (chain, wallet) pair carries an `approve` (5–60s extra latency), subsequent payments are signature-only. Currently gated behind the `USDT_ENABLED` deployment flag.
+* **Solana SPL** — USDC on Solana; partial-signed VersionedTransaction v0.
+
+The `payment_requirements.extra.assetTransferMethod` field signals the scheme: `"permit2"` for Permit2 paths, `"approval_sponsorship"` for legacy USDT, absent for EIP-3009 / Solana.
+
+### Polygon: salted EIP-712 domain
+
+Polygon's native Tether contract (`0xc2132D05D31c914a87C6611C10748AEb04B58e8F`, used as both USDT0 and native USDT) signs against the non-standard Polygon-PoS layout:
+
+```solidity
+EIP712Domain(string name, string version, address verifyingContract, bytes32 salt)
+```
+
+where `salt = bytes32(chainID)` — chainId moves out of the domain type and into a salt field. The intent response's `payment_requirements.extra.domainType == "salted"` is the explicit signal to switch the signer's DOMAIN_SEPARATOR construction. Standard chainId-in-domain EIP-712 signatures **fail verification** against these contracts.
 
 ## Usage
 

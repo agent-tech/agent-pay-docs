@@ -6,12 +6,16 @@ order: 2
 
 Cross402 decouples where a payer sends the stablecoin from where the merchant receives it. This page explains that model from the caller's perspective: what the two chain fields mean, how the x402 protocol handles both legs, and what the caller observes as status transitions.
 
-## Two chains per intent
+## Two chains per intent (and optionally two assets)
 
 Every `CreateIntent` request carries:
 
-* `payer_chain` — required. The chain on which the payer holds the stablecoin and signs an X402 authorization.
-* `target_chain` — optional, defaults to `"base"`. The chain on which the merchant receives the stablecoin.
+- `payer_chain` — required. The chain on which the payer holds stablecoins and signs an X402 authorization.
+- `target_chain` — optional, defaults to `"base"`. The chain on which the merchant receives stablecoins.
+- `payer_asset` — optional, defaults to `"usdc"`. One of `usdc` | `usdt` | `usdt0`. Selects the stablecoin the payer signs against on `payer_chain`.
+- `target_asset` — optional, defaults to `"usdc"`. Same set as `payer_asset`. Selects the stablecoin the merchant receives on `target_chain`.
+
+Asset and chain are independent: a payer can sign in USDT0 on Arbitrum while the merchant still receives USDC on Base. Clients that omit the asset fields keep the historical USDC-everywhere behaviour with no wire-format change. See the [Token × Chain matrix](../../../introduction/supported-networks/#token--chain-matrix) for the supported (chain, asset) combinations.
 
 The merchant address is validated against `target_chain`. If `target_chain` is an EVM chain, `recipient` must be a 20-byte hex address; if it is `solana`, `recipient` must be a Solana public key. For email recipients, Cross402 resolves the email to a wallet on the target chain via Privy — so the same email returns a Solana address when `target_chain` is `solana`, and an EVM address when `target_chain` is an EVM chain.
 
@@ -28,9 +32,12 @@ The facilitator is the same component on both sides; the only thing that changes
 
 ### Signing flavors
 
-* **EIP-3009 `TransferWithAuthorization`** — used on Circle-native USDC chains (Base, Ethereum, Polygon, Arbitrum). A single signed authorization is sufficient; the facilitator relays it on-chain.
-* **Permit2 + optional EIP-2612** — used on chains with non-standard USDC (BSC, Monad, MegaETH). The payload combines a Permit2 `PermitWitnessTransferFrom` signature with, when needed, a gasless EIP-2612 `Permit` that grants Permit2 the USDC allowance. Cross402 sponsors the on-chain submission.
-* **Solana VersionedTransaction (v0)** — used when the chain is Solana. The payer or proxy wallet partially signs a VersionedTransaction carrying an SPL `TransferChecked` instruction; the facilitator co-signs as fee payer before submission.
+The signing flavor is per-(chain, asset), not per-chain. The same chain can use different flavors for different assets (e.g. on MegaETH, native USDm uses Permit2 while USDT0 uses EIP-3009).
+
+- **EIP-3009 `TransferWithAuthorization`** — Circle USDC on Base / Ethereum / Polygon / Arbitrum; USDT0 on Arbitrum / Monad / HyperEVM / MegaETH / Polygon; Polygon native USDT (alias of USDT0). A single signed authorization is sufficient; the facilitator relays it on-chain. Polygon USDT0/USDT use a **salted** variant of the EIP-712 domain — `payment_requirements.extra.domainType == "salted"` signals the change.
+- **Permit2 + optional EIP-2612** — chains with non-standard USDC (BSC, Monad, MegaETH). The payload combines a Permit2 `PermitWitnessTransferFrom` signature with, when needed, a gasless EIP-2612 `Permit` that grants Permit2 the USDC allowance. cross402 sponsors the on-chain submission.
+- **Approval sponsorship** — legacy native USDT on Ethereum / BSC / Base (no EIP-3009, no permit). The facilitator pays gas to submit `approve` + `transferFrom` on the payer's behalf; first payment from a (chain, wallet) pair carries an `approve` (5–60s extra latency), subsequent payments are signature-only. Currently gated behind a deployment flag.
+- **Solana VersionedTransaction (v0)** — Solana. The payer or proxy wallet partially signs a VersionedTransaction carrying an SPL `TransferChecked` instruction; the facilitator co-signs as fee payer before submission.
 
 Callers do not select the flavor. The SDK (or a compliant x402 client) produces the correct payload from the `payment_requirements` block returned on `CreateIntent`. From the caller's viewpoint the contract is unchanged: `POST createIntent`, submit the signed payload, poll status.
 
