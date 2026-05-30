@@ -98,9 +98,11 @@ Legend: **✅ Live** = the (chain, asset) pair is callable today. **🚩 gated**
 
 These are the details you need at signing and display time.
 
-### USDC decimals + token contracts
+### Token contracts and decimals
 
-Always read `extra.decimals` from the `payment_requirements` object on the `CreateIntent` response. Do not hardcode `6`. Mainnet token addresses are pinned by the backend per chain — copy from the table below or `GET /api/chains` (which echoes the same values).
+Always read `extra.decimals` from the `payment_requirements` object on the `CreateIntent` response. Do not hardcode `6`. Mainnet token addresses are pinned by the backend per chain.
+
+#### USDC (default, `payerAsset` omitted or `"usdc"`)
 
 | Chain | Decimals | Token | Mainnet Address | Status |
 | --- | --- | --- | --- | --- |
@@ -114,6 +116,16 @@ Always read `extra.decimals` from the `payment_requirements` object on the `Crea
 | **SKALE Base** | 6 | **USDC.e** (Bridged USDC) | `0x85889c8c714505E0c94b30fcfcF64fE3Ac8FCb20` | Live (payer-only) |
 | BSC | 18 | Binance-Peg USDC | `0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d` | Live |
 | **MegaETH** | 18 | **USDm** (MegaUSD, native) | `0xFAfDdbb3FC7688494971a79cc65DCa3EF82079E7` | Live (payer-only) |
+
+#### USDT (`payerAsset: "usdt"`)
+
+> **USDT payers on BSC, Ethereum, and Polygon must hold native gas** (BNB / ETH / MATIC) to send a one-time on-chain `approve(Permit2, amount)` before payment. See [USDT Signing](../../cross402/api/usdt-signing/) for details.
+
+| Chain | Decimals | Token | Mainnet Address | Payer gas required |
+| --- | --- | --- | --- | --- |
+| BSC | 18 | USDT (BEP-20) | `0x55d398326f99059fF775485246999027B3197955` | **Yes (BNB)** |
+| Ethereum | 6 | USDT (ERC-20) | `0xdAC17F958D2ee523a2206206994597C13D831ec7` | **Yes (ETH)** |
+| Polygon | 6 | USDT (PoS) | `0xc2132D05D31c914a87C6611C10748AEb04B58e8F` | **Yes (MATIC)** |
 
 ### EIP-712 domain values per asset
 
@@ -134,7 +146,15 @@ Hardcoding `"USD Coin"` v2 on SKALE Base or MegaETH produces signatures the on-c
 * **`SchemeApprovalSponsorship`** — legacy native USDT on Ethereum / BSC / Base. The facilitator pays gas to submit `approve` + `transferFrom` on the payer's behalf; first payment from a (chain, wallet) pair carries an `approve` (5–60s extra latency), subsequent payments are signature-only. Currently gated behind the `USDT_ENABLED` deployment flag.
 * **Solana SPL** — USDC on Solana; partial-signed VersionedTransaction v0.
 
-The `payment_requirements.extra.assetTransferMethod` field signals the scheme: `"permit2"` for Permit2 paths, `"approval_sponsorship"` for legacy USDT, absent for EIP-3009 / Solana.
+The `payment_requirements.extra.assetTransferMethod` field signals the scheme:
+
+| Value | Meaning |
+| --- | --- |
+| absent | EIP-3009 (default for USDC on most EVM chains) |
+| `"permit2"` | Permit2 + EIP-2612, gas sponsored by Cross402 |
+| `"approval_sponsorship"` | Permit2 only; payer must `approve(Permit2)` on-chain first (USDT) |
+
+See [USDT Signing](../../cross402/api/usdt-signing/) for the full USDT flow.
 
 ### Polygon: salted EIP-712 domain
 
