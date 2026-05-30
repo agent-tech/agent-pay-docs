@@ -16,15 +16,19 @@ Creates a new payment intent. The payer chain and target chain can differ; if th
 | --- | --- | --- | --- |
 | Email | `email` | One of Email/Recipient | Recipient email address |
 | Recipient | `recipient` | One of Email/Recipient | Recipient wallet address, validated against `target_chain` (EVM address for EVM targets, Solana address for `solana`) |
-| Amount | `amount` | Yes | USD amount as string (e.g. "100.50") |
+| Amount | `amount` | Yes | Dollar amount as string (e.g. "100.50"). Denomination is whatever asset the route uses — defaults to USDC; pass `payer_asset` / `target_asset` to opt into USDT0/USDT. |
 | PayerChain | `payer_chain` | Yes | Source chain identifier. See [Supported Chains](../../../introduction/supported-networks/). |
 | TargetChain | `target_chain` | No | Settlement chain identifier. Defaults to `"base"`. Must be a chain listed by `GET /api/chains`. |
+| PayerAsset | `payer_asset` | No | Token the payer signs against on `payer_chain`. One of `"usdc"`, `"usdt"`, `"usdt0"`. Defaults to `"usdc"`. The (chain, asset) pair must be supported — see [Token × Chain matrix](../../../introduction/supported-networks/#token--chain-matrix). |
+| TargetAsset | `target_asset` | No | Token the merchant receives on `target_chain`. Same allowed values and default as `payer_asset`. The proxy wallet must hold this asset on `target_chain` for the intent to settle. |
+
+> Backward compatibility: clients that omit `payer_asset` / `target_asset` continue to behave exactly as before — both fields default to `"usdc"` and the response shape is unchanged. The fields only need to be set when opting into non-USDC routes.
 
 ### Amount Rules
 
-* **Minimum**: 0.02 USD
-* **Maximum**: 1,000,000 USD
-* **Precision**: Up to 6 decimal places (e.g. `"0.000001"`, `"123.45"`)
+* **Minimum**: 0.02 (denominated in the selected asset)
+* **Maximum**: 1,000,000 (denominated in the selected asset)
+* **Precision**: Up to 6 decimal places (e.g. `"0.000001"`, `"123.45"`). Chain-native base units (BSC Binance-Peg's 18-dec USDC, MegaETH USDm's 18-dec native) are derived from this dollar string using the asset's deployed `decimals()`; never hardcode `6`.
 
 ### Example — base payer, Ethereum settlement
 
@@ -45,6 +49,30 @@ resp, err := client.CreateIntent(ctx, &pay.CreateIntentRequest{
     TargetChain: "ethereum",
 })
 ```
+
+### Example — Arbitrum payer paying in USDT0
+
+```typescript
+const intent = await client.createIntent({
+  email: "merchant@example.com",
+  amount: "100.50",
+  payerChain: "arbitrum",
+  payerAsset: "usdt0",
+  targetChain: "base",  // merchant still receives USDC on Base by default
+});
+```
+
+```go
+resp, err := client.CreateIntent(ctx, &pay.CreateIntentRequest{
+    Email:       "merchant@example.com",
+    Amount:      "100.50",
+    PayerChain:  "arbitrum",
+    PayerAsset:  "usdt0",
+    TargetChain: "base",
+})
+```
+
+The response's `payment_requirements.extra.name` / `.version` carry the asset's EIP-712 domain (e.g. `"USD₮0"` / `"1"` for Arbitrum USDT0); use these — never hardcode — to construct the EIP-3009 signature. For Polygon USDT0/USDT, `extra.domainType == "salted"` also appears; the payer SDK uses it to switch from the standard chainId-in-domain layout to the salted Polygon-PoS variant. See [Supported Chains](../../../introduction/supported-networks/#polygon-salted-eip-712-domain) for the mechanics.
 
 > When `recipient` is a wallet address, its format is validated against `target_chain`. Passing a Solana address with `target_chain: "ethereum"` is rejected as `invalid recipient`.
 
