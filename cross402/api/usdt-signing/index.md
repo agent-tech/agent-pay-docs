@@ -4,7 +4,7 @@ order: 2
 
 # USDT Signing
 
-Cross402 supports USDT (and USDT0) as a payer asset on selected chains. The signing flow for USDT differs from USDC because **USDT does not implement EIP-3009 or EIP-2612**, which means the usual gasless authorization paths are unavailable.
+Cross402 supports USDT (and USDT0) as a payer asset on selected chains. The signing flow for USDT differs by chain: **Ethereum / BSC / Base USDT** implement neither EIP-3009 nor EIP-2612, so payers must submit an on-chain `approve` transaction (gas required). **Polygon USDT / USDT0** is the exception — its contract exposes EIP-2612 against a salted EIP-712 domain, so the signing path is gasless.
 
 > Pass `payerAsset: "usdt"` (or `"usdt0"`) in `CreateIntent` to use USDT. The `payment_requirements` object in the response tells the SDK exactly which signing path to use.
 
@@ -16,25 +16,49 @@ Cross402 supports USDT (and USDT0) as a payer asset on selected chains. The sign
 | --- | --- | --- | --- | --- |
 | BSC (`bsc`) | USDT | Permit2 `approval_sponsorship` | **Yes** | BNB |
 | Ethereum (`ethereum`) | USDT | Permit2 `approval_sponsorship` | **Yes** | ETH |
-| Polygon (`polygon`) | USDT | Permit2 `approval_sponsorship` | **Yes** | MATIC |
+| Polygon (`polygon`) | USDT / USDT0 | Permit2 + EIP-2612 (salted domain, sponsored) | **No** | — |
 | Base (`base`) | USDC | EIP-3009 | No | — |
 | Arbitrum (`arbitrum`) | USDC | EIP-3009 | No | — |
 | BSC (`bsc`) | USDC | Permit2 + EIP-2612 (sponsored) | No | — |
 | Monad (`monad`) | USDC | Permit2 + EIP-2612 (sponsored) | No | — |
 | Solana (`solana`) | USDC | Solana VT v0 (fee payer sponsored) | No | — |
 
-USDT on BSC, Ethereum mainnet, and Polygon always require an on-chain `ERC20.approve(Permit2, amount)` transaction before the payment signature. This transaction costs gas in the chain's native token.
+USDT on BSC and Ethereum mainnet require an on-chain `ERC20.approve(Permit2, amount)` transaction before the payment signature. This transaction costs gas in the chain's native token. Polygon USDT is the exception — see the [Polygon USDT](#polygon-usdt-eip-2612-salted) section below.
 
 ---
 
-## Why USDT needs gas
+## Why USDT needs gas (ETH / BSC)
 
 USDC and some other tokens implement one or both of these standards that enable gasless Permit2 authorization:
 
 * **EIP-3009** `TransferWithAuthorization` — the contract transfers tokens directly on a signed message, no prior approval needed.
 * **EIP-2612** `permit()` — an off-chain signature that grants Permit2 an allowance in a single call. Cross402 can use this to sponsor the approval gas on behalf of the payer.
 
-**USDT implements neither.** The only way to authorize Permit2 to move USDT is a standard on-chain `ERC20.approve(Permit2, amount)` call. This requires native gas from the payer's wallet.
+**Legacy Tether (Ethereum / BSC / Base) implements neither.** The only way to authorize Permit2 to move USDT on these chains is a standard on-chain `ERC20.approve(Permit2, amount)` call, which requires native gas from the payer's wallet.
+
+**Polygon is the exception.** Tether's Polygon-PoS contract (`0xc2132D...`) implements EIP-2612 against a non-standard salted EIP-712 domain. Cross402 uses this to sign the Permit2 allowance gaslessly — no on-chain approve tx needed from the payer.
+
+---
+
+## Polygon USDT: EIP-2612 salted
+
+Polygon USDT (and USDT0 — same contract) uses **Permit2 + EIP-2612 with a salted EIP-712 domain**. The payment flow is:
+
+1. **Sign EIP-2612 permit off-chain** — typed-data signature against the salted domain (`domainType = "salted"` in `payment_requirements.extra`). No gas.
+2. **Sign Permit2 `PermitWitnessTransferFrom` off-chain** — no gas.
+3. **Submit `settle_proof`** — Cross402 broadcasts both signatures in one call.
+
+The salted domain replaces the standard `chainId` field with a `bytes32 salt = bytes32(chainID)`:
+
+```solidity
+// Standard EIP-712 (most chains)
+EIP712Domain(string name, string version, uint256 chainId, address verifyingContract)
+
+// Polygon-PoS salted domain
+EIP712Domain(string name, string version, address verifyingContract, bytes32 salt)
+```
+
+The SDK reads `payment_requirements.extra.domainType == "salted"` to switch layouts automatically. Signing against the standard layout fails on-chain verification.
 
 ---
 
@@ -141,12 +165,12 @@ resp, err := client.CreateIntent(ctx, &pay.CreateIntentRequest{
 
 ## Key differences vs USDC
 
-| | USDC (Base / Arb / ETH) | USDC (BSC / Monad) | USDT (BSC / ETH / Polygon) |
-| --- | --- | --- | --- |
-| Standard | EIP-3009 | Permit2 + EIP-2612 | Permit2 only |
-| Payer gas required | No | No (Cross402 sponsors) | **Yes** |
-| `assetTransferMethod` | absent / `"eip3009"` | `"permit2"` | `"approval_sponsorship"` |
-| EIP-2612 extension in proof | No | Yes | No |
+| | USDC (Base / Arb / ETH) | USDC (BSC / Monad) | USDT (BSC / ETH) | USDT (Polygon) |
+| --- | --- | --- | --- | --- |
+| Standard | EIP-3009 | Permit2 + EIP-2612 | Permit2 only | Permit2 + EIP-2612 (salted) |
+| Payer gas required | No | No (Cross402 sponsors) | **Yes** | **No** (Cross402 sponsors) |
+| `assetTransferMethod` | absent / `"eip3009"` | `"permit2"` | `"approval_sponsorship"` | `"permit2"` |
+| EIP-2612 extension in proof | No | Yes | No | Yes (salted domain) |
 
 ---
 

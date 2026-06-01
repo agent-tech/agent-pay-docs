@@ -119,13 +119,13 @@ Always read `extra.decimals` from the `payment_requirements` object on the `Crea
 
 #### USDT (`payerAsset: "usdt"`)
 
-> **USDT payers on BSC, Ethereum, and Polygon must hold native gas** (BNB / ETH / MATIC) to send a one-time on-chain `approve(Permit2, amount)` before payment. See [USDT Signing](../../cross402/api/usdt-signing/) for details.
+> **USDT payers on BSC and Ethereum must hold native gas** (BNB / ETH) to send a one-time on-chain `approve(Permit2, amount)` before payment. Polygon USDT uses EIP-2612 with a salted domain — no gas required. See [USDT Signing](../../cross402/api/usdt-signing/) for details.
 
 | Chain | Decimals | Token | Mainnet Address | Payer gas required |
 | --- | --- | --- | --- | --- |
 | BSC | 18 | USDT (BEP-20) | `0x55d398326f99059fF775485246999027B3197955` | **Yes (BNB)** |
 | Ethereum | 6 | USDT (ERC-20) | `0xdAC17F958D2ee523a2206206994597C13D831ec7` | **Yes (ETH)** |
-| Polygon | 6 | USDT (PoS) | `0xc2132D05D31c914a87C6611C10748AEb04B58e8F` | **Yes (MATIC)** |
+| Polygon | 6 | USDT (PoS) | `0xc2132D05D31c914a87C6611C10748AEb04B58e8F` | **No** (EIP-2612 salted, gas sponsored) |
 
 ### EIP-712 domain values per asset
 
@@ -141,8 +141,8 @@ Hardcoding `"USD Coin"` v2 on SKALE Base or MegaETH produces signatures the on-c
 
 `TransferScheme` is per-(chain, asset), not per-chain. The same chain can use different schemes for different assets:
 
-* **EIP-3009 `TransferWithAuthorization`** — Circle USDC on Base / Ethereum / Polygon / HyperEVM / Arbitrum / SKALE Base; USDT0 on Arbitrum / Monad / HyperEVM / MegaETH / Polygon; Polygon USDT (alias of USDT0).
-* **Permit2 + EIP-2612** — USDC on BSC / Monad / MegaETH (their USDC tokens don't implement EIP-3009). Gas is sponsored by Cross402.
+* **EIP-3009 `TransferWithAuthorization`** — Circle USDC on Base / Ethereum / Polygon / HyperEVM / Arbitrum / SKALE Base; USDT0 on Arbitrum / Monad / HyperEVM / MegaETH.
+* **Permit2 + EIP-2612** — USDC on BSC / Monad / MegaETH; **Polygon USDT / USDT0** (same contract `0xc2132D...`, uses EIP-2612 against a salted EIP-712 domain — no EIP-3009). Gas is sponsored by Cross402.
 * **`SchemeApprovalSponsorship`** — legacy native USDT on Ethereum / BSC / Base. The facilitator pays gas to submit `approve` + `transferFrom` on the payer's behalf; first payment from a (chain, wallet) pair carries an `approve` (5–60s extra latency), subsequent payments are signature-only. Currently gated behind the `USDT_ENABLED` deployment flag.
 * **Solana SPL** — USDC on Solana; partial-signed VersionedTransaction v0.
 
