@@ -121,6 +121,124 @@ cross402-usdc balance read --address <addr> [--rpc-url <url>]  # Read USDC balan
 cross402-usdc reset [--yes]                 # Remove all stored config + sessions
 ```
 
+## Swap
+
+Both `PayClient` and `PublicPayClient` expose the full swap surface. No authentication is required for any swap method.
+
+### getSwapQuote
+
+Fetch a price quote. Set `fromAmount` for ExactIn (you spend a fixed input) or `toAmount` for ExactOut (you receive a fixed output). Pass `userAddress` to include a ready-to-sign `swapTransaction` in the response.
+
+```typescript
+import { PublicPayClient } from "@cross402/usdc";
+
+const client = new PublicPayClient({ baseUrl: "https://api-pay.agent.tech" });
+
+// ExactIn: 1 WETH → USDC on Base (quote only)
+const { quote } = await client.getSwapQuote({
+  chain: "base",
+  inputToken: "0x4200000000000000000000000000000000000006",
+  outputToken: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+  fromAmount: 1_000_000_000_000_000_000,
+});
+console.log("min out:", quote.minOutputAmount);
+
+// ExactIn with swap transaction (ready to sign)
+const result = await client.getSwapQuote({
+  chain: "base",
+  inputToken: "0x4200000000000000000000000000000000000006",
+  outputToken: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+  fromAmount: 1_000_000_000_000_000_000,
+  userAddress: "0xYourWallet",
+});
+// result.swapTransaction: { transaction (hex), to, value, gasLimit, expiresAt }
+
+// Cross-chain: Base → Solana
+const cross = await client.getSwapQuote({
+  chain: "base",
+  inputToken: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+  outputToken: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+  fromAmount: 10_000_000,
+  toChain: "solana",
+  userAddress: "0xYourEVMWallet",
+  toUserAddress: "YourSolanaPublicKey",
+});
+```
+
+### registerSwapIntent
+
+After the swap transaction is broadcast on-chain, register its hash to have Cross402 track settlement. Returns an `intentId` you can poll with `getIntent`.
+
+```typescript
+const { intentId, status } = await client.registerSwapIntent({
+  sourceTxHash: "0xabc...",
+  fromChain: "base",
+  toChain: "base",
+  fromToken: "0x4200000000000000000000000000000000000006",
+  toToken: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+  payerAddress: "0xYourWallet",
+  recipientAddress: "0xRecipient",
+  sendingTokenAmount: "1000000000000000000",
+});
+// status: "PENDING" — poll with client.getIntent(intentId)
+```
+
+### Discovery
+
+Enumerate tokens, chains, and routes supported by LI.FI (raw JSON passthrough).
+
+```typescript
+// Tokens on Base and Polygon
+const tokens = await client.getSwapTokens({ chains: "8453,137" });
+
+// All EVM chains
+const chains = await client.getSwapChains({ chainTypes: "EVM" });
+
+// Routes from Base USDC → Polygon USDT
+const connections = await client.getSwapConnections({
+  fromChain: "8453",
+  toChain: "137",
+  fromToken: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+});
+```
+
+### SwapJobStatus Constants
+
+```typescript
+import { SwapJobStatus } from "@cross402/usdc";
+```
+
+| Constant | Value | Terminal |
+| --- | --- | --- |
+| `SwapJobStatus.Pending` | `"PENDING"` | No |
+| `SwapJobStatus.Done` | `"DONE"` | Yes |
+| `SwapJobStatus.Failed` | `"FAILED"` | Yes |
+| `SwapJobStatus.Canceled` | `"CANCELED"` | Yes |
+
+### Asset Constants
+
+Use `Asset` when setting `payerAsset` / `targetAsset` on `createIntent`, or when constructing swap token pairs.
+
+```typescript
+import { Asset } from "@cross402/usdc";
+
+await client.createIntent({
+  email: "merchant@example.com",
+  amount: "10.00",
+  payerChain: "arbitrum",
+  payerAsset: Asset.USDT0,  // "usdt0"
+  targetChain: "base",
+});
+```
+
+| Constant | Value |
+| --- | --- |
+| `Asset.USDC` | `"usdc"` |
+| `Asset.USDT` | `"usdt"` |
+| `Asset.USDT0` | `"usdt0"` |
+
+---
+
 ## Intent Status Constants
 
 ```

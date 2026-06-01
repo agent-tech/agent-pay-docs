@@ -89,6 +89,81 @@ for _, it := range list.Intents {
 
 `IntentBase.AgentID` is populated on every v2 intent response (`CreateIntent`, `ExecuteIntent`, `GetIntent`, `ListIntents`) and is empty for intents created via the public `/api` flow. `GetIntent` against `/v2` enforces ownership and returns `404 payment intent not found` when the intent belongs to a different agent or has no owner.
 
+### Swap
+
+`GetSwapQuote`, `RegisterSwapIntent`, and the three discovery methods are available on every `Client` regardless of authentication mode. No API key is required.
+
+```go
+import pay "github.com/cross402/usdc-sdk-go"
+
+client := pay.New(pay.WithBaseURL("https://api-pay.agent.tech"))
+
+// ExactIn quote (no user address → quote only)
+resp, err := client.GetSwapQuote(ctx, &pay.SwapQuoteParams{
+    Chain:       "solana",
+    InputToken:  "So11111111111111111111111111111111111111112",
+    OutputToken: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    FromAmount:  1_000_000_000,
+})
+fmt.Println("min out:", resp.Quote.MinOutputAmount)
+
+// ExactIn with swap transaction (EVM)
+resp, err := client.GetSwapQuote(ctx, &pay.SwapQuoteParams{
+    Chain:       "base",
+    InputToken:  "0x4200000000000000000000000000000000000006",
+    OutputToken: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    FromAmount:  1_000_000_000_000_000_000,
+    UserAddress: "0xYourWallet",
+})
+// resp.SwapTransaction != nil — { Transaction (hex), To, Value, GasLimit, ExpiresAt }
+
+// Cross-chain: Base → Solana
+resp, err := client.GetSwapQuote(ctx, &pay.SwapQuoteParams{
+    Chain:         "base",
+    InputToken:    "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    OutputToken:   "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    FromAmount:    10_000_000,
+    ToChain:       "solana",
+    UserAddress:   "0xYourEVMWallet",
+    ToUserAddress: "YourSolanaPublicKey",
+})
+```
+
+After signing and broadcasting the swap transaction, register it:
+
+```go
+reg, err := client.RegisterSwapIntent(ctx, &pay.RegisterSwapIntentRequest{
+    SourceTxHash:       "0xabc...",
+    FromChain:          "base",
+    ToChain:            "base",
+    FromToken:          "0x4200000000000000000000000000000000000006",
+    ToToken:            "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    PayerAddress:       "0xYourWallet",
+    RecipientAddress:   "0xRecipient",
+    SendingTokenAmount: "1000000000000000000",
+})
+fmt.Println(reg.IntentID, reg.Status) // "PENDING"
+```
+
+Discovery (LI.FI passthrough — returns `json.RawMessage`):
+
+```go
+tokens, err := client.GetSwapTokens(ctx, "8453,137", "")  // chains, chainTypes
+chains, err := client.GetSwapChains(ctx, "EVM")
+conns, err := client.GetSwapConnections(ctx, "8453", "137", "", "")
+```
+
+#### SwapJobStatus Values
+
+| Constant | Value | Terminal |
+| --- | --- | --- |
+| `pay.SwapJobStatusPending` | `"PENDING"` | No |
+| `pay.SwapJobStatusDone` | `"DONE"` | Yes |
+| `pay.SwapJobStatusFailed` | `"FAILED"` | Yes |
+| `pay.SwapJobStatusCanceled` | `"CANCELED"` | Yes |
+
+---
+
 ### SubmitProof is `/api`-only
 
 `SubmitProof` belongs to the unauthenticated `/api` flow. When called on a client configured with `WithBearerAuth`, the SDK rejects the call locally with `pay.ErrSubmitProofNotAllowed` instead of letting it 404 against `/v2/intents/{intent_id}`. v2 callers should rely on `ExecuteIntent` to drive settlement.
