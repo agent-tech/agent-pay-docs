@@ -153,12 +153,14 @@ if err := client.ExecuteIntent(ctx, resp.IntentID); err != nil {
 
 ## Key Differences vs Other EVM Chains
 
-|  | Base / Arbitrum / Polygon | BSC |
+|  | Base / Arbitrum / Polygon *(USDC)* | BSC |
 | --- | --- | --- |
 | Signing standard | EIP-3009 `transferWithAuthorization` | Permit2 `PermitTransferFrom` |
 | On-chain pre-approval | Not required | Required once per wallet |
 | USDC decimals | 6 | **18** |
 | `assetTransferMethod` | `"eip3009"` | `"permit2"` |
+
+> **Polygon USDT / USDT0** is a different story: those tokens use **Permit2 + EIP-2612 (salted domain)** — not EIP-3009 — and require no payer gas. The table above covers Polygon **USDC** only. See [USDT Signing](../usdt-signing/) for the Polygon USDT flow.
 
 ---
 
