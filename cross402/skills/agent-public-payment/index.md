@@ -336,8 +336,8 @@ The signing method is a property of the **payer chain**, not of the target chain
 | `payment_requirements` signal | Signing Method | Typical payer chains |
 | --- | --- | --- |
 | `network` starts with `solana:` | Solana VersionedTransaction v0 (partial sign) | Solana (Live) |
-| `extra.assetTransferMethod === "permit2"` | Permit2 `PermitWitnessTransferFrom` + EIP-2612 `Permit` | BSC, Monad, MegaETH |
-| otherwise (EVM network, no `assetTransferMethod`) | EIP-3009 `TransferWithAuthorization` | Base, Ethereum, Polygon, HyperEVM, Arbitrum, SKALE Base |
+| `extra.assetTransferMethod === "permit2"` | Permit2 `PermitWitnessTransferFrom` + EIP-2612 `Permit` | BSC, Monad, MegaETH (USDC); **Polygon (USDT/USDT0)** — also sends `extra.domainType === "salted"`, see note below |
+| otherwise (EVM network, no `assetTransferMethod`) | EIP-3009 `TransferWithAuthorization` | Base, Ethereum, Polygon (USDC only), HyperEVM, Arbitrum, SKALE Base |
 
 ```
 function chooseSigningMethod(paymentRequirements: PaymentRequirements): string {
@@ -485,7 +485,9 @@ function buildEVMsettleProof(
 
 ### 2b. Permit2 path — `PermitWitnessTransferFrom` + EIP-2612 Gas Sponsoring
 
-When `payment_requirements.extra.assetTransferMethod === "permit2"` the payer chain requires the Permit2 flow (currently BSC, Monad, MegaETH; the exact set is whatever the backend flags). This flow requires **two signatures**:
+When `payment_requirements.extra.assetTransferMethod === "permit2"` the payer chain requires the Permit2 flow (BSC / Monad / MegaETH USDC; **Polygon USDT / USDT0**; the exact set is whatever the backend flags). This flow requires **two signatures**:
+
+> **Polygon USDT / USDT0 note:** When `extra.domainType === "salted"` is also present, the EIP-2612 `Permit` must be signed against the Polygon-PoS salted EIP-712 domain — `EIP712Domain(name, version, verifyingContract, bytes32 salt)` where `salt = bytes32(chainID)` — instead of the standard `chainId`-in-domain layout. The Permit2 `PermitWitnessTransferFrom` domain is unchanged. See [USDT Signing — Polygon](../../api/usdt-signing/#polygon-usdt-eip-2612-salted).
 
 1. **Permit2 PermitWitnessTransferFrom** — authorizes the X402 proxy to transfer USDC via Permit2
 2. **EIP-2612 Permit** — approves the canonical Permit2 contract to spend your USDC (gas sponsoring: the backend submits the tx, so the payer pays no gas)
@@ -942,10 +944,12 @@ async function completeX402PaymentFlow(
   const pr = intent.paymentRequirements;
 
   if (pr.extra?.assetTransferMethod === 'permit2') {
-    // Permit2 + EIP-2612 path (BSC, Monad, MegaETH; the backend flags the exact set)
+    // Permit2 + EIP-2612 path (BSC/Monad/MegaETH USDC; Polygon USDT/USDT0)
+    // When extra.domainType === "salted", buildPermit2SettleProof must use the
+    // salted EIP-712 domain for the EIP-2612 Permit (Polygon-PoS layout).
     settleProof = await buildPermit2SettleProof(pr, payerAddress, privateKey, rpcUrl);
   } else {
-    // EIP-3009 TransferWithAuthorization path (Base, Ethereum, Polygon, HyperEVM, Arbitrum, SKALE Base)
+    // EIP-3009 TransferWithAuthorization path (Base, Ethereum, Polygon USDC, HyperEVM, Arbitrum, SKALE Base)
     settleProof = buildEVMsettleProof(pr, payerAddress, privateKey);
   }
 
