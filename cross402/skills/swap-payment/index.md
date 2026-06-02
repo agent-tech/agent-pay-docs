@@ -84,7 +84,48 @@ Full end-to-end flow for swapping any supported token into a stablecoin and trac
 
 ---
 
-## Flow Overview
+## Two Approaches
+
+### Agent Wallet (Recommended for server-side agents)
+
+If the agent has a Privy-hosted wallet, use `executeSwap` / `ExecuteSwap` — one call handles everything: quoting, ERC-20 approval, signing, and broadcasting.
+
+**No private key management required.**
+
+```typescript
+// TypeScript
+import { PayClient } from "@cross402/usdc/server";
+const client = new PayClient({
+  baseUrl: "https://api-pay.agent.tech",
+  auth: { apiKey: "your-api-key", secretKey: "your-secret-key" },
+});
+const { txHash, estimatedOutput } = await client.executeSwap({
+  chain: "base",
+  fromToken: "0x4200000000000000000000000000000000000006",
+  toToken: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+  fromAmount: 1_000_000_000_000_000_000,
+});
+```
+
+```go
+// Go
+client, _ := pay.NewClient("https://api-pay.agent.tech",
+    pay.WithBearerAuth("your-api-key", "your-secret-key"))
+resp, err := client.ExecuteSwap(ctx, &pay.ExecuteSwapRequest{
+    Chain: "base", FromToken: "0x4200...", ToToken: "0x8335...",
+    FromAmount: 1_000_000_000_000_000_000,
+})
+```
+
+Returns `tx_hash` and `estimated_output`. No need to register a swap intent — this flow does not go through Cross402 settlement tracking.
+
+### Manual Flow (When the agent holds their own private key)
+
+Use this approach when the agent manages their own wallet and can sign transactions. Steps: quote → sign → broadcast → register intent → poll. See the detailed steps below.
+
+---
+
+## Manual Flow Details
 
 ```
 1. (EVM only) Check ERC-20 approval

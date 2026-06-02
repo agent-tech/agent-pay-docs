@@ -6,6 +6,112 @@ order: 5
 
 The Swap API lets agents convert any supported token into USDC (or another stablecoin) as part of a payment flow. Same-chain swaps use Jupiter (Solana) or LI.FI (EVM); cross-chain swaps route through LI.FI's bridging layer. After the swap transaction is signed and broadcast, register the source transaction hash with `POST /api/swap/intents` to have Cross402 track and settle the receiving leg.
 
+## ExecuteSwap
+
+Execute a token swap on behalf of the authenticated agent's Privy-hosted wallet. No private key or transaction signing is required — the backend handles quoting, ERC-20 approval, and broadcasting via Privy.
+
+`POST /api/me/swap/execute`
+
+**Authentication required.** Use your API key in the `Authorization: Bearer <base64(apiKey:secretKey)>` header.
+
+This endpoint is EVM-only. The agent must have an active Privy-hosted wallet (`wallet_address` and a Privy wallet ID set on the account).
+
+### Request Body
+
+| Field | Required | Type | Default | Description |
+| --- | --- | --- | --- | --- |
+| `chain` | Yes | string | — | Source chain identifier. See [Supported Chains](../../../introduction/supported-networks/). |
+| `from_token` | Yes | string | — | Token contract address to swap from. |
+| `to_token` | Yes | string | — | Token contract address to swap to. |
+| `from_amount` | Yes | uint64 | — | Input amount in smallest unit (wei). |
+| `slippage_bps` | No | uint16 | `50` | Slippage tolerance in basis points (max 500). |
+| `to_chain` | No | string | same as `chain` | Destination chain for cross-chain swaps. |
+
+### Response (200)
+
+```json
+{
+  "tx_hash": "0xabc123...",
+  "chain": "base",
+  "from_token": "0x4200000000000000000000000000000000000006",
+  "to_token": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+  "from_amount": "1000000000000000000",
+  "estimated_output": "2498123456"
+}
+```
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `tx_hash` | string | On-chain transaction hash of the broadcasted swap |
+| `chain` | string | Source chain |
+| `from_token` | string | Input token address |
+| `to_token` | string | Output token address |
+| `from_amount` | string | Input amount in smallest unit (decimal string) |
+| `estimated_output` | string | Expected output amount in smallest unit (decimal string) |
+
+### SDK Examples
+
+**JavaScript / TypeScript**
+
+```typescript
+import { PayClient } from "@cross402/usdc/server";
+
+const client = new PayClient({
+  baseUrl: "https://api-pay.agent.tech",
+  auth: { apiKey: "your-api-key", secretKey: "your-secret-key" },
+});
+
+const result = await client.executeSwap({
+  chain: "base",
+  fromToken: "0x4200000000000000000000000000000000000006", // WETH
+  toToken: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",   // USDC
+  fromAmount: 1_000_000_000_000_000_000, // 1 WETH in wei
+});
+
+console.log("tx:", result.txHash);
+console.log("estimated output:", result.estimatedOutput);
+```
+
+**Go**
+
+```go
+import pay "github.com/cross402/usdc-sdk-go"
+
+client, _ := pay.NewClient(
+    "https://api-pay.agent.tech",
+    pay.WithBearerAuth("your-api-key", "your-secret-key"),
+)
+
+resp, err := client.ExecuteSwap(ctx, &pay.ExecuteSwapRequest{
+    Chain:      "base",
+    FromToken:  "0x4200000000000000000000000000000000000006",
+    ToToken:    "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    FromAmount: 1_000_000_000_000_000_000,
+})
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Println("tx:", resp.TxHash)
+fmt.Println("estimated output:", resp.EstimatedOutput)
+```
+
+### Error Reference
+
+| Status | Error | Cause |
+| --- | --- | --- |
+| 401 | `api key required` | Missing or invalid API key |
+| 403 | `agent wallet not ready` | Agent has no Privy-hosted wallet configured |
+| 400 | `chain is required` | Missing `chain` field |
+| 400 | `from_token is required` | Missing `from_token` field |
+| 400 | `to_token is required` | Missing `to_token` field |
+| 400 | `from_amount must be greater than 0` | Zero or missing `from_amount` |
+| 400 | `slippage_bps exceeds maximum allowed value` | Slippage > 500 bps |
+| 400 | `<chain> has no CAIP-2 identifier` | Chain not supported for agent execution |
+| 502 | `failed to send transaction via Privy` | Privy wallet signing error |
+| 502 | `swap service temporarily unavailable` | Upstream LI.FI error |
+
+---
+
 ## GetSwapQuote
 
 Fetches a price quote for a token swap.
