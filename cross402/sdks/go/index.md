@@ -95,7 +95,7 @@ for _, it := range list.Intents {
 
 #### ExecuteSwap (Agent Wallet)
 
-When the agent has a Privy-hosted wallet, use `ExecuteSwap` to swap tokens without managing private keys. The SDK calls `POST /api/me/swap/execute`; the backend handles quoting, ERC-20 approval, and broadcasting.
+When the agent has a Privy-hosted wallet, use `ExecuteSwap` to swap tokens without managing private keys. The SDK calls `POST /v2/swap/execute`; the backend handles quoting, ERC-20 approval, and broadcasting.
 
 Requires `WithBearerAuth`.
 

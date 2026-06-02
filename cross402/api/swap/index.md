@@ -10,7 +10,7 @@ The Swap API lets agents convert any supported token into USDC (or another stabl
 
 Execute a token swap on behalf of the authenticated agent's Privy-hosted wallet. No private key or transaction signing is required — the backend handles quoting, ERC-20 approval, and broadcasting via Privy.
 
-`POST /api/me/swap/execute`
+`POST /v2/swap/execute`
 
 **Authentication required.** Use your API key in the `Authorization: Bearer <base64(apiKey:secretKey)>` header.
 
