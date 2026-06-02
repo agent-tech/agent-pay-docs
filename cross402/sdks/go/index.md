@@ -93,6 +93,42 @@ for _, it := range list.Intents {
 
 `GetSwapQuote`, `RegisterSwapIntent`, and the three discovery methods are available on every `Client` regardless of authentication mode. No API key is required.
 
+#### ExecuteSwap (Agent Wallet)
+
+When the agent has a Privy-hosted wallet, use `ExecuteSwap` to swap tokens without managing private keys. The SDK calls `POST /api/me/swap/execute`; the backend handles quoting, ERC-20 approval, and broadcasting.
+
+Requires `WithBearerAuth`.
+
+```go
+client, _ := pay.NewClient(
+    "https://api-pay.agent.tech",
+    pay.WithBearerAuth("your-api-key", "your-secret-key"),
+)
+
+resp, err := client.ExecuteSwap(ctx, &pay.ExecuteSwapRequest{
+    Chain:      "base",
+    FromToken:  "0x4200000000000000000000000000000000000006", // WETH
+    ToToken:    "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", // USDC
+    FromAmount: 1_000_000_000_000_000_000, // 1 WETH in wei
+    // SlippageBps: 100, // optional, default 50
+    // ToChain: "polygon", // optional, cross-chain
+})
+fmt.Println("tx:", resp.TxHash, "estimated output:", resp.EstimatedOutput)
+```
+
+`ExecuteSwapRequest` fields:
+
+| Field | Go type | Required | Description |
+| --- | --- | --- | --- |
+| `Chain` | `string` | Yes | Source chain |
+| `FromToken` | `string` | Yes | Input token contract address |
+| `ToToken` | `string` | Yes | Output token contract address |
+| `FromAmount` | `uint64` | Yes | Input amount in smallest unit (wei) |
+| `SlippageBps` | `uint16` | No | Slippage in basis points (default 50) |
+| `ToChain` | `string` | No | Destination chain for cross-chain swaps |
+
+`ExecuteSwapResponse` fields: `TxHash`, `Chain`, `FromToken`, `ToToken`, `FromAmount` (string), `EstimatedOutput` (string).
+
 ```go
 import pay "github.com/cross402/usdc-sdk-go"
 

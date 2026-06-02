@@ -125,6 +125,44 @@ cross402-usdc reset [--yes]                 # Remove all stored config + session
 
 Both `PayClient` and `PublicPayClient` expose the full swap surface. No authentication is required for any swap method.
 
+### executeSwap (Agent Wallet)
+
+When the agent has a Privy-hosted wallet, `executeSwap` performs the entire swap flow — quoting, ERC-20 approval, and broadcasting — with no private key needed. Available on `PayClient` only (requires auth).
+
+```typescript
+import { PayClient } from "@cross402/usdc/server";
+
+const client = new PayClient({
+  baseUrl: "https://api-pay.agent.tech",
+  auth: { apiKey: "your-api-key", secretKey: "your-secret-key" },
+});
+
+const result = await client.executeSwap({
+  chain: "base",
+  fromToken: "0x4200000000000000000000000000000000000006", // WETH
+  toToken: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",   // USDC
+  fromAmount: 1_000_000_000_000_000_000, // 1 WETH in wei
+  // slippageBps: 100, // optional, default 50
+  // toChain: "polygon", // optional, cross-chain
+});
+
+console.log("tx:", result.txHash);
+console.log("estimated output:", result.estimatedOutput);
+```
+
+`ExecuteSwapRequest` fields:
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `chain` | `string` | Yes | Source chain identifier |
+| `fromToken` | `string` | Yes | Input token contract address |
+| `toToken` | `string` | Yes | Output token contract address |
+| `fromAmount` | `number` | Yes | Input amount in smallest unit (wei) |
+| `slippageBps` | `number` | No | Slippage tolerance in basis points (default 50, max 500) |
+| `toChain` | `string` | No | Destination chain for cross-chain swaps |
+
+`ExecuteSwapResponse` fields: `txHash`, `chain`, `fromToken`, `toToken`, `fromAmount` (string), `estimatedOutput` (string).
+
 ### getSwapQuote
 
 Fetch a price quote. Set `fromAmount` for ExactIn (you spend a fixed input) or `toAmount` for ExactOut (you receive a fixed output). Pass `userAddress` to include a ready-to-sign `swapTransaction` in the response.
