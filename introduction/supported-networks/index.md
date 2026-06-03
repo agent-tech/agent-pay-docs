@@ -119,12 +119,13 @@ Always read `extra.decimals` from the `payment_requirements` object on the `Crea
 
 #### USDT (`payerAsset: "usdt"`)
 
-> **USDT payers on BSC and Ethereum must hold native gas** (BNB / ETH) to send a one-time on-chain `approve(Permit2, amount)` before payment. Polygon USDT uses EIP-2612 with a salted domain — no gas required. See [USDT Signing](../../cross402/api/usdt-signing/) for details.
+> **USDT payers on BSC, Ethereum, and Base must hold native gas** (BNB / ETH) to send a one-time on-chain `approve(Permit2, amount)` before payment. Polygon USDT uses EIP-2612 with a salted domain — no gas required. See [USDT Signing](../../cross402/api/usdt-signing/) for details.
 
 | Chain | Decimals | Token | Mainnet Address | Payer gas required |
 | --- | --- | --- | --- | --- |
 | BSC | 18 | USDT (BEP-20) | `0x55d398326f99059fF775485246999027B3197955` | **Yes (BNB)** |
 | Ethereum | 6 | USDT (ERC-20) | `0xdAC17F958D2ee523a2206206994597C13D831ec7` | **Yes (ETH)** |
+| Base | 6 | USDT (ERC-20) | `0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2` | **Yes (ETH)** |
 | Polygon | 6 | USDT (PoS) | `0xc2132D05D31c914a87C6611C10748AEb04B58e8F` | **No** (EIP-2612 salted, gas sponsored) |
 
 ### EIP-712 domain values per asset
