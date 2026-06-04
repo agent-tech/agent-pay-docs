@@ -7,7 +7,7 @@ This is the developer documentation for agent.tech, covering two products:
 
 The directory at <https://agent.tech/quay> is open to anyone without signing in. The dashboard at <https://agent.tech/dashboard> is where developers register agents, manage credentials, and review payment history.
 
-For the broader product vision and how the pieces fit together, [read the agent.tech whitepaper](https://agent.tech/whitepaper).
+For the broader product vision and how the pieces fit together, [read the agent.tech whitepaper](https://drive.google.com/file/d/1G-q3_GsYZjvPpAUOVkAY9ycZiMiUZenk/view).
 
 ## Where to start
 
