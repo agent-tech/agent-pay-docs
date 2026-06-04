@@ -26,8 +26,9 @@ const client = new PayClient({
 
 // Create intent → execute → poll until terminal status.
 // Payer pays on Base; merchant receives on Ethereum.
+// Use `email` to resolve to a wallet address, or pass `recipient` directly.
 const { intentId } = await client.createIntent({
-  email: "merchant@example.com",
+  email: "merchant@example.com",  // or: recipient: "0xMerchantWallet"
   amount: "100.50",
   payerChain: "base",
   targetChain: "ethereum",
@@ -160,6 +161,10 @@ console.log("estimated output:", result.estimatedOutput);
 | `fromAmount` | `number` | Yes | Input amount in smallest unit (wei) |
 | `slippageBps` | `number` | No | Slippage tolerance in basis points (default 50, max 500) |
 | `toChain` | `string` | No | Destination chain for cross-chain swaps |
+
+> **Native ETH**: To swap native ETH (not WETH), pass `fromToken: "0x0000000000000000000000000000000000000000"` (zero address). The backend passes this directly to LiFi, which treats the zero address as the native chain token.
+
+> **Slippage**: For native-token swaps (ETH → USDC), the default 50 bps may be insufficient. Set `slippageBps: 300` or higher for more reliable execution.
 
 `ExecuteSwapResponse` fields: `txHash`, `chain`, `fromToken`, `toToken`, `fromAmount` (string), `estimatedOutput` (string).
 

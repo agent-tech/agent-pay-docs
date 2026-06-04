@@ -127,6 +127,10 @@ fmt.Println("tx:", resp.TxHash, "estimated output:", resp.EstimatedOutput)
 | `SlippageBps` | `uint16` | No | Slippage in basis points (default 50) |
 | `ToChain` | `string` | No | Destination chain for cross-chain swaps |
 
+> **Native ETH**: To swap native ETH (not WETH), pass `FromToken: "0x0000000000000000000000000000000000000000"` (zero address). The backend passes this directly to LiFi, which treats the zero address as the native chain token.
+
+> **Slippage**: For native-token swaps (ETH → USDC), the default 50 bps may be insufficient. Set `SlippageBps: 300` or higher for more reliable execution.
+
 `ExecuteSwapResponse` fields: `TxHash`, `Chain`, `FromToken`, `ToToken`, `FromAmount` (string), `EstimatedOutput` (string).
 
 ```go
