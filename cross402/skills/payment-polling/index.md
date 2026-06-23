@@ -30,7 +30,7 @@ async function pollStatus(intentId: string, intervalMs: number = 3000, maxAttemp
       return { success: true, intent };
     }
 
-    if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED' || intent.status === 'PARTIAL_SETTLEMENT') {
+    if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED' || intent.status === 'BLOCKED' || intent.status === 'PARTIAL_SETTLEMENT') {
       return { success: false, intent, reason: intent.status };
     }
 
@@ -66,7 +66,7 @@ async function pollWithExponentialBackoff(intentId: string) {
       return { success: true, intent };
     }
 
-    if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED' || intent.status === 'PARTIAL_SETTLEMENT') {
+    if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED' || intent.status === 'BLOCKED' || intent.status === 'PARTIAL_SETTLEMENT') {
       return { success: false, intent, reason: intent.status };
     }
 
@@ -93,7 +93,7 @@ async function adaptivePoll(intentId: string) {
       return { success: true, intent };
     }
 
-    if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED' || intent.status === 'PARTIAL_SETTLEMENT') {
+    if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED' || intent.status === 'BLOCKED' || intent.status === 'PARTIAL_SETTLEMENT') {
       return { success: false, intent, reason: intent.status };
     }
 
@@ -141,7 +141,7 @@ func pollStatus(ctx context.Context, client *pay.Client, intentID string, maxAtt
         switch intent.Status {
         case pay.StatusTargetSettled:
             return intent, nil
-        case pay.StatusExpired, pay.StatusVerificationFailed, pay.StatusPartialSettlement:
+        case pay.StatusExpired, pay.StatusVerificationFailed, pay.StatusBlocked, pay.StatusPartialSettlement:
             return intent, fmt.Errorf("payment failed: %s", intent.Status)
         }
 
@@ -177,7 +177,7 @@ func pollWithBackoff(ctx context.Context, client *pay.Client, intentID string) (
         switch intent.Status {
         case pay.StatusTargetSettled:
             return intent, nil
-        case pay.StatusExpired, pay.StatusVerificationFailed, pay.StatusPartialSettlement:
+        case pay.StatusExpired, pay.StatusVerificationFailed, pay.StatusBlocked, pay.StatusPartialSettlement:
             return intent, fmt.Errorf("payment failed: %s", intent.Status)
         }
 
@@ -208,7 +208,7 @@ async function pollWithRateLimitHandling(intentId: string) {
         return { success: true, intent };
       }
 
-      if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED' || intent.status === 'PARTIAL_SETTLEMENT') {
+      if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED' || intent.status === 'BLOCKED' || intent.status === 'PARTIAL_SETTLEMENT') {
         return { success: false, intent };
       }
 
@@ -260,7 +260,7 @@ async function pollWithRetry(intentId: string, maxRetries: number = 3) {
       return { success: true, intent };
     }
 
-    if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED' || intent.status === 'PARTIAL_SETTLEMENT') {
+    if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED' || intent.status === 'BLOCKED' || intent.status === 'PARTIAL_SETTLEMENT') {
       return { success: false, intent };
     }
 
@@ -342,7 +342,7 @@ async function waitForPaymentCompletion(intentId: string): Promise<{
         };
       }
 
-      if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED' || intent.status === 'PARTIAL_SETTLEMENT') {
+      if (intent.status === 'EXPIRED' || intent.status === 'VERIFICATION_FAILED' || intent.status === 'BLOCKED' || intent.status === 'PARTIAL_SETTLEMENT') {
         return {
           success: false,
           intent,

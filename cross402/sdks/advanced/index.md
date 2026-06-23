@@ -93,7 +93,7 @@ if req.PayerChain == pay.ChainBSC {
 ## Best Practices
 
 1. **Polling Strategy**: Use exponential backoff when polling for intent status
-2. **Error Handling**: Always check for terminal states (`EXPIRED`, `VERIFICATION_FAILED`) before retrying
+2. **Error Handling**: Always check for terminal states (`EXPIRED`, `VERIFICATION_FAILED`, `BLOCKED`, `PARTIAL_SETTLEMENT`) before retrying
 3. **Rate Limiting**: Respect the 60 req/min/IP limit and implement client-side throttling if needed
 4. **Idempotency**: Intent creation is idempotent — safe to retry on network errors
 5. **BSC decimals**: Never hardcode USDC decimal precision — read `extra.decimals` from the backend response

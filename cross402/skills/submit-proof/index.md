@@ -39,7 +39,7 @@ order: 4
       },
       "status": {
         "type": "string",
-        "enum": ["PENDING", "SOURCE_SETTLED", "TARGET_SETTLING", "TARGET_SETTLED", "VERIFICATION_FAILED", "PARTIAL_SETTLEMENT"],
+        "enum": ["PENDING", "SOURCE_SETTLED", "TARGET_SETTLING", "TARGET_SETTLED", "VERIFICATION_FAILED", "BLOCKED", "PARTIAL_SETTLEMENT"],
         "description": "Current status of the intent after proof submission"
       },
       "message": {
@@ -78,6 +78,7 @@ order: 4
 * `TARGET_SETTLING`: Settlement is being processed on the target chain
 * `TARGET_SETTLED`: Transfer complete (terminal state)
 * `VERIFICATION_FAILED`: Proof verification failed (terminal state)
+* `BLOCKED`: Compliance reject (sanctions / OFAC SDN screen hit); never retried (terminal state)
 * `PARTIAL_SETTLEMENT`: Source settled but target did not complete (terminal state)
 
 ## Code Examples

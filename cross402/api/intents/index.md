@@ -16,13 +16,24 @@ Creates a new payment intent. The payer chain and target chain can differ; if th
 | --- | --- | --- | --- |
 | Email | `email` | One of Email/Recipient | Recipient email address |
 | Recipient | `recipient` | One of Email/Recipient | Recipient wallet address, validated against `target_chain` (EVM address for EVM targets, Solana address for `solana`) |
-| Amount | `amount` | Yes | Dollar amount as string (e.g. "100.50"). Denomination is whatever asset the route uses — defaults to USDC; pass `payer_asset` / `target_asset` to opt into USDT0/USDT. |
+| Amount | `amount` | One of Amount/ToAmount | **ExactOut** target: the merchant receives exactly this dollar amount. String (e.g. `"100.50"`). Denomination is whatever asset the route uses — defaults to USDC; pass `payer_asset` / `target_asset` to opt into USDT0/USDT. |
+| ToAmount | `to_amount` | One of Amount/ToAmount | **ExactIn** amount: the payer sends exactly this dollar amount and the merchant receives the remainder after fees. Mutually exclusive with `amount` — set exactly one. |
 | PayerChain | `payer_chain` | Yes | Source chain identifier. See [Supported Chains](../../../introduction/supported-networks/). |
 | TargetChain | `target_chain` | No | Settlement chain identifier. Defaults to `"base"`. Must be a chain listed by `GET /api/chains`. |
 | PayerAsset | `payer_asset` | No | Token the payer signs against on `payer_chain`. One of `"usdc"`, `"usdt"`, `"usdt0"`. Defaults to `"usdc"`. The (chain, asset) pair must be supported — see [Token × Chain matrix](../../../introduction/supported-networks/#token--chain-matrix). |
 | TargetAsset | `target_asset` | No | Token the merchant receives on `target_chain`. Same allowed values and default as `payer_asset`. The proxy wallet must hold this asset on `target_chain` for the intent to settle. |
+| PayerAddress | `payer_address` | No | Payer wallet address, screened advisorily against sanctions lists at create time. Leave empty to skip; the authoritative payer screen still runs in the async settlement path. |
 
 > Backward compatibility: clients that omit `payer_asset` / `target_asset` continue to behave exactly as before — both fields default to `"usdc"` and the response shape is unchanged. The fields only need to be set when opting into non-USDC routes.
+
+### Amount modes: ExactOut vs ExactIn
+
+An intent carries the amount on exactly one of two fields — set one, never both:
+
+* **`amount` (ExactOut)** — the merchant receives exactly this amount; the payer covers it plus fees. Use this for invoices and checkout where the recipient must land a precise figure.
+* **`to_amount` (ExactIn)** — the payer spends exactly this amount; the merchant receives whatever is left after fees. Use this when the spend is fixed (e.g. "send the $5 in this wallet").
+
+The settlement quote (`sending_amount`, `receiving_amount`, `estimated_fee`) on the response shows how the chosen mode resolved.
 
 ### Amount Rules
 
@@ -45,6 +56,28 @@ const intent = await client.createIntent({
 resp, err := client.CreateIntent(ctx, &pay.CreateIntentRequest{
     Email:       "merchant@example.com",
     Amount:      "100.50",
+    PayerChain:  "base",
+    TargetChain: "ethereum",
+})
+```
+
+### Example — ExactIn (fixed spend)
+
+Set `to_amount` instead of `amount` to spend a fixed amount; the merchant receives the remainder after fees.
+
+```typescript
+const intent = await client.createIntent({
+  email: "merchant@example.com",
+  toAmount: "5.00",        // payer sends exactly $5.00
+  payerChain: "base",
+  targetChain: "ethereum",
+});
+```
+
+```go
+resp, err := client.CreateIntent(ctx, &pay.CreateIntentRequest{
+    Email:       "merchant@example.com",
+    ToAmount:    "5.00", // payer sends exactly $5.00; omit Amount
     PayerChain:  "base",
     TargetChain: "ethereum",
 })
@@ -157,6 +190,7 @@ switch (intent.status) {
     break;
   case "EXPIRED":
   case "VERIFICATION_FAILED":
+  case "BLOCKED":
   case "PARTIAL_SETTLEMENT":
     // Terminal failure
     break;
@@ -170,7 +204,7 @@ intent, err := client.GetIntent(ctx, intentID)
 switch intent.Status {
 case pay.StatusTargetSettled:
     // use intent.TargetPayment for receipt
-case pay.StatusExpired, pay.StatusVerificationFailed, pay.StatusPartialSettlement:
+case pay.StatusExpired, pay.StatusVerificationFailed, pay.StatusBlocked, pay.StatusPartialSettlement:
     // terminal failure
 default:
     // still processing — poll again

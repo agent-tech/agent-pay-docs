@@ -67,9 +67,10 @@ On a `GetIntent` response for `TARGET_SETTLED`, the `target_payment` block holds
 
 If Cross402 moves the intent to `TARGET_SETTLING` but the target transfer cannot be dispatched — for example because the agent's target-chain wallet hasn't been provisioned for that chain — the status is rolled back atomically to `SOURCE_SETTLED`. Callers that poll will see this as a transient dip; the pipeline retries automatically.
 
-Two failures are terminal:
+Three failures are terminal:
 
 * **`VERIFICATION_FAILED`** — source-side authorization could not be verified. No funds moved on the payer side.
+* **`BLOCKED`** — a sanctions (OFAC SDN) screen hit. Distinct from `VERIFICATION_FAILED` and never retried.
 * **`PARTIAL_SETTLEMENT`** — source settled but target transfer could not be completed at all. Payer funds have moved; contact support for reconciliation.
 
 See [Statuses](../statuses/) for the full transition table.

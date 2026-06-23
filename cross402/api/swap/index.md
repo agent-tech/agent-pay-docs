@@ -133,8 +133,10 @@ When `user_address` is supplied the response includes a ready-to-sign `swap_tran
 | `to_amount` | One of | uint64 | — | ExactOut: desired output amount in smallest unit. Mutually exclusive with `from_amount`. |
 | `slippage_bps` | No | uint16 | 50 | Slippage tolerance in basis points (max 500 = 5%). |
 | `to_chain` | No | string | same as `chain` | Destination chain for cross-chain swaps. |
-| `user_address` | No | string | — | Signer's wallet address. When set, `swap_transaction` is returned. |
+| `user_address` | No | string | — | Signer's wallet address. When set (or resolved from `email`), `swap_transaction` is returned. |
 | `to_user_address` | No | string | — | Recipient address on the destination chain. Required for cross-family routes (e.g. Solana → EVM) when `user_address` is provided. |
+| `email` | No | string | — | Email to resolve into `user_address`. Ignored when `user_address` is set. |
+| `to_user_email` | No | string | — | Email to resolve into `to_user_address`. Ignored when `to_user_address` is set. |
 
 > **Legacy alias:** `amount` is accepted as a deprecated alias for `from_amount`. Do not mix `amount` with `from_amount` or `to_amount` in the same request.
 
@@ -265,9 +267,11 @@ Checks whether the user's wallet has sufficient ERC-20 allowance for the swap an
 | `token` | Yes | string | Token contract address to approve |
 | `token_out` | Yes | string | Output token address (used to resolve the spender) |
 | `amount` | Yes | uint64 | Amount in smallest unit that will be spent |
-| `user_address` | Yes | string | Signer's wallet address |
+| `user_address` | One of user_address/email | string | Signer's wallet address |
+| `email` | One of user_address/email | string | Email to resolve into `user_address`. Ignored when `user_address` is set. |
 | `to_chain` | No | string | Destination chain for cross-chain swaps |
 | `to_user_address` | No | string | Destination recipient |
+| `to_user_email` | No | string | Email to resolve into `to_user_address`. Ignored when `to_user_address` is set. |
 | `include_gas_info` | No | bool | When `true`, includes `gas_fee` and `cancel_gas_fee` estimates |
 
 ### Response

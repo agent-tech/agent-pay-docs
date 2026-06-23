@@ -43,9 +43,10 @@ Both legs use the same x402 protocol and the same facilitator. The caller does n
 
 If the target-chain transfer cannot be dispatched (for example the agent wallet for the target chain is not provisioned, or the chain's payment service is temporarily unavailable), Cross402 atomically rolls the intent back from `TARGET_SETTLING` to `SOURCE_SETTLED`. The settlement pipeline will retry. This rollback is transparent to callers that poll `GetIntent`; the status may appear to oscillate `SOURCE_SETTLED ↔ TARGET_SETTLING` until the target-side issue clears.
 
-Two failure modes are terminal and not retried:
+Three failure modes are terminal and not retried:
 
 * **`VERIFICATION_FAILED`** — the source-chain authorization could not be verified or settled. No funds moved on the payer side.
+* **`BLOCKED`** — a sanctions (OFAC SDN) screen hit. Distinct from `VERIFICATION_FAILED` and never retried; do not re-create the intent with the same parties.
 * **`PARTIAL_SETTLEMENT`** — source settled but the target transfer never completed. Funds moved on the payer side; contact support for reconciliation.
 
 See [Multi-Chain Settlement](../multi-chain-settlement/) for the cross-chain mechanics and [Statuses](../statuses/) for the full transition table.

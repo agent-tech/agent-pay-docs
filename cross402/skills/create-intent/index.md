@@ -29,7 +29,12 @@ order: 6
       },
       "amount": {
         "type": "string",
-        "description": "USD amount as string (e.g. '100.50'). Minimum: 0.02, Maximum: 1,000,000. Up to 6 decimal places.",
+        "description": "ExactOut: the merchant receives exactly this USD amount (e.g. '100.50'). Mutually exclusive with to_amount. Minimum: 0.02, Maximum: 1,000,000. Up to 6 decimal places.",
+        "pattern": "^[0-9]+(\\.[0-9]{1,6})?$"
+      },
+      "to_amount": {
+        "type": "string",
+        "description": "ExactIn: the payer sends exactly this USD amount and the merchant receives the remainder after fees. Mutually exclusive with amount. Same range and precision as amount.",
         "pattern": "^[0-9]+(\\.[0-9]{1,6})?$"
       },
       "payer_chain": {
@@ -39,12 +44,26 @@ order: 6
       "target_chain": {
         "type": "string",
         "description": "Settlement chain identifier. Optional; defaults to 'base'. Must be a chain listed by GET /api/chains."
+      },
+      "payer_asset": {
+        "type": "string",
+        "enum": ["usdc", "usdt", "usdt0"],
+        "description": "Token the payer signs against on payer_chain. Optional; defaults to 'usdc'. The (chain, asset) pair must be supported."
+      },
+      "target_asset": {
+        "type": "string",
+        "enum": ["usdc", "usdt", "usdt0"],
+        "description": "Token the merchant receives on target_chain. Optional; defaults to 'usdc'."
+      },
+      "payer_address": {
+        "type": "string",
+        "description": "Optional payer wallet address, screened advisorily against sanctions lists at create time. Leave empty to skip."
       }
     },
-    "required": ["amount", "payer_chain"],
-    "oneOf": [
-      { "required": ["email"] },
-      { "required": ["recipient"] }
+    "required": ["payer_chain"],
+    "allOf": [
+      { "oneOf": [ { "required": ["email"] }, { "required": ["recipient"] } ] },
+      { "oneOf": [ { "required": ["amount"] }, { "required": ["to_amount"] } ] }
     ]
   },
   "output_schema": {
@@ -76,12 +95,17 @@ order: 6
 | --- | --- | --- | --- |
 | `email` | string | One of email/recipient | Recipient email address |
 | `recipient` | string | One of email/recipient | Recipient wallet address; format validated against `target_chain` |
-| `amount` | string | Yes | USD amount as string (e.g. "100.50") |
+| `amount` | string | One of amount/to_amount | ExactOut: the merchant receives exactly this USD amount (e.g. "100.50") |
+| `to_amount` | string | One of amount/to_amount | ExactIn: the payer sends exactly this USD amount; merchant receives the remainder after fees |
 | `payer_chain` | string | Yes | Source chain identifier. See [Supported Chains](../../../introduction/supported-networks/). |
 | `target_chain` | string | No | Settlement chain identifier. Defaults to `"base"`. Must be listed by `GET /api/chains`. |
+| `payer_asset` | string | No | Token the payer sends on `payer_chain`: `"usdc"` (default), `"usdt"`, or `"usdt0"`. |
+| `target_asset` | string | No | Token the merchant receives on `target_chain`. Same values and default as `payer_asset`. |
+| `payer_address` | string | No | Payer wallet address, screened advisorily against sanctions lists at create time. Optional. |
 
 ### Amount Rules
 
+* **Mode**: set exactly one of `amount` (ExactOut) or `to_amount` (ExactIn)
 * **Minimum**: 0.02 USD
 * **Maximum**: 1,000,000 USD
 * **Precision**: Up to 6 decimal places (e.g. `"0.000001"`, `"123.45"`)

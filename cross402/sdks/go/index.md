@@ -43,6 +43,48 @@ resp, err := client.CreateIntent(ctx, &pay.CreateIntentRequest{
 
 > **BSC / MegaETH decimals**: BSC USDC and MegaETH's native USDm use 18 decimals. Always read `resp.Extra.Decimals` from the intent response rather than hardcoding `6`. See [Chain-Specific Notes](../../../introduction/supported-networks/#chain-specific-caveats) for details.
 
+### Amount: ExactOut vs ExactIn
+
+`CreateIntentRequest` carries the amount on exactly one of two fields — set one, never both:
+
+* `Amount` — **ExactOut**: the merchant receives exactly this dollar amount (the payer covers it plus fees).
+* `ToAmount` — **ExactIn**: the payer sends exactly this dollar amount and the merchant receives the remainder after fees.
+
+```go
+// ExactIn — payer spends exactly $5.00; omit Amount.
+resp, err := client.CreateIntent(ctx, &pay.CreateIntentRequest{
+    Email:      "merchant@example.com",
+    ToAmount:   "5.00",
+    PayerChain: pay.ChainBase,
+})
+```
+
+`PayerAddress` is optional: pass the payer's wallet address to have it screened advisorily against sanctions lists at create time (the authoritative screen still runs during settlement). Leave it empty to skip.
+
+### Assets (USDT0 / USDT)
+
+Each intent carries an asset on both legs — `PayerAsset` (what the payer sends on `PayerChain`) and `TargetAsset` (what the merchant receives on `TargetChain`). The two are independent of each other and of the chains, so you can mix them freely. Omit either to default it to `pay.AssetUSDC`. Use the `Asset` constants instead of bare strings:
+
+| Constant | Value | Notes |
+| --- | --- | --- |
+| `pay.AssetUSDC` | `"usdc"` | Circle USDC. The default when an asset is omitted. |
+| `pay.AssetUSDT0` | `"usdt0"` | Tether's LayerZero USDT0 omnichain token. |
+| `pay.AssetUSDT` | `"usdt"` | Native Tether USDT. Some deployments are gated by the backend operator. |
+
+```go
+// Pay USDT0 on Arbitrum, settle USDC on Base.
+resp, err := client.CreateIntent(ctx, &pay.CreateIntentRequest{
+    Email:       "merchant@example.com",
+    Amount:      "100.50",
+    PayerChain:  pay.ChainArbitrum,
+    PayerAsset:  pay.AssetUSDT0,
+    TargetChain: pay.ChainBase,
+    TargetAsset: pay.AssetUSDC, // omit to default to USDC
+})
+```
+
+There is no runtime discovery endpoint for per-chain assets, so an unsupported `(chain, asset)` pair is rejected by the backend with **HTTP 400** (a `*pay.RequestError`). `PayerAsset` / `TargetAsset` are echoed back on both `CreateIntentResponse` and `GetIntentResponse`. See the [Token × Chain matrix](../../../introduction/supported-networks/#token--chain-matrix) for current coverage.
+
 ### Intent Status Constants
 
 Use status constants instead of raw strings when checking intent status:
@@ -55,8 +97,11 @@ Use status constants instead of raw strings when checking intent status:
 | `pay.StatusTargetSettling` | `"TARGET_SETTLING"` | No |
 | `pay.StatusTargetSettled` | `"TARGET_SETTLED"` | Yes |
 | `pay.StatusVerificationFailed` | `"VERIFICATION_FAILED"` | Yes |
+| `pay.StatusBlocked` | `"BLOCKED"` | Yes |
 | `pay.StatusPartialSettlement` | `"PARTIAL_SETTLEMENT"` | Yes |
 | `pay.StatusExpired` | `"EXPIRED"` | Yes |
+
+> `pay.StatusBlocked` is a terminal compliance reject (sanctions / OFAC SDN hit), distinct from `pay.StatusVerificationFailed` and never retried. See [Intent Statuses](../../concepts/statuses/).
 
 ```
 intent, err := client.GetIntent(ctx, intentID)
@@ -91,7 +136,7 @@ for _, it := range list.Intents {
 
 ### Swap
 
-`GetSwapQuote`, `RegisterSwapIntent`, and the three discovery methods are available on every `Client` regardless of authentication mode. No API key is required.
+`GetSwapQuote`, `GetSwapApproval`, `GetSwapStatus`, `RegisterSwapIntent`, and the three discovery methods are available on every `Client` regardless of authentication mode. No API key is required.
 
 #### ExecuteSwap (Agent Wallet)
 
@@ -169,6 +214,21 @@ resp, err := client.GetSwapQuote(ctx, &pay.SwapQuoteParams{
 })
 ```
 
+When you broadcast the swap yourself (rather than via `ExecuteSwap`), check the ERC-20 allowance first with `GetSwapApproval`. It returns the approval transaction(s) to sign only when needed — Solana and native-token swaps require no approval. Some tokens (e.g. USDT) also return a `Cancel` transaction that resets the allowance to zero before the new approval can be granted.
+
+```go
+appr, err := client.GetSwapApproval(ctx, &pay.SwapApprovalParams{
+    Chain:       "base",
+    Token:       "0x4200000000000000000000000000000000000006", // spend token
+    Amount:      1_000_000_000_000_000_000,                    // smallest unit
+    UserAddress: "0xYourWallet",
+    TokenOut:    "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", // output token
+})
+if appr.NeedsApproval {
+    // sign & broadcast appr.Cancel (if non-nil) then appr.Approval before swapping
+}
+```
+
 After signing and broadcasting the swap transaction, register it:
 
 ```go
@@ -183,6 +243,17 @@ reg, err := client.RegisterSwapIntent(ctx, &pay.RegisterSwapIntentRequest{
     SendingTokenAmount: "1000000000000000000",
 })
 fmt.Println(reg.IntentID, reg.Status) // "PENDING"
+```
+
+For cross-chain swaps, poll settlement by source-chain tx hash with `GetSwapStatus`. It returns HTTP 404 (a `*pay.RequestError`) until the source chain settles — typically 30 s+ — so retry.
+
+```go
+st, err := client.GetSwapStatus(ctx, &pay.SwapStatusParams{
+    TxHash:    "0xabc...",
+    FromChain: "base",    // optional hints that speed up the lookup
+    ToChain:   "solana",
+})
+fmt.Println(st.Status, st.DestTxHash) // e.g. "DONE" "0xdef..."
 ```
 
 Discovery (LI.FI passthrough — returns `json.RawMessage`):

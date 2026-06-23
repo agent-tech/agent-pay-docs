@@ -35,7 +35,7 @@ order: 5
       },
       "status": {
         "type": "string",
-        "enum": ["PENDING", "SOURCE_SETTLED", "TARGET_SETTLING", "TARGET_SETTLED", "VERIFICATION_FAILED", "EXPIRED", "PARTIAL_SETTLEMENT"],
+        "enum": ["PENDING", "SOURCE_SETTLED", "TARGET_SETTLING", "TARGET_SETTLED", "VERIFICATION_FAILED", "BLOCKED", "EXPIRED", "PARTIAL_SETTLEMENT"],
         "description": "Current status of the intent"
       },
       "target_payment": {
@@ -98,6 +98,7 @@ order: 5
 * `TARGET_SETTLING`: Settlement is being processed on the target chain
 * `TARGET_SETTLED`: Transfer complete (terminal state)
 * `VERIFICATION_FAILED`: Source payment verification failed (terminal state)
+* `BLOCKED`: Compliance reject (sanctions / OFAC SDN screen hit); never retried (terminal state)
 * `EXPIRED`: Intent was not executed within 10 minutes (terminal state)
 * `PARTIAL_SETTLEMENT`: Source settled but target transfer did not complete (terminal state; contact support)
 
@@ -192,7 +193,7 @@ func main() {
    * Paying gas fees on both chains
    * Dispatching the stablecoin transfer on the target chain
 3. **Status Progression**: `AWAITING_PAYMENT` → `PENDING` → `SOURCE_SETTLED` → `TARGET_SETTLING` → `TARGET_SETTLED`. If the target transfer can't be dispatched, the intent may briefly roll back to `SOURCE_SETTLED` and retry; see [Statuses](../../concepts/statuses/).
-4. **Terminal States**: Once the status reaches `TARGET_SETTLED`, `EXPIRED`, `VERIFICATION_FAILED`, or `PARTIAL_SETTLEMENT`, it will not change.
+4. **Terminal States**: Once the status reaches `TARGET_SETTLED`, `EXPIRED`, `VERIFICATION_FAILED`, `BLOCKED`, or `PARTIAL_SETTLEMENT`, it will not change.
 5. **Polling**: For long-running operations, use [Query Intent Status](../query-intent-status/) to poll for status updates.
 6. **Intent Expiration**: Intents expire 10 minutes after creation. Execute before expiration.
 

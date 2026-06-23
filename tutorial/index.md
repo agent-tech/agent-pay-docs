@@ -249,7 +249,7 @@ An intent moves through this sequence:
 AWAITING_PAYMENT  →  PENDING  →  SOURCE_SETTLED  →  TARGET_SETTLING  →  TARGET_SETTLED
 ```
 
-`TARGET_SETTLED` is the success terminal state, with the target-chain transaction hash. The other terminal states are `EXPIRED`, `VERIFICATION_FAILED`, and `PARTIAL_SETTLEMENT`. The skill polls until a terminal state, then returns the result to the agent.
+`TARGET_SETTLED` is the success terminal state, with the target-chain transaction hash. The other terminal states are `EXPIRED`, `VERIFICATION_FAILED`, `BLOCKED`, and `PARTIAL_SETTLEMENT`. The skill polls until a terminal state, then returns the result to the agent.
 
 ---
 

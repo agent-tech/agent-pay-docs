@@ -39,7 +39,7 @@ order: 3
       },
       "status": {
         "type": "string",
-        "enum": ["AWAITING_PAYMENT", "PENDING", "SOURCE_SETTLED", "TARGET_SETTLING", "TARGET_SETTLED", "VERIFICATION_FAILED", "EXPIRED", "PARTIAL_SETTLEMENT"],
+        "enum": ["AWAITING_PAYMENT", "PENDING", "SOURCE_SETTLED", "TARGET_SETTLING", "TARGET_SETTLED", "VERIFICATION_FAILED", "BLOCKED", "EXPIRED", "PARTIAL_SETTLEMENT"],
         "description": "Current status of the intent"
       },
       "target_payment": {
@@ -143,6 +143,7 @@ order: 3
 | `TARGET_SETTLING` | Settlement is being processed on the target chain | No |
 | `TARGET_SETTLED` | Success. Funds have arrived at the merchant on the target chain | Yes |
 | `VERIFICATION_FAILED` | Source payment verification failed | Yes |
+| `BLOCKED` | Compliance reject (sanctions / OFAC SDN screen hit); never retried | Yes |
 | `EXPIRED` | Intent was not executed within 10 minutes | Yes |
 | `PARTIAL_SETTLEMENT` | Source settled but target transfer could not be completed | Yes |
 
@@ -234,6 +235,8 @@ AWAITING_PAYMENT
             │
             ├──> VERIFICATION_FAILED (if verification fails)
             │
+            ├──> BLOCKED (if a sanctions screen hits — terminal)
+            │
             └──> SOURCE_SETTLED
                     │
                     └──> TARGET_SETTLING
@@ -262,7 +265,7 @@ AWAITING_PAYMENT
 
 ## Important Notes
 
-1. **Terminal States**: Once status reaches `TARGET_SETTLED`, `EXPIRED`, `VERIFICATION_FAILED`, or `PARTIAL_SETTLEMENT`, it will not change. Stop polling.
+1. **Terminal States**: Once status reaches `TARGET_SETTLED`, `EXPIRED`, `VERIFICATION_FAILED`, `BLOCKED`, or `PARTIAL_SETTLEMENT`, it will not change. Stop polling.
 2. **Polling Interval**: Recommended polling interval is 2-5 seconds. Avoid polling too frequently to respect rate limits (60 req/min/IP).
 3. **Timeout**: Intents expire 10 minutes after creation. If status is still `AWAITING_PAYMENT` after expiration, it will become `EXPIRED`.
 4. **Transaction Receipt**: When status is `TARGET_SETTLED`, save `target_payment.tx_hash` for record-keeping.
@@ -273,7 +276,7 @@ AWAITING_PAYMENT
 ## Best Practices
 
 1. **Polling Strategy**: Use exponential backoff to reduce API calls while maintaining responsiveness.
-2. **Terminal State Detection**: Always check for terminal states (`TARGET_SETTLED`, `EXPIRED`, `VERIFICATION_FAILED`, `PARTIAL_SETTLEMENT`) to stop polling.
+2. **Terminal State Detection**: Always check for terminal states (`TARGET_SETTLED`, `EXPIRED`, `VERIFICATION_FAILED`, `BLOCKED`, `PARTIAL_SETTLEMENT`) to stop polling.
 3. **Error Handling**: Implement proper error handling for network errors and API errors.
 4. **Timeout Handling**: Set a maximum polling duration to avoid infinite loops.
 5. **User Feedback**: Update UI/UX based on status changes during polling.

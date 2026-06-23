@@ -63,7 +63,7 @@ This skill enables AI agents (like OpenClaw) to complete the **entire AgentTech 
       },
       "status": {
         "type": "string",
-        "enum": ["TARGET_SETTLED", "EXPIRED", "VERIFICATION_FAILED", "PARTIAL_SETTLEMENT"],
+        "enum": ["TARGET_SETTLED", "EXPIRED", "VERIFICATION_FAILED", "BLOCKED", "PARTIAL_SETTLEMENT"],
         "description": "Final status of the payment"
       },
       "transaction_hash": {
@@ -127,7 +127,8 @@ async function completeAutomatedPayment(
     finalIntent.status !== 'TARGET_SETTLED' &&
     finalIntent.status !== 'EXPIRED' &&
     finalIntent.status !== 'PARTIAL_SETTLEMENT' &&
-    finalIntent.status !== 'VERIFICATION_FAILED'
+    finalIntent.status !== 'VERIFICATION_FAILED' &&
+    finalIntent.status !== 'BLOCKED'
   ) {
     await new Promise(resolve => setTimeout(resolve, 3000));
     finalIntent = await client.getIntent(intent.intentId);
@@ -864,6 +865,7 @@ async function completeAutomatedPaymentFlow(
     currentIntent.status !== 'EXPIRED' &&
     currentIntent.status !== 'PARTIAL_SETTLEMENT' &&
     currentIntent.status !== 'VERIFICATION_FAILED' &&
+    currentIntent.status !== 'BLOCKED' &&
     attempts < maxAttempts
   ) {
     await new Promise(resolve => setTimeout(resolve, 10000)); // Poll every 10 seconds
@@ -983,7 +985,8 @@ func completeAutomatedPaymentFlow(
         if currentIntent.Status == pay.StatusTargetSettled ||
            currentIntent.Status == pay.StatusExpired ||
            currentIntent.Status == pay.StatusPartialSettlement ||
-           currentIntent.Status == pay.StatusVerificationFailed {
+           currentIntent.Status == pay.StatusVerificationFailed ||
+           currentIntent.Status == pay.StatusBlocked {
             break
         }
 
@@ -1032,6 +1035,7 @@ With authenticated mode, the payment flow is simplified:
 | `TARGET_SETTLED` | Done; merchant received the stablecoin on the target chain (terminal state) |
 | `PARTIAL_SETTLEMENT` | Partial amount settled; remainder not fulfilled (terminal state) |
 | `VERIFICATION_FAILED` | Payment verification failed (terminal state) |
+| `BLOCKED` | Compliance reject (sanctions / OFAC SDN screen hit); never retried (terminal state) |
 | `EXPIRED` | Intent timed out (e.g. 10 min) (terminal state) |
 
 ```
@@ -1041,6 +1045,7 @@ stateDiagram-v2
     AWAITING_PAYMENT --> EXPIRED: timeout
     PENDING --> SOURCE_SETTLED: verify + settle
     PENDING --> VERIFICATION_FAILED: invalid
+    PENDING --> BLOCKED: sanctions screen
     SOURCE_SETTLED --> TARGET_SETTLING: target transfer
     TARGET_SETTLING --> TARGET_SETTLED: done
     TARGET_SETTLING --> PARTIAL_SETTLEMENT: target not completed
@@ -1118,7 +1123,7 @@ async function handlePaymentWithRetry(
 * Initialize authenticated SDK client: `new PayClient()` with API credentials
 * Create intent: `client.createIntent()` (recipient, amount, payer\_chain)
 * Execute payment: `client.executeIntent(intentId)` (backend signs automatically)
-* Poll `client.getIntent(intentId)` until `TARGET_SETTLED` or terminal status
+* Poll `client.getIntent(intentId)` until `TARGET_SETTLED` or a terminal failure (`EXPIRED`, `VERIFICATION_FAILED`, `BLOCKED`, `PARTIAL_SETTLEMENT`)
 * Handle errors with retry logic for transient failures
 * Store API credentials securely for future use
 

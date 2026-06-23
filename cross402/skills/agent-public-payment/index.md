@@ -60,7 +60,7 @@ This skill enables AI agents to complete cross-chain stablecoin payments **end-t
       },
       "status": {
         "type": "string",
-        "enum": ["TARGET_SETTLED", "EXPIRED", "VERIFICATION_FAILED", "PARTIAL_SETTLEMENT"],
+        "enum": ["TARGET_SETTLED", "EXPIRED", "VERIFICATION_FAILED", "BLOCKED", "PARTIAL_SETTLEMENT"],
         "description": "Final status of the payment"
       },
       "transaction_hash": {
@@ -84,7 +84,7 @@ This skill enables AI agents to complete cross-chain stablecoin payments **end-t
 1. **Generate and save wallets** (EVM for Base, Solana) — see Step 1: Generate Wallets.
 2. **Create payment intent** — Use SDK `createIntent()` with `email` or `recipient`, `amount`, `payer_chain` → get `intent_id` and `payment_requirements`.
 3. **Sign X402 locally** using `payment_requirements` and your wallet private key → produce `settle_proof` (base64 string). See Step 2: Sign and Produce settle\_proof.
-4. **Submit proof** — Use SDK `submitProof(intentId, settleProof)`, then **poll** `getIntent(intentId)` until `status` is `TARGET_SETTLED` (success) or a terminal failure (`EXPIRED`, `VERIFICATION_FAILED`, `PARTIAL_SETTLEMENT`).
+4. **Submit proof** — Use SDK `submitProof(intentId, settleProof)`, then **poll** `getIntent(intentId)` until `status` is `TARGET_SETTLED` (success) or a terminal failure (`EXPIRED`, `VERIFICATION_FAILED`, `BLOCKED`, `PARTIAL_SETTLEMENT`).
 
 ### Complete Example (TypeScript)
 
@@ -132,7 +132,8 @@ async function completeX402Payment(recipient: string, amount: string) {
     finalIntent.status !== 'TARGET_SETTLED' &&
     finalIntent.status !== 'PARTIAL_SETTLEMENT' &&
     finalIntent.status !== 'EXPIRED' &&
-    finalIntent.status !== 'VERIFICATION_FAILED'
+    finalIntent.status !== 'VERIFICATION_FAILED' &&
+    finalIntent.status !== 'BLOCKED'
   ) {
     await new Promise(resolve => setTimeout(resolve, 3000));
     finalIntent = await client.getIntent(intent.intentId);
@@ -969,6 +970,7 @@ async function completeX402PaymentFlow(
     currentIntent.status !== 'PARTIAL_SETTLEMENT' &&
     currentIntent.status !== 'EXPIRED' &&
     currentIntent.status !== 'VERIFICATION_FAILED' &&
+    currentIntent.status !== 'BLOCKED' &&
     attempts < maxAttempts
   ) {
     await new Promise(resolve => setTimeout(resolve, 10000)); // Poll every 10 seconds
@@ -1118,7 +1120,8 @@ func completeX402PaymentFlow(
         if currentIntent.Status == pay.StatusTargetSettled ||
            currentIntent.Status == pay.StatusPartialSettlement ||
            currentIntent.Status == pay.StatusExpired ||
-           currentIntent.Status == pay.StatusVerificationFailed {
+           currentIntent.Status == pay.StatusVerificationFailed ||
+           currentIntent.Status == pay.StatusBlocked {
             break
         }
 
@@ -1163,6 +1166,7 @@ After you submit `settle_proof`, the backend verifies it and settles on the paye
 | `TARGET_SETTLED` | Done; merchant received the stablecoin on the target chain |
 | `PARTIAL_SETTLEMENT` | Partial amount settled; remainder not fulfilled |
 | `VERIFICATION_FAILED` | Proof invalid or settlement failed |
+| `BLOCKED` | Compliance reject (sanctions / OFAC SDN screen hit); never retried |
 | `EXPIRED` | Intent timed out (e.g. 10 min) |
 
 **Valid payer\_chain:** See [Supported Chains](../../../introduction/supported-networks/) for the full list.
@@ -1174,6 +1178,7 @@ stateDiagram-v2
     AWAITING_PAYMENT --> EXPIRED: timeout
     PENDING --> SOURCE_SETTLED: verify + settle
     PENDING --> VERIFICATION_FAILED: invalid
+    PENDING --> BLOCKED: sanctions screen
     SOURCE_SETTLED --> TARGET_SETTLING: target transfer
     TARGET_SETTLING --> TARGET_SETTLED: done
     TARGET_SETTLING --> PARTIAL_SETTLEMENT: target not completed
@@ -1254,7 +1259,7 @@ async function handlePaymentWithRetry(
   + Solana: 3-instruction VersionedTransaction v0
 * Build X402 v2 payload and set **settle\_proof** = Base64(JSON.stringify(payload))
 * Submit: `client.submitProof(intentId, settleProof)`
-* Poll `client.getIntent(intentId)` until `TARGET_SETTLED` (success) or a terminal failure (`EXPIRED`, `VERIFICATION_FAILED`, `PARTIAL_SETTLEMENT`)
+* Poll `client.getIntent(intentId)` until `TARGET_SETTLED` (success) or a terminal failure (`EXPIRED`, `VERIFICATION_FAILED`, `BLOCKED`, `PARTIAL_SETTLEMENT`)
 * Handle errors with retry logic for transient failures
 
 ---

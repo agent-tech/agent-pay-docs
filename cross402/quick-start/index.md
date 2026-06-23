@@ -91,6 +91,6 @@ Ideal for e-commerce checkouts where the actual user (payer) must sign with thei
 
 * **Code**: `await client.submitProof(intentId, settleProof);`
 
-Poll `client.getIntent(intentId)` until `status === "TARGET_SETTLED"` (success) or one of the terminal failure states (`EXPIRED`, `VERIFICATION_FAILED`, `PARTIAL_SETTLEMENT`). The full state machine is in [Statuses](../concepts/statuses/).
+Poll `client.getIntent(intentId)` until `status === "TARGET_SETTLED"` (success) or one of the terminal failure states (`EXPIRED`, `VERIFICATION_FAILED`, `BLOCKED`, `PARTIAL_SETTLEMENT`). The full state machine is in [Statuses](../concepts/statuses/).
 
 ---

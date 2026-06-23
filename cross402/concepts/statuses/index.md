@@ -44,11 +44,14 @@ Understand the lifecycle of a Cross402 Intent.
 | `AWAITING_PAYMENT` | Intent created; waiting for the payer to initiate transfer. |
 | `PENDING` | Execution initiated, processing. |
 | `VERIFICATION_FAILED` | Source payment verification failed (terminal). |
+| `BLOCKED` | Compliance reject — a sanctions (OFAC SDN) screen hit. Terminal and never retried; distinct from `VERIFICATION_FAILED`. |
 | `SOURCE_SETTLED` | Payment confirmed on the source (payer) chain. |
 | `TARGET_SETTLING` | Settlement is being processed on the target chain. |
 | `TARGET_SETTLED` | Success. Funds have arrived at the merchant on the target chain (terminal). |
 | `PARTIAL_SETTLEMENT` | Source settled but target transfer could not be completed; remainder requires reconciliation (terminal). |
 | `EXPIRED` | Intent was not executed within 10 minutes (terminal). |
+
+> `BLOCKED` is a sibling of `VERIFICATION_FAILED` in the lifecycle above — a terminal rejection reached from screening rather than a normal verification failure. The two are kept distinct so callers can tell a compliance block (never retry, never re-create with the same parties) apart from a transient verification error.
 
 ### Rollback: `TARGET_SETTLING → SOURCE_SETTLED`
 
@@ -77,6 +80,8 @@ import { IntentStatus } from '@cross402/usdc';
 | `IntentStatus.PartialSettlement` | `"PARTIAL_SETTLEMENT"` |
 | `IntentStatus.Expired` | `"EXPIRED"` |
 
+> The JS/TS SDK does not yet ship a constant for `BLOCKED`; when the backend returns a compliance reject, `intent.status` surfaces the raw string `"BLOCKED"`. Compare against the literal until a constant is added.
+
 ### Go
 
 | Constant | Value |
@@ -84,6 +89,7 @@ import { IntentStatus } from '@cross402/usdc';
 | `pay.StatusAwaitingPayment` | `"AWAITING_PAYMENT"` |
 | `pay.StatusPending` | `"PENDING"` |
 | `pay.StatusVerificationFailed` | `"VERIFICATION_FAILED"` |
+| `pay.StatusBlocked` | `"BLOCKED"` |
 | `pay.StatusSourceSettled` | `"SOURCE_SETTLED"` |
 | `pay.StatusTargetSettling` | `"TARGET_SETTLING"` |
 | `pay.StatusTargetSettled` | `"TARGET_SETTLED"` |
@@ -97,4 +103,5 @@ The following states are terminal — the intent will not transition to any othe
 * `TARGET_SETTLED` — Success
 * `EXPIRED` — Timeout
 * `VERIFICATION_FAILED` — Verification error
+* `BLOCKED` — Compliance reject (sanctions screen hit); never retried
 * `PARTIAL_SETTLEMENT` — Source settled, target did not complete

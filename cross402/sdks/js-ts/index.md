@@ -48,6 +48,25 @@ if (intent.status === IntentStatus.TargetSettled) {
 
 The settlement quote (`sendingAmount`, `receivingAmount`, `estimatedFee`, `feeBreakdown`) is always present on `createIntent` / `executeIntent` responses but **optional** on `GetIntentResponse` — the backend only fills these in once the intent leaves its initial state. Always null-check them when polling.
 
+### Amount: ExactOut vs ExactIn
+
+`createIntent` takes the amount on exactly one of two fields — set one, never both:
+
+* `amount` — **ExactOut**: the merchant receives exactly this dollar amount (the payer covers it plus fees).
+* `toAmount` — **ExactIn**: the payer sends exactly this dollar amount and the merchant receives the remainder after fees.
+
+```typescript
+// ExactIn — payer spends exactly $5.00; omit `amount`.
+const intent = await client.createIntent({
+  email: "merchant@example.com",
+  toAmount: "5.00",
+  payerChain: "base",
+  targetChain: "ethereum",
+});
+```
+
+Pass the optional `payerAddress` to have the payer wallet screened advisorily against sanctions lists at create time (the authoritative screen still runs during settlement).
+
 ### Discovering enabled chains
 
 Both clients expose `listSupportedChains()` (backed by `GET /api/chains`):
@@ -208,6 +227,25 @@ const cross = await client.getSwapQuote({
 });
 ```
 
+> **Address resolution by email**: instead of `userAddress` / `toUserAddress` you can pass `email` / `toUserEmail`, and the backend resolves each to the corresponding wallet address. An explicit address wins when both are supplied.
+
+### getSwapApproval
+
+When you broadcast the swap yourself (instead of using `executeSwap`), check the ERC-20 allowance first. `getSwapApproval` returns the approval transaction(s) to sign only when `needsApproval` is `true` — Solana and native-token swaps need none. Some tokens (e.g. USDT) also return a `cancel` transaction that resets the allowance to zero before the new approval can be granted. Pass `userAddress` or `email`.
+
+```typescript
+const appr = await client.getSwapApproval({
+  chain: "base",
+  token: "0x4200000000000000000000000000000000000006", // spend token
+  amount: 1_000_000_000_000_000_000,                   // smallest unit
+  tokenOut: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", // output token
+  userAddress: "0xYourWallet", // or: email: "you@example.com"
+});
+if (appr.needsApproval) {
+  // sign & broadcast appr.cancel (if present) then appr.approval before swapping
+}
+```
+
 ### registerSwapIntent
 
 After the swap transaction is broadcast on-chain, register its hash to have Cross402 track settlement. Returns an `intentId` you can poll with `getIntent`.
@@ -224,6 +262,19 @@ const { intentId, status } = await client.registerSwapIntent({
   sendingTokenAmount: "1000000000000000000",
 });
 // status: "PENDING" — poll with client.getIntent(intentId)
+```
+
+### getSwapStatus
+
+For cross-chain swaps, poll settlement by source-chain transaction hash. The call returns HTTP 404 (a `PayRequestError`) until the source chain settles — typically 30 s+ — so retry. `fromChain` / `toChain` / `bridge` are optional hints that speed up the lookup.
+
+```typescript
+const status = await client.getSwapStatus({
+  txHash: "0xabc...",
+  fromChain: "base",
+  toChain: "solana",
+});
+console.log(status.status, status.destTxHash); // e.g. "DONE" "0xdef..."
 ```
 
 ### Discovery
@@ -298,6 +349,8 @@ import { IntentStatus } from "@cross402/usdc";
 | `IntentStatus.VerificationFailed` | `"VERIFICATION_FAILED"` | Yes |
 | `IntentStatus.PartialSettlement` | `"PARTIAL_SETTLEMENT"` | Yes |
 | `IntentStatus.Expired` | `"EXPIRED"` | Yes |
+
+> The backend can also return `"BLOCKED"` — a terminal compliance reject (sanctions screen hit). The SDK does not yet ship a constant for it, so compare `intent.status` against the literal `"BLOCKED"`. See [Intent Statuses](../../concepts/statuses/).
 
 ## Skills
 
