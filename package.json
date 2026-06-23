@@ -30,5 +30,10 @@
   },
   "dependencies": {
     "gitbook-plugin-theme-official": "^2.1.1"
+  },
+  "overrides": {
+    "tmp": "^0.2.6",
+    "qs": "^6.15.2",
+    "undici": "^6.27.0"
   }
 }
